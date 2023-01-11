@@ -967,6 +967,11 @@ void Intro()
 		GameState = GSTitleScreenInit;
 	}
 
+	if (currButtons & kButtonUp)
+	{
+		debugMode = true;
+	}
+
 	if (NeedRedraw)
 	{
 		NeedRedraw = false;
