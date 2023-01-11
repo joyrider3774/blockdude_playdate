@@ -22,7 +22,6 @@ void CWorldParts_CenterVPOnPlayer(CWorldParts* self)
 			CViewPort_SetViewPort(self->ViewPort, self->Items[Teller]->PlayFieldX - 12, self->Items[Teller]->PlayFieldY - 7, self->Items[Teller]->PlayFieldX + 12, self->Items[Teller]->PlayFieldY + 7);
 			break;
 		}
-
 }
 
 void CWorldParts_LimitVPLevel(CWorldParts* self)

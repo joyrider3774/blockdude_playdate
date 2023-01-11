@@ -14,4 +14,5 @@ void setMusicOnSaveState(int value);
 void setSoundOnSaveState(int value);
 void setSkinSaveState(int value);
 void setInvertedSaveState(int value);
+
 #endif

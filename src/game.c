@@ -756,12 +756,11 @@ void Game()
 					if ((WorldParts->Items[teller]->PlayFieldX == ThePlayer->PlayFieldX) &&
 						(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY - 1) &&
 						(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseLeft))
-					{  // and it can move to the left
+					{  
+						// and it can move to the left
 						if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY)))
 						{
-							//                                printf("Deattach\n");
-															//move it to the left
-
+							//move it to the left
 							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY);
 							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY + 1);
 							CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
@@ -775,8 +774,7 @@ void Game()
 						{   //and it can be moved to the right
 							if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY)))
 							{
-								//                                printf("Deattach\n");
-																//move it to right
+								//move it to right
 								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY);
 								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY + 1);
 								CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
@@ -795,7 +793,6 @@ void Game()
 							(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY) &&
 							(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseLeft))
 						{
-
 							//see if there is a floor or block beneath the block
 							for (int teller2 = 0; teller2 < WorldParts->ItemCount; teller2++)
 							{
@@ -811,8 +808,7 @@ void Game()
 								if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1)) &&
 									(CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY - 1)))
 								{
-									//                                    printf("Attach\n");
-																		//Attach the block to the player & move the block
+									//Attach the block to the player & move the block
 									CWorldPart_AttachToPlayer(WorldParts->Items[teller], ThePlayer);
 									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
 									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY - 1);
@@ -840,8 +836,7 @@ void Game()
 									if (CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1) &&
 										CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY - 1))
 									{
-										//                                    printf("Attach\n");
-																			//Attach the block to the player & move the block
+										//Attach the block to the player & move the block
 										CWorldPart_AttachToPlayer(WorldParts->Items[teller], ThePlayer);
 										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
 										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY - 1);
@@ -872,7 +867,6 @@ void Game()
 	if (!NeedRedraw && (framecounter > 0))
 	{
 		framecounter--;
-		//pd->graphics->clear(kColorWhite);
 		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);
@@ -883,7 +877,6 @@ void Game()
 	{
 		NeedRedraw = false;
 		framecounter = 1;
-		//pd->graphics->clear(kColorWhite);
 		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);

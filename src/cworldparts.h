@@ -1,7 +1,6 @@
 #ifndef CWORLDPARTS_H
 #define CWORLDPARTS_H
 
-
 #include "commonvars.h"
 #include "cviewport.h"
 
@@ -15,7 +14,6 @@ struct CWorldParts {
 	int ItemCount;
 };
 
-
 CWorldParts* CWorldParts_Create();
 void CWorldParts_CenterVPOnPlayer(CWorldParts* self);
 void CWorldParts_LimitVPLevel(CWorldParts* self);
@@ -28,6 +26,5 @@ void CWorldParts_Load(CWorldParts* self, char* Filename);
 void CWorldParts_Move(CWorldParts* self);
 void CWorldParts_Draw(CWorldParts* self);
 void CWorldParts_deinit(CWorldParts* self);
-
 
 #endif

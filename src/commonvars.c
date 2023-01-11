@@ -23,9 +23,10 @@ LCDFont* Nano, * Mini, * Mini2X;
 int GameState = GSIntroInit;
 int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic;
 bool AskingQuestion = false;
-CWorldParts* WorldParts;
 int IntroScreenNr = 1;
 int framecounter = 0;
+
+CWorldParts* WorldParts;
 CWorldPart* ThePlayer;
 
 void setPDPtr(PlaydateAPI* p) {

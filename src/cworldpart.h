@@ -13,7 +13,7 @@ struct SPoint {
     int X, Y;
 };
 
-typedef struct CWorldParts CWorldParts2;
+typedef struct CWorldParts CWorldParts;
 typedef struct CWorldPart CWorldPart;
 struct CWorldPart {
 	int MoveDelayCounter;
@@ -25,7 +25,7 @@ struct CWorldPart {
 	bool PickupLeft, PickupRight;
 	CWorldPart *Player;
 	bool AttachedToPlayer;
-	CWorldParts2 *ParentList;
+	CWorldParts *ParentList;
 	bool IsMoving;
 	bool Selected;
 	bool NeedToMoveLeft;
@@ -33,8 +33,6 @@ struct CWorldPart {
 	bool NeedToMoveRight;
 	int AnimCounter, AnimBase, AnimDelay, AnimDelayCounter, AnimPhases;
 };
-
-
 
 CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, const int Typein, const int Zin, const int GroupIn);
 void CWorldPart_MoveQueClear(CWorldPart* self);

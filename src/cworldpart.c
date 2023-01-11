@@ -307,11 +307,8 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 	{
 		//floorfound check moet hier gebeuren zodat wanneer men van een "blok springt" naar benede valt en niet blijft voortschuiven
 		bool FloorFound = false;
-		//printf("Arrive Event fired\n");
 		if (self->ParentList)
 		{
-
-			//printf("Parent List Set\n");
 			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 			{
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
@@ -458,8 +455,6 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 								if (!FloorFound)
 									CanJump = false;
 							}
-
-							//printf("Can jump\n");
 						}
 						//if the place on top the block is not empty
 						if (((((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX - 1) && (self->AnimBase == AnimBaseLeft)) ||
@@ -473,8 +468,6 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 								break;
 							}
 						}
-
-
 						// if the result is always true we will have checked all boxes to see if they are attached or not
 						//check for an attached box
 					}
@@ -575,7 +568,6 @@ void CWorldPart_Move(CWorldPart* self)
 	case IDPlayer:
 		if (self->ParentList)
 		{
-			//printf("Parent List Set\n");
 			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 			{
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
@@ -667,6 +659,7 @@ void CWorldPart_Move(CWorldPart* self)
 			CWorldPart_Event_ArrivedOnNewSpot(self);
 			self->FirstArriveEventFired = true;
 		}
+
 		if (self->IsMoving)
 		{
 			if (self->MoveDelayCounter == self->MoveDelay)
@@ -741,8 +734,6 @@ void CWorldPart_Move(CWorldPart* self)
 
 void CWorldPart_Draw(CWorldPart* self)
 {
-	//printf("Start draw type:%d\n",Type);
-
 	LCDBitmapTable* Img = NULL;
 
 	switch (self->Type)
@@ -856,6 +847,5 @@ void CWorldPart_Draw(CWorldPart* self)
 			rectangleRGBA(Surface, self->X, self->Y, self->X + TileWidth - 1, self->Y + TileHeight - 1, 0, 0, 255, 50);
 		}
 	}
-	//printf("End draw type:%d\n",Type);
 	*/
 }

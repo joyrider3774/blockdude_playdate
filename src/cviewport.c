@@ -6,7 +6,6 @@ void CViewPort_SetVPLimit(CViewPort* self, int MinX, int MinY, int MaxX, int Max
 	if ((MinX < NrOfCols) && (MinX >= 0) && (MaxX < NrOfCols) && (MaxX >= 0) &&
 		(MinY < NrOfRows) && (MinY >= 0) && (MaxY < NrOfRows) && (MaxY >= 0))
 	{
-		//printf("Limit Success\n");
 		self->VPLimitMinX = MinX;
 		self->VPLimitMinY = MinY;
 		self->VPLimitMaxX = MaxX;
@@ -14,7 +13,6 @@ void CViewPort_SetVPLimit(CViewPort* self, int MinX, int MinY, int MaxX, int Max
 	}
 	else
 	{
-		// printf("Limit Failed\n");
 		self->VPLimitMinX = 0;
 		self->VPLimitMinY = 0;
 		self->VPLimitMaxX = NrOfCols - 1;

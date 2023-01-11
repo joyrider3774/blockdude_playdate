@@ -15,7 +15,7 @@ int valid;
 
 unsigned int encrypt(unsigned int filepos, unsigned int time, void* data, unsigned int size, bool returnOriginalPos)
 {
-#define keySize 21
+    #define keySize 21
     const unsigned char key[keySize] = { 0x58, 0x030, 0x49, 0x53, 0x67, 0x68, 0x68, 0x41, 0x4E, 0x36, 0x78, 0x69, 0x75, 0x33, 0x70, 0x58, 0x42, 0x78, 0x76, 0x46, 0x5C };
     for (unsigned i = 0; i < size; i++)
     {
@@ -303,7 +303,6 @@ void validateSaveState(void)
             valid = 0;
         }
     }
-
 
     if (!valid)
     {

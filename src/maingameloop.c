@@ -57,9 +57,11 @@ int mainLoop(void* ud)
         default:
             break;
     }
+
     if (debugMode)
     {
         pd->system->drawFPS(0, 0);
     }
+
 	return result;
 }
