@@ -61,7 +61,7 @@ int isSoundOn(void)
 FilePlayer* loadSoundFile(const char* path)
 {
     FilePlayer* soundPlayer = pd->sound->fileplayer->newPlayer();
-    pd->sound->fileplayer->setStopOnUnderrun(soundPlayer, 1);
+    pd->sound->fileplayer->setStopOnUnderrun(soundPlayer, 0);
     pd->sound->fileplayer->setVolume(soundPlayer, 0.7f, 0.7f);
     pd->sound->fileplayer->setRate(soundPlayer, 1.0f);
     pd->sound->fileplayer->loadIntoPlayer(soundPlayer, path);
@@ -117,7 +117,7 @@ void initMusic(void)
 {
     prev_music = -1;
     musicPlayer = pd->sound->fileplayer->newPlayer();
-    pd->sound->fileplayer->setStopOnUnderrun(musicPlayer, 1);
+    pd->sound->fileplayer->setStopOnUnderrun(musicPlayer, 0);
     pd->sound->fileplayer->setVolume(musicPlayer, 0.75f, 0.75f);
     pd->sound->fileplayer->setRate(musicPlayer, 1.0f);
 }
