@@ -459,7 +459,7 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 									CanJump = false;
 							}
 
-							printf("Can jump\n");
+							//printf("Can jump\n");
 						}
 						//if the place on top the block is not empty
 						if (((((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX - 1) && (self->AnimBase == AnimBaseLeft)) ||
