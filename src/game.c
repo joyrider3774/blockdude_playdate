@@ -934,7 +934,7 @@ void Game(void)
 		//move up
 		if (currButtons & kButtonUp)
 		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX, ThePlayer->PlayFieldY - 1, false);
+			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX, ThePlayer->PlayFieldY - 1);	
 			NeedRedraw = true;
 		}
 		//pickup 
@@ -957,6 +957,7 @@ void Game(void)
 							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY + 1);
 							CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
 							NeedRedraw = true;
+							playDropSound();
 						}
 					}
 					else // if there is block on top of theplayer were facing right
@@ -971,6 +972,7 @@ void Game(void)
 								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY + 1);
 								CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
 								NeedRedraw = true;
+								playDropSound();
 							}
 
 						}
@@ -1005,6 +1007,7 @@ void Game(void)
 									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
 									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY - 1);
 									NeedRedraw = true;
+									playPickupSound();
 								}
 						}
 						else
@@ -1033,6 +1036,7 @@ void Game(void)
 										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
 										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY - 1);
 										NeedRedraw = true;
+										playPickupSound();
 									}
 							}
 					}
@@ -1040,12 +1044,12 @@ void Game(void)
 		}
 		if (currButtons & kButtonLeft)
 		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX - 1, ThePlayer->PlayFieldY, false);
+			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX - 1, ThePlayer->PlayFieldY);
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonRight)
 		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX + 1, ThePlayer->PlayFieldY, false);
+			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX + 1, ThePlayer->PlayFieldY);
 			NeedRedraw = true;
 		}
 

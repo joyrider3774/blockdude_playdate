@@ -12,7 +12,11 @@ FilePlayer* errorSound;
 FilePlayer* menuSound;
 FilePlayer* menuSelectSound;
 FilePlayer* menuBackSound;
-
+FilePlayer* pickupSound;
+FilePlayer* dropSound;
+FilePlayer* jumpSound;
+FilePlayer* walkSound;
+FilePlayer* fallSound;
 
 void stopMusic(void)
 {
@@ -76,6 +80,11 @@ void initSound(void)
     menuSelectSound = loadSoundFile("sound/select");
     menuSound = loadSoundFile("sound/menu");
     menuBackSound = loadSoundFile("sound/back");
+    pickupSound = loadSoundFile("sound/pickup");
+    dropSound = loadSoundFile("sound/drop");
+    jumpSound = loadSoundFile("sound/jump");
+    walkSound = loadSoundFile("sound/walk");
+    fallSound = loadSoundFile("sound/fall");
 }
 
 void playMusicFile(const char* path, int repeat)
@@ -120,7 +129,7 @@ void initMusic(void)
     prev_music = -1;
     musicPlayer = pd->sound->fileplayer->newPlayer();
     pd->sound->fileplayer->setStopOnUnderrun(musicPlayer, 0);
-    pd->sound->fileplayer->setVolume(musicPlayer, 0.75f, 0.75f);
+    pd->sound->fileplayer->setVolume(musicPlayer, 0.55f, 0.55f);
     pd->sound->fileplayer->setRate(musicPlayer, 1.0f);
 }
 
@@ -133,6 +142,24 @@ void playSound(FilePlayer* soundPlayer)
     pd->sound->fileplayer->play(soundPlayer, 1);   
 }
 
+void playJumpSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    playSound(jumpSound);
+}
+
+void playFallSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    playSound(fallSound);
+}
+
 void playLevelDoneSound(void)
 {
     if(!sound_on)
@@ -140,6 +167,15 @@ void playLevelDoneSound(void)
         return;
     }
     playSound(levelDoneSound);
+}
+
+void playWalkSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    playSound(walkSound);
 }
 
 void playErrorSound(void)
@@ -167,6 +203,25 @@ void playMenuBackSound(void)
         return;
     }
     playSound(menuBackSound);
+}
+
+void playPickupSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    playSound(pickupSound);
+}
+
+void playDropSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    if(!pd->sound->fileplayer->isPlaying(dropSound))
+        playSound(dropSound);
 }
 
 void playMenuSound(void)
