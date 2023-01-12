@@ -806,7 +806,7 @@ void TitleScreen()
 				pd->graphics->drawText("Sound Off", strlen("Sound Off"), kASCIIEncoding, 140, 100);
 			}
 
-			pd->system->formatString(&Text, "Skin: %s", skins[skinSaveState()]);
+			pd->system->formatString(&Text, "%s skin", skins[skinSaveState()]);
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 120);
 			pd->system->realloc(Text, 0);
 
@@ -898,8 +898,8 @@ void Game(void)
 
 	if (FreeView)
 	{
-		if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)) || 
-			(currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+		if (((currButtons & kButtonB) && (!(prevButtons & kButtonB))) || 
+			((currButtons & kButtonA) && (!(prevButtons & kButtonA))))
 		{
 			FreeView = false;
 			CWorldParts_CenterVPOnPlayer(WorldParts);
