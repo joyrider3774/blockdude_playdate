@@ -14,6 +14,7 @@ void playMenuSound(void);
 void playMenuSelectSound(void);
 void playErrorSound(void);
 void playLevelDoneSound(void);
+void playMenuBackSound(void);
 void setMusicOn(int value);
 void setSoundOn(int value);
 int isMusicOn(void);

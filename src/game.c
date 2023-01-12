@@ -299,6 +299,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			AskingQuestion = false;
 			NeedRedraw = true;
 			AskingQuestionID = -1;
+			playMenuSelectSound();
 			return true;
 		}
 
@@ -308,6 +309,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			AskingQuestion = false;
 			NeedRedraw = true;
 			AskingQuestionID = -1;
+			playMenuBackSound();
 			return true;
 		}
 	}
@@ -339,18 +341,158 @@ CWorldPart* FindPlayer()
 	return Player;
 }
 
-void StageSelectInit()
+void LoadSelectedLevel(void)
 {
 	char* Filename;
-	pd->graphics->setFont(Mini);
-	if (SelectedLevel > 0)
+	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
 	{
 		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
 		CWorldParts_Load(WorldParts, Filename);
 		ThePlayer = FindPlayer();
 		pd->system->realloc(Filename, 0);
 	}
+}
+
+void OtherMenuItemCallback(void* userdata)
+{
+	if (userdata == &menuItem1)
+	{
+		int tmp = pd->system->getMenuItemValue(menuItem1);
+		if (tmp == 0)
+		{
+			setMusicOnSaveState(true);
+			setMusicOn(isMusicOnSaveState());
+		}
+		else
+		{
+			setMusicOnSaveState(false);
+			setMusicOn(isMusicOnSaveState());
+		}
+		NeedRedraw = true;
+	}
+
+	if (userdata == &menuItem2)
+	{
+		int tmp = pd->system->getMenuItemValue(menuItem2);
+		if (tmp == 0)
+		{
+			setInvertedSaveState(false);
+			pd->display->setInverted(isInvertedSaveState());
+		}
+		else
+		{
+			setInvertedSaveState(true);
+			pd->display->setInverted(isInvertedSaveState());
+		}
+		NeedRedraw = true;
+	}
+
+	if (userdata == &menuItem3)
+	{
+		int tmp = pd->system->getMenuItemValue(menuItem3);
+		setSkinSaveState(tmp);
+		LoadGraphics();
+		NeedRedraw = true;
+	}
+}
+
+void CreateOtherMenuItems()
+{
+	const char* onOff[] = { "On", "Off" };
+	if (menuItem1 == NULL)
+	{
+		menuItem1 = pd->system->addOptionsMenuItem("Music", onOff, 2, OtherMenuItemCallback, &menuItem1);
+		if(isMusicOnSaveState())
+			pd->system->setMenuItemValue(menuItem1, 0);
+		else
+			pd->system->setMenuItemValue(menuItem1, 1);
+	}
+	
+	const char* normalInverted[] = { "Normal", "Inverted" };
+	if (menuItem2 == NULL)
+	{
+		menuItem2 = pd->system->addOptionsMenuItem("Colors", normalInverted, 2, OtherMenuItemCallback, &menuItem2);
+		if(isInvertedSaveState())
+			pd->system->setMenuItemValue(menuItem2, 1);
+		else
+			pd->system->setMenuItemValue(menuItem2, 0);
+	}
+	
+	if (menuItem3 == NULL)
+	{
+		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, OtherMenuItemCallback, &menuItem3);
+		pd->system->setMenuItemValue(menuItem3, skin);
+	}
+}
+
+void GameMenuItemCallback(void* userdata)
+{
+	if (userdata == &menuItem1)
+	{
+		LoadSelectedLevel();
+		NeedRedraw = true;
+	}
+
+	if (userdata == &menuItem2)
+	{
+		FreeView = true;
+		NeedRedraw = true;
+	}
+
+	if (userdata == &menuItem3)
+	{
+		int tmp = pd->system->getMenuItemValue(menuItem3);
+		setSkinSaveState(tmp);
+		LoadGraphics();
+		NeedRedraw = true;
+	}
+}
+
+void CreateGameMenuItems()
+{
+	if (menuItem1 == NULL)
+	{
+		menuItem1 = pd->system->addMenuItem("Restart Level", GameMenuItemCallback, &menuItem1);
+	}
+	if (menuItem2 == NULL)
+	{
+		menuItem2 = pd->system->addMenuItem("Free View", GameMenuItemCallback, &menuItem2);
+	}
+	if (menuItem3 == NULL)
+	{
+		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, GameMenuItemCallback, &menuItem3);
+		pd->system->setMenuItemValue(menuItem3, skin);
+	}
+}
+
+void DestroyMenuItems(void)
+{
+	if (menuItem1)
+	{
+		pd->system->removeMenuItem(menuItem1);
+		menuItem1 = NULL;
+	}
+	if (menuItem2)
+	{
+		pd->system->removeMenuItem(menuItem2);
+		menuItem2 = NULL;
+	}
+	if (menuItem3)
+	{
+		pd->system->removeMenuItem(menuItem3);
+		menuItem3 = NULL;
+	}
+}
+
+
+
+void StageSelectInit()
+{
+
+	pd->graphics->setFont(Mini);
+	LoadSelectedLevel();
 	NeedRedraw = true;
+	CreateOtherMenuItems();
 }
 
 void StageSelect()
@@ -366,60 +508,61 @@ void StageSelect()
 	{
 		GameState = GSTitleScreenInit;
 		CWorldParts_RemoveAll(WorldParts);
+		playMenuBackSound();
 	}
 
 	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
 	{
-		playMenuSound();
+		playMenuSelectSound();
 		if (SelectedLevel <= lastUnlockedLevel())
 			GameState = GSGameInit;
 		else
 		{
 			char* Text;
-			pd->system->formatString(&Text, "This Level Hasn't been unlocked yet!\nDo you want to play the last unlocked\nlevel %d/%d?\n\nPress (A) to Play (B) to Cancel", lastUnlockedLevel(), InstalledLevels);
+			pd->system->formatString(&Text, "This Level Hasn't been unlocked yet!\nDo you want to play the last unlocked\nlevel %d/%d?\n\nPress (A) to Play (B) to cancel", lastUnlockedLevel(), InstalledLevels);
 			AskQuestion(1, Text);
 			pd->system->realloc(Text, 0);
+			DestroyMenuItems();
 		}
 	}
 
 
 	if (!AskingQuestion && (currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 	{
+		playMenuSound();
 		NeedRedraw = true;
-		SelectedLevel--;
-
+		SelectedLevel--;		
 		if (SelectedLevel < 1)
 			SelectedLevel = 1;
-		char* Filename;
-		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_Load(WorldParts, Filename);
-		pd->system->realloc(Filename, 0);
+		LoadSelectedLevel();
 	}
 
 	if (!AskingQuestion && (currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
 	{
+		playMenuSound();
 		NeedRedraw = true;
-		char* Filename;
 		SelectedLevel++;
 		if (SelectedLevel > InstalledLevels)
 			SelectedLevel = InstalledLevels;
-		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_Load(WorldParts, Filename);
-		pd->system->realloc(Filename, 0);
+		LoadSelectedLevel();
 	}
 
 	int id;
 	bool answer;
 	if (AskQuestionUpdate(&id, &answer, false))
 	{
-		if ((id == 1) && answer)
+		if (id == 1)
 		{
-			char* Filename;
-			SelectedLevel = lastUnlockedLevel();
-			pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-			CWorldParts_Load(WorldParts, Filename);
-			pd->system->realloc(Filename, 0);
-			GameState = GSGameInit;
+			if (answer)
+			{
+				SelectedLevel = lastUnlockedLevel();
+				LoadSelectedLevel();
+				GameState = GSGameInit;
+			}
+			else
+			{
+				CreateOtherMenuItems();
+			}
 		}
 	}
 	
@@ -442,8 +585,9 @@ void StageSelect()
 	}
 }
 
-void TitleScreenInit()
+void TitleScreenInit(void)
 {
+	CreateOtherMenuItems();
 	SelectMusic(musTitle);
 	NeedRedraw = true;
 }
@@ -503,13 +647,13 @@ void TitleScreen()
 		case tsOptions:
 			titleStep = tsMainMenu;
 			titleSelection = mmOptions;
-			playMenuSelectSound();
+			playMenuBackSound();
 			NeedRedraw = true;
 			break;
 		case tsCredits:
 			titleStep = tsMainMenu;
 			titleSelection = mmCredits;
-			playMenuSelectSound();
+			playMenuBackSound();
 			NeedRedraw = true;
 			break;
 		}
@@ -550,7 +694,13 @@ void TitleScreen()
 				playMenuSelectSound();
 				setMusicOn(!isMusicOn());
 				setMusicOnSaveState(isMusicOn());
-				//pd->system->setMenuItemValue(musicOptionMenuItem, isMusicOnSaveState());
+				if (menuItem1)
+				{
+					if (isMusicOnSaveState())
+						pd->system->setMenuItemValue(menuItem1, 0);
+					else
+						pd->system->setMenuItemValue(menuItem1, 1);
+				}
 				NeedRedraw = true;
 				break;
 			case opSound:
@@ -566,14 +716,27 @@ void TitleScreen()
 				if (i == MAXSKINS)
 					i = 0;
 				setSkinSaveState(i);
-				//pd->system->setMenuItemValue(SkinOptionMenuItem, skinSaveState());
 				LoadGraphics();
+				if (menuItem3)
+				{
+					if (isMusicOnSaveState())
+						pd->system->setMenuItemValue(menuItem3, 0);
+					else
+						pd->system->setMenuItemValue(menuItem3, 1);
+				}
 				NeedRedraw = true;
 				break;
 			case opInverted:
 				playMenuSelectSound();
 				setInvertedSaveState(!isInvertedSaveState());
 				pd->display->setInverted(isInvertedSaveState());
+				if (menuItem2)
+				{
+					if (isInvertedSaveState())
+						pd->system->setMenuItemValue(menuItem2, 1);
+					else
+						pd->system->setMenuItemValue(menuItem2, 0);
+				}
 				NeedRedraw = true;
 				break;
 			}
@@ -677,15 +840,16 @@ void TitleScreen()
 	}
 }
 
-
-void GameInit()
+void GameInit(void)
 {
 	CWorldParts_LimitVPLevel(WorldParts);
 	ThePlayer = FindPlayer();
 	NeedRedraw = true;
+	DestroyMenuItems();
+	CreateGameMenuItems();
 }
 
-void Game()
+void Game(void)
 {
 	if (GameState == GSGameInit)
 	{
@@ -693,19 +857,15 @@ void Game()
 		GameState -= GSDiff;
 	}
 
-	if (!AskingQuestion && ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))) 
+	if (!FreeView && !AskingQuestion && ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))) 
 	{
-		GameState = GSStageSelectInit;
+		DestroyMenuItems();
+		playMenuBackSound();
+		char* Text;
+		pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\nselector?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
+		AskQuestion(4, Text);
+		pd->system->realloc(Text, 0);
 	}
-
-	/*if (Input->Ready() && (Input->JoystickHeld[0][GP2X_BUTTON_START] || Input->JoystickHeld[1][JoystickSetup->GetButtonValue(BUT_START)] || Input->KeyboardHeld[JoystickSetup->GetKeyValue(BUT_START)]))
-	{
-		sprintf(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_Load(WorldParts, &Filename);
-		ThePlayer = FindPlayer();
-		Input->Delay();
-	}*/
-
 
 	bool BoxMoving = false;
 	//find out if a box is moving or if a box is being carried by the player
@@ -736,6 +896,38 @@ void Game()
 			Que = true;
 	}
 
+	if (FreeView)
+	{
+		if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)) || 
+			(currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+		{
+			FreeView = false;
+			CWorldParts_CenterVPOnPlayer(WorldParts);
+			NeedRedraw = true;
+		}
+
+		if (currButtons & kButtonLeft)
+		{
+			CViewPort_Move(WorldParts->ViewPort, -2, 0);
+			NeedRedraw = true;
+		}
+		if (currButtons & kButtonRight)
+		{
+			CViewPort_Move(WorldParts->ViewPort, 2, 0);
+			NeedRedraw = true;
+		}
+		if (currButtons & kButtonUp)
+		{
+			CViewPort_Move(WorldParts->ViewPort, 0, -2);
+			NeedRedraw = true;
+		}
+		if (currButtons & kButtonDown)
+		{
+			CViewPort_Move(WorldParts->ViewPort, 0, 2);
+			NeedRedraw = true;
+		}
+	}
+	else
 	if (!AskingQuestion && !ThePlayer->IsMoving && !BoxMoving && !Que)
 	{
 
@@ -864,22 +1056,44 @@ void Game()
 	//need to draw and move one more time to draw final state and make boxes drop down further
 	//otherwise there is a hickup while keeping moving with the player in the animation
 	//or boxes not being fully on the ground or dropping further
-	if (!NeedRedraw && (framecounter > 0))
+	if (!AskingQuestion && !NeedRedraw && (framecounter > 0))
 	{
 		framecounter--;
 		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);
+		if (FreeView)
+		{
+			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->setFont(Mini);
+			char* Text;
+			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+			pd->system->realloc(Text, 0);
+		}
 	}
 
 	
-	if (NeedRedraw)
+	if (!AskingQuestion && NeedRedraw)
 	{
 		NeedRedraw = false;
 		framecounter = 1;
 		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);
+		if (FreeView)
+		{
+			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->setFont(Mini);
+			char* Text;
+			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+			pd->system->realloc(Text, 0);
+		}
 	}
 	
 
@@ -893,59 +1107,86 @@ void Game()
 			if (lastUnlockedLevel() < InstalledLevels)
 			{
 				char* Text;
-				pd->system->formatString(&Text, "Congratulations !\nYou Succesfully Solved Level %d/%d\nThe next level has now been unlocked!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
+				pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\nThe next level has now been unlocked!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
 				AskQuestion(1, Text);
-				pd->system->realloc(Text, 0);				
+				pd->system->realloc(Text, 0);
+				DestroyMenuItems();
 			}
 			else
 			{
 				char* Text;
-				pd->system->formatString(&Text, "Congratulations !\nYou Succesfully Solved Level %d/%d\nAll levels are now finished!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
+				pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\nAll levels are now finished!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
 				AskQuestion(2, Text);
 				pd->system->realloc(Text, 0);
+				DestroyMenuItems();
 			}
 		}
 		else
 		{
 			char* Text;
-			pd->system->formatString(&Text, "Congratulations !\nYou Succesfully Solved Level %d/%d\n\nPress(A) to continue");
-			AskQuestion(2, Text);
+			pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
+			AskQuestion(3, Text);
 			pd->system->realloc(Text, 0);
-
+			DestroyMenuItems();
 		}
 
 	}
 
 	int id;
 	bool answer;
-	if (AskQuestionUpdate(&id, &answer, true))
+	//simple confirm messages
+	if ((AskingQuestionID >= 1) && (AskingQuestionID <= 3))
 	{
-		if ((id == 1) && answer)
+		if (AskQuestionUpdate(&id, &answer, true))
 		{
-			SelectedLevel++;
-			unlockLevel(SelectedLevel);
-			GameState = GSStageSelectInit;
-		}
+			if ((id == 1) && answer)
+			{
+				SelectedLevel++;
+				unlockLevel(SelectedLevel);
+				GameState = GSStageSelectInit;
+			}
 
-		if ((id == 2) && answer)
-		{
-			GameState = GSTitleScreenInit;
-		}
+			if ((id == 2) && answer)
+			{
+				GameState = GSTitleScreenInit;
+			}
 
-		if ((id == 3) && answer)
-		{
-			GameState = GSStageSelectInit;
+			if ((id == 3) && answer)
+			{
+				GameState = GSStageSelectInit;
+			}
 		}
-
 	}
+
+	//Yes / No Questions
+	if (AskingQuestionID == 4)
+	{
+		if (AskQuestionUpdate(&id, &answer, false))
+		{
+			if (id == 4)
+			{
+				if (answer)
+				{
+					GameState = GSStageSelectInit;
+				}
+				else
+				{
+					CreateGameMenuItems();
+				}
+			}
+		}
+	}
+
+
+
 }
 
-void IntroInit()
+void IntroInit(void)
 {
 	NeedRedraw = true;
 }
 
-void Intro()
+void Intro(void)
 {
 	if (GameState == GSIntroInit)
 	{

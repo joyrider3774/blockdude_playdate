@@ -4,7 +4,7 @@
 #include "commonvars.h"
 #include "cworldparts.h"
 
-#define MOVEQUESIZE 1000
+#define MOVEQUESIZE 100
 
 
 

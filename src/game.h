@@ -14,6 +14,10 @@ void TitleScreen();
 void Game();
 void Intro();
 
+void LoadSelectedLevel(void);
+
+void GameMenuItemCallback(void* userdata);
+
 void LoadFonts(void);
 void UnLoadGraphics();
 

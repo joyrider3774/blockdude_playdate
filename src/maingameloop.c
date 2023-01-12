@@ -6,11 +6,6 @@
 #include "game.h"
 #include "savestate.h"
 
-
-void MenuItemCallback(void* userdata)
-{
-}
-
 // game initialization
 void setupGame(void)
 {  

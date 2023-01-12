@@ -11,6 +11,7 @@ FilePlayer* levelDoneSound;
 FilePlayer* errorSound;
 FilePlayer* menuSound;
 FilePlayer* menuSelectSound;
+FilePlayer* menuBackSound;
 
 
 void stopMusic(void)
@@ -74,6 +75,7 @@ void initSound(void)
     errorSound = loadSoundFile("sound/error");
     menuSelectSound = loadSoundFile("sound/select");
     menuSound = loadSoundFile("sound/menu");
+    menuBackSound = loadSoundFile("sound/back");
 }
 
 void playMusicFile(const char* path, int repeat)
@@ -156,6 +158,15 @@ void playMenuSelectSound(void)
         return;
     }
     playSound(menuSelectSound);
+}
+
+void playMenuBackSound(void)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+    playSound(menuBackSound);
 }
 
 void playMenuSound(void)

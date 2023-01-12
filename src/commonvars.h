@@ -98,11 +98,10 @@
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;
 
-extern const char* const skins[3];
-
 extern int gameState, debugMode;
 extern PlaydateAPI *pd;
 extern PDButtons currButtons, prevButtons;
+extern PDMenuItem* menuItem1, * menuItem2, * menuItem3;
 
 extern LCDBitmapTable* IMGFloor, * IMGPlayer, * IMGBox, * IMGEmpty, * IMGExit, * IMGFloorLeft, * IMGFloorRight,
 * IMGEarthGrassRight, * IMGEarthGrassLeft, * IMGEarthLeft, * IMGEarthRight, * IMGEarthMiddle, * IMGFloatingFloor, * IMGFloatingFloorLeft,
@@ -113,11 +112,11 @@ extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTit
 
 extern LCDFont *Nano, *Mini, *Mini2X;
 
-extern const char* const skins[];
+extern const char* skins[];
 extern int skin;
 extern int GameState;
 extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion;
+extern bool AskingQuestion, FreeView;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;
