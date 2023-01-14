@@ -47,7 +47,7 @@ bool CWorldPart_MovesInQue(CWorldPart* self);
 void CWorldPart_AttachToPlayer(CWorldPart* self, CWorldPart* PlayerIn);
 void CWorldPart_DeattachFromPlayer(CWorldPart* self);
 void CWorldPart_SetAnimPhase(CWorldPart* self, int AnimPhaseIn);
-void CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
+bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self);
 void CWorldPart_Event_BeforeDraw(CWorldPart* self);
 void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY);

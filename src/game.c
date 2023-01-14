@@ -689,6 +689,7 @@ void GameMenuItemCallback(void* userdata)
 	if (userdata == &menuItem1)
 	{
 		LoadSelectedLevel();
+		FreeView = false;
 		NeedRedraw = true;
 	}
 
@@ -845,7 +846,15 @@ void StageSelect()
 	{
 		NeedRedraw = false;
 		char* Text;
-		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+		if (skinSaveState() == 1)
+		{
+			pd->graphics->clear(kColorBlack);
+		}
+		else
+		{
+			pd->graphics->clear(kColorWhite);
+		}
+		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
@@ -1150,6 +1159,7 @@ void TitleScreen()
 
 void GameInit(void)
 {
+	FreeView = false;
 	CWorldParts_LimitVPLevel(WorldParts);
 	ThePlayer = FindPlayer();
 	NeedRedraw = true;
@@ -1242,12 +1252,6 @@ void Game(void)
 	if (!AskingQuestion && !ThePlayer->IsMoving && !BoxMoving && !Que)
 	{
 
-		//move up
-		if (currButtons & kButtonUp)
-		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX, ThePlayer->PlayFieldY - 1);	
-			NeedRedraw = true;
-		}
 		//pickup 
 		if (((currButtons & kButtonA) && (!(prevButtons & kButtonA))))
 		{
@@ -1365,20 +1369,24 @@ void Game(void)
 					}
 			}
 		}
+		//move up
+		if (currButtons & kButtonUp)
+		{
+			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX, ThePlayer->PlayFieldY - 1);
+		}
+
 		if (currButtons & kButtonLeft)
 		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX - 1, ThePlayer->PlayFieldY);
-			NeedRedraw = true;
+			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX - 1, ThePlayer->PlayFieldY);
 		}
 		if (currButtons & kButtonRight)
 		{
-			CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX + 1, ThePlayer->PlayFieldY);
-			NeedRedraw = true;
+			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX + 1, ThePlayer->PlayFieldY);
 		}
 
 	}
 
-	NeedRedraw = NeedRedraw || Moving || Que;
+	NeedRedraw |= Moving || Que;
 
 	//need to draw and move one more time to draw final state and make boxes drop down further
 	//otherwise there is a hickup while keeping moving with the player in the animation
@@ -1386,7 +1394,15 @@ void Game(void)
 	if (!AskingQuestion && !NeedRedraw && (framecounter > 0))
 	{
 		framecounter--;
-		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+		if (skinSaveState() == 1)
+		{
+			pd->graphics->clear(kColorBlack);
+		}
+		else
+		{
+			pd->graphics->clear(kColorWhite);
+		}
+		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);
 		if (FreeView)
@@ -1406,7 +1422,15 @@ void Game(void)
 	{
 		NeedRedraw = false;
 		framecounter = 1;
-		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+		if (skinSaveState() == 1)
+		{
+			pd->graphics->clear(kColorBlack);
+		}
+		else
+		{
+			pd->graphics->clear(kColorWhite);
+		}
+		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts);
 		CWorldParts_Move(WorldParts);
 		if (FreeView)
@@ -1556,7 +1580,15 @@ void LevelEditor(void)
 	if (NeedRedraw)
 	{
 		NeedRedraw = false;
-		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
+		if (skinSaveState() == 1)
+		{
+			pd->graphics->clear(kColorBlack);
+		}
+		else
+		{
+			pd->graphics->clear(kColorWhite);
+		}
+		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
 		CWorldParts_Draw(WorldParts);
 		CSelector_Draw(Selector);
 		
