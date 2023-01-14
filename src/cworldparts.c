@@ -97,16 +97,18 @@ void CWorldParts_RemoveType(CWorldParts* self, int PlayFieldXin, int PlayFieldYi
 
 void CWorldParts_Sort(CWorldParts* self)
 {
-	int Teller2, Index;
+	int Teller2, Z, Y;
 	CWorldPart* Part;
 	if (!self->DisableSorting)
 	{
 		for (int Teller1 = 1; Teller1 < self->ItemCount; Teller1++)
 		{
-			Index = self->Items[Teller1]->Z;
+			Z = self->Items[Teller1]->Z;
+			Y = self->Items[Teller1]->PlayFieldY;
 			Part = self->Items[Teller1];
 			Teller2 = Teller1;
-			while ((Teller2 > 0) && (self->Items[Teller2 - 1]->Z > Index))
+			//need to sort on Z for drawing but also on playfieldY for same Z so that 1st item is the highest one, otherwise blocks don't fall at same time
+			while ((Teller2 > 0) && ((self->Items[Teller2 - 1]->Z > Z) || (self->Items[Teller2 - 1]->Z == Z) && (self->Items[Teller2-1]->PlayFieldY < Y)))
 			{
 				self->Items[Teller2] = self->Items[Teller2 - 1];
 				Teller2--;
@@ -128,15 +130,62 @@ void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart)
 	}
 }
 
+bool CWorldParts_Save(CWorldParts* self, char* Filename)
+{
+	char Buffer[3];
+	int ret;
+	SDFile* Fp = pd->file->open(Filename, kFileWrite);
+	if(Fp)
+	{
+		for (int Teller = 0; Teller < self->ItemCount; Teller++)
+		{
+			Buffer[0] = (char)self->Items[Teller]->Type;
+			Buffer[1] = (char)self->Items[Teller]->PlayFieldX;
+			Buffer[2] = (char)self->Items[Teller]->PlayFieldY;
+			ret = pd->file->write(Fp, Buffer, 3);
+			if (ret == -1)
+			{
+				pd->system->error("Error writing level file!");
+				pd->system->logToConsole(pd->file->geterr());
+				return false;
+			}
+		}
+		//crashes the simulator ???
+#ifndef _WIN32
+		ret = pd->file->flush(Fp);
+		if (ret == -1)
+		{
+			pd->system->error("Error flushing savesate file!");
+			pd->system->logToConsole(pd->file->geterr());
+			return false;
+		}
+#endif
+		ret = pd->file->close(Fp);
+		if (ret == -1)
+		{
+			pd->system->error("Error closing level file!");
+			pd->system->logToConsole(pd->file->geterr());
+			return false;
+		}
+	}
+	return true;
+}
 
-void CWorldParts_Load(CWorldParts* self, char* Filename)
+
+void CWorldParts_Load(CWorldParts* self, char* Filename, bool FromData)
 {
 	char Buffer[3];
 	int X, Y, Type;
-	SDFile* Fp = pd->file->open(Filename, kFileRead);
+	CWorldParts_RemoveAll(self);
+	FileOptions opt;
+	if (FromData)
+		opt = kFileReadData;
+	else
+		opt = kFileRead;
+
+	SDFile* Fp = pd->file->open(Filename, opt);
 	if (Fp)
 	{
-		CWorldParts_RemoveAll(self);
 		self->DisableSorting = true;
 		while (pd->file->read(Fp, Buffer, sizeof(Buffer)) == 3)
 		{
@@ -201,7 +250,6 @@ void CWorldParts_Move(CWorldParts* self)
 
 void CWorldParts_Draw(CWorldParts* self)
 {
-
 	for (int Teller = 0; Teller < self->ItemCount; Teller++)
 	{
 		if ((self->Items[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->Items[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
@@ -210,6 +258,18 @@ void CWorldParts_Draw(CWorldParts* self)
 			CWorldPart_Draw(self->Items[Teller]);
 		}
 	}
+}
+
+int CWorldParts_TypeAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
+{
+	for (int Teller = 0; Teller < self->ItemCount; Teller++)
+	{
+		if ((self->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->Items[Teller]->PlayFieldY == PlayFieldYin))
+		{
+			return self->Items[Teller]->Type;
+		}
+	}
+	return 0;
 }
 
 void CWorldParts_deinit(CWorldParts* self)

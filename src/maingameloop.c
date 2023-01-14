@@ -5,12 +5,13 @@
 #include "sound.h"
 #include "game.h"
 #include "savestate.h"
+#include "cselector.h"
 
 // game initialization
 void setupGame(void)
 {  
     GameState = GSIntroInit;
-    setCrankMoveThreshold(70);
+    setCrankMoveThreshold(90);
     initSaveState();    
     initSaveState();
     initSound();
@@ -21,6 +22,7 @@ void setupGame(void)
     LoadGraphics();
     LoadFonts();
     WorldParts = CWorldParts_Create();
+    Selector = CSelector_Create(WorldParts);
 }
 
 // main update function
@@ -49,6 +51,11 @@ int mainLoop(void* ud)
         case GSGame:
         case GSGameInit:
             Game();
+            break;
+        case GSLevelEditor:
+        case GSLevelEditorInit:
+            LevelEditor();
+            break;
         default:
             break;
     }

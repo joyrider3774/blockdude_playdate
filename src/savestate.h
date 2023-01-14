@@ -14,5 +14,8 @@ void setMusicOnSaveState(int value);
 void setSoundOnSaveState(int value);
 void setSkinSaveState(int value);
 void setInvertedSaveState(int value);
-
+int ShowPositionSaveState(void);
+void setShowPositionSaveState(int value);
+int ShowGridSaveState(void);
+void setShowGridSaveState(int value);
 #endif

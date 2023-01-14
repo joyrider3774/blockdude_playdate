@@ -22,9 +22,11 @@ void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin);
 void CWorldParts_RemoveType(CWorldParts* self, int PlayFieldXin, int PlayFieldYin, int Type);
 void CWorldParts_Sort(CWorldParts* self);
 void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart);
-void CWorldParts_Load(CWorldParts* self, char* Filename);
+void CWorldParts_Load(CWorldParts* self, char* Filename, bool FromData);
+bool CWorldParts_Save(CWorldParts* self, char* Filename);
 void CWorldParts_Move(CWorldParts* self);
 void CWorldParts_Draw(CWorldParts* self);
 void CWorldParts_deinit(CWorldParts* self);
+int CWorldParts_TypeAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFieldYin);
 
 #endif

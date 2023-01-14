@@ -66,10 +66,16 @@
 #define AnimBaseLeftJump 8
 #define AnimBaseRightJump 12
 
+#define errNoError 0
+#define errNoPlayer 1
+#define errNoExit 2
+
+
 #define mmStartGame 0
-#define mmOptions 1
-#define mmCredits 2
-#define mmCount 3
+#define mmLevelEditor 1
+#define mmOptions 2
+#define mmCredits 3
+#define mmCount 4
 
 #define opMusic 0
 #define opSound 1
@@ -88,15 +94,27 @@
 #define GSGame 2
 #define GSStageClear 3
 #define GSStageSelect 4
+#define GSLevelEditor 5
 
+#define GSLevelEditorInit GSLevelEditor + GSDiff
 #define GSIntroInit GSIntro + GSDiff
 #define GSGameInit GSGame + GSDiff
 #define GSStageClearInit GSStageClear + GSDiff
 #define GSTitleScreenInit GSTitleScreen + GSDiff
 #define GSStageSelectInit GSStageSelect + GSDiff
 
+#define qsErrPlayer 1
+#define qsErrExit 2
+#define qsNotSaved 3
+#define qsNotUnlocked 4
+#define qsSolvedNotLastLevel 5
+#define qsSolvedLastLevel 6
+#define qsSolvedLevel 7
+#define qsQuitPlaying 8
+
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;
+typedef struct CSelector CSelector;
 
 extern int gameState, debugMode;
 extern PlaydateAPI *pd;
@@ -108,19 +126,21 @@ extern LCDBitmapTable* IMGFloor, * IMGPlayer, * IMGBox, * IMGEmpty, * IMGExit, *
 * IMGFloatingFloorRight, * IMGFloatingFloorMiddle, * IMGTower, * IMGStartTower, * IMGTowerShaft, * IMGRoof1, * IMGRoof2, * IMGRoofCornerLeft,
 * IMGRoofCornerRight, * IMGRoofDownRight, * IMGRoofDownLeft, * IMGRoofCornerBoth;
 
-extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTitleScreen;
+extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTitleScreen,* IMGGrid, * IMGSelection;
 
 extern LCDFont *Nano, *Mini, *Mini2X;
 
+extern const char* blockNames[];
 extern const char* skins[];
 extern int skin;
 extern int GameState;
 extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion, FreeView;
+extern bool AskingQuestion, FreeView, LevelHasChanged, LevelEditorMode;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;
 extern CWorldPart* ThePlayer;
+extern CSelector* Selector;
 
 void setPDPtr(PlaydateAPI* p);
 

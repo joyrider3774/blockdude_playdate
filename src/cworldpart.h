@@ -25,6 +25,9 @@ struct CWorldPart {
 	bool PickupLeft, PickupRight;
 	CWorldPart *Player;
 	bool AttachedToPlayer;
+	bool isAttaching;
+	bool isDetaching;
+	int AtOrDetachingMoveCounter;
 	CWorldParts *ParentList;
 	bool IsMoving;
 	bool Selected;

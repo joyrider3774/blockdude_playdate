@@ -12,6 +12,8 @@ int skin;
 int inverted;
 unsigned int saveTime;
 int valid;
+int editorshowposition;
+int editorshowgrid;
 
 unsigned int encrypt(unsigned int filepos, unsigned int time, void* data, unsigned int size, bool returnOriginalPos)
 {
@@ -120,6 +122,26 @@ void loadSaveState(void)
     }
     pos = encrypt(pos, saveTime, &inverted, sizeof(inverted), false);
 
+    ret = pd->file->read(saveStateFile, &editorshowgrid, sizeof(editorshowgrid));
+    if (ret == -1)
+    {
+        valid = 0;
+        pd->system->error("Error reading editorshowgrid option from savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &editorshowgrid, sizeof(editorshowgrid), false);
+
+    ret = pd->file->read(saveStateFile, &editorshowposition, sizeof(editorshowposition));
+    if (ret == -1)
+    {
+        valid = 0;
+        pd->system->error("Error reading editorshowposition option from savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), false);
+
     ret = pd->file->close(saveStateFile);
     if (ret == -1)
     {
@@ -129,7 +151,7 @@ void loadSaveState(void)
         return;
     }
 
-    unsigned int comparecheck = musicOn + soundOn + inverted + skin + levelLocks;
+    unsigned int comparecheck = musicOn + soundOn + inverted + skin + levelLocks + editorshowposition + editorshowgrid;
 
     if (comparecheck != check)
     {
@@ -139,7 +161,7 @@ void loadSaveState(void)
 
 void saveSaveState(void)
 {
-    check = musicOn + soundOn + inverted + skin + levelLocks;
+    check = musicOn + soundOn + inverted + skin + levelLocks + editorshowposition + editorshowgrid;
     
     valid = 1;
 
@@ -242,6 +264,28 @@ void saveSaveState(void)
     }
     pos = encrypt(pos, saveTime, &inverted, sizeof(inverted), false);
 
+    pos = encrypt(pos, saveTime, &editorshowgrid, sizeof(editorshowgrid), true);
+    ret = pd->file->write(saveStateFile, &editorshowgrid, sizeof(editorshowgrid));
+    if (ret == -1)
+    {
+        pos = encrypt(pos, saveTime, &editorshowgrid, sizeof(editorshowgrid), false);
+        pd->system->error("Error writing editorshowgrid option to savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &editorshowgrid, sizeof(editorshowgrid), false);
+
+    pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), true);
+    ret = pd->file->write(saveStateFile, &editorshowposition, sizeof(editorshowposition));
+    if (ret == -1)
+    {
+        pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), false);
+        pd->system->error("Error writing editorshowposition option to savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), false);
+
     //crashes the simulator ???
 #ifndef _WIN32
     ret = pd->file->flush(saveStateFile);
@@ -294,6 +338,18 @@ void validateSaveState(void)
         inverted = 0;
     }
 
+    if ((editorshowposition > 1) || (editorshowposition < 0) || !valid)
+    {
+        valid = 0;
+        editorshowposition = 1;
+    }
+
+    if ((editorshowgrid > 1) || (editorshowgrid < 0) || !valid)
+    {
+        valid = 0;
+        editorshowgrid = 1;
+    }
+
 
     if ((levelLocks < 1) || (levelLocks > InstalledLevels) || !valid)
     {
@@ -337,6 +393,28 @@ void setInvertedSaveState(int value)
 int isInvertedSaveState(void)
 {
     return inverted;
+}
+
+void setShowGridSaveState(int value)
+{
+    editorshowgrid = value;
+    saveSaveState();
+}
+
+int ShowGridSaveState(void)
+{
+    return editorshowgrid;
+}
+
+void setShowPositionSaveState(int value)
+{
+    editorshowposition = value;
+    saveSaveState();
+}
+
+int ShowPositionSaveState(void)
+{
+    return editorshowposition;
 }
 
 void setMusicOnSaveState(int value)

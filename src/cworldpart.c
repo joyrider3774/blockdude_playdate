@@ -285,8 +285,6 @@ void CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 
 void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 {
-
-
 	switch (self->Type)
 	{
 	case IDPlayer:
@@ -305,6 +303,12 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 					break;
 				}
 			}
+		}
+
+		if (self->PlayFieldY == NrOfRows - 1)
+		{
+			self->AnimPhases = 4;
+			FloorFound = true;
 		}
 
 		if (self->NeedToMoveLeft)
@@ -329,24 +333,25 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 	case IDBox:
 		if (self->ParentList)
 		{
-			int Teller = 0;
+			int PlayerID = 0;
 			bool PlayerBelow = false;
 			//see if there is a Player below the block
-			for (Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
+			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 			{
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
 					(self->ParentList->Items[Teller]->Type == IDPlayer))
 				{
 
 					PlayerBelow = true;
+					PlayerID = Teller;
 					break;
 
 				}
 			}
 			if (PlayerBelow)
-				CWorldPart_AttachToPlayer(self, self->ParentList->Items[Teller]);
+				CWorldPart_AttachToPlayer(self, self->ParentList->Items[PlayerID]);
 			else
-				if (self->AttachedToPlayer)
+				if (self->AttachedToPlayer && !CWorldPart_MovesInQue(self))
 					CWorldPart_DeattachFromPlayer(self);
 
 		}
@@ -437,6 +442,12 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 										break;
 									}
 								}
+
+								if (self->PlayFieldY == NrOfRows - 1)
+								{
+									FloorFound = true;
+								}
+
 								if (!FloorFound)
 									CanJump = false;
 							}
@@ -463,7 +474,6 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 					if (self->ParentList->Items[Teller]->Group == GroupBox)
 						if (self->ParentList->Items[Teller]->AttachedToPlayer)
 						{
-
 							if (CWorldPart_MovesInQue(self->ParentList->Items[Teller]))
 							{
 								Result = false;
@@ -551,6 +561,12 @@ void CWorldPart_Move(CWorldPart* self)
 	switch (self->Type)
 	{
 	case IDPlayer:
+		if (!self->FirstArriveEventFired)
+		{
+			CWorldPart_Event_ArrivedOnNewSpot(self);
+			self->FirstArriveEventFired = true;
+		}
+
 		if (self->ParentList)
 		{
 			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
@@ -565,6 +581,12 @@ void CWorldPart_Move(CWorldPart* self)
 			}
 		}
 
+		if (self->PlayFieldY == NrOfRows - 1)
+		{
+			self->AnimPhases = 4;
+			FloorFound = true;
+		}
+
 		if (!FloorFound && self->ParentList)
 		{
 			self->AnimPhases = 1;
@@ -573,11 +595,7 @@ void CWorldPart_Move(CWorldPart* self)
 			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
 		}
 
-		if (!self->FirstArriveEventFired)
-		{
-			CWorldPart_Event_ArrivedOnNewSpot(self);
-			self->FirstArriveEventFired = true;
-		}
+
 		if (self->IsMoving)
 		{
 			if (self->MoveDelayCounter == self->MoveDelay)
@@ -609,6 +627,11 @@ void CWorldPart_Move(CWorldPart* self)
 			}
 		break;
 	case IDBox:
+		if (!self->FirstArriveEventFired)
+		{
+			CWorldPart_Event_ArrivedOnNewSpot(self);
+			self->FirstArriveEventFired = true;
+		}
 		//move moet hergedaan worden zodat de player als er op z'n start positie geen block onder hem zit toch naar beneden valt en niet blijft staan
 
 		if (self->ParentList)
@@ -625,6 +648,13 @@ void CWorldPart_Move(CWorldPart* self)
 				}
 			}
 		}
+
+		//assume ground on edges
+		if (self->PlayFieldY == NrOfRows - 1)
+		{
+			SomethingBelow = true;
+		}
+		
 		//if nothing is below and there are no moves in the queue move it down
 		if ((!SomethingBelow) && (!CWorldPart_MovesInQue(self)))
 		{
@@ -636,17 +666,11 @@ void CWorldPart_Move(CWorldPart* self)
 					self->Player = NULL;
 				}
 			}
-			if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)))
+			if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)) && (self->PlayFieldY < NrOfRows - 1))
 			{
 				playDropSound();
 			}
 			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
-		}
-
-		if (!self->FirstArriveEventFired)
-		{
-			CWorldPart_Event_ArrivedOnNewSpot(self);
-			self->FirstArriveEventFired = true;
 		}
 
 		if (self->IsMoving)
@@ -688,6 +712,7 @@ void CWorldPart_Move(CWorldPart* self)
 			CWorldPart_Event_ArrivedOnNewSpot(self);
 			self->FirstArriveEventFired = true;
 		}
+
 		if (self->IsMoving)
 		{
 			if (self->MoveDelayCounter == self->MoveDelay)
@@ -822,19 +847,15 @@ void CWorldPart_Draw(CWorldPart* self)
 	}
 	pd->graphics->drawBitmap(Bitmap, x, y, kBitmapUnflipped);
 
-	/*
-	if (self->Selected)
+	if (self->Selected && (self->Type != IDEmpty))
 	{
 		if (self->ParentList)
 		{
-			boxRGBA(Surface, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, self->X - self->ParentList->ViewPort->MinScreenX + TileWidth - 1, self->Y - self->ParentList->ViewPort->MinScreenY + TileHeight - 1, 0, 0, 200, 15);
-			rectangleRGBA(Surface, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, self->X - self->ParentList->ViewPort->MinScreenX + TileWidth - 1, self->Y - self->ParentList->ViewPort->MinScreenY + TileHeight - 1, 0, 0, 255, 50);
+			pd->graphics->drawBitmap(IMGSelection, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, kBitmapUnflipped);
 		}
 		else
 		{
-			boxRGBA(Surface, self->X, self->Y, self->X + TileWidth - 1, self->Y + TileHeight - 1, 0, 0, 200, 15);
-			rectangleRGBA(Surface, self->X, self->Y, self->X + TileWidth - 1, self->Y + TileHeight - 1, 0, 0, 255, 50);
+			pd->graphics->drawBitmap(IMGSelection, self->X, self->Y, kBitmapUnflipped);
 		}
 	}
-	*/
 }

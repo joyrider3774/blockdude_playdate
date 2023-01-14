@@ -6,7 +6,8 @@
 #include "game.h"
 #include "cviewport.h"
 #include "cworldpart.h"
-#include "cWorldParts.h"
+#include "cworldparts.h"
+#include "cselector.h"
 
 LCDBitmap* loadImageAtPath(const char* path)
 {
@@ -40,6 +41,110 @@ LCDFont* loadFontAtPath(const char* path)
 	}
 	return fnt;
 }
+
+
+void UnLoadGraphics()
+{
+	if (IMGExit)
+		pd->graphics->freeBitmapTable(IMGExit);
+
+	if (IMGFloor)
+		pd->graphics->freeBitmapTable(IMGFloor);
+
+	if (IMGPlayer)
+		pd->graphics->freeBitmapTable(IMGPlayer);
+
+	if (IMGBox)
+		pd->graphics->freeBitmapTable(IMGBox);
+
+	if (IMGEmpty)
+		pd->graphics->freeBitmapTable(IMGEmpty);
+
+	if (IMGFloorLeft)
+		pd->graphics->freeBitmapTable(IMGFloorLeft);
+
+	if (IMGFloorRight)
+		pd->graphics->freeBitmapTable(IMGFloorRight);
+
+	if (IMGEarthGrassRight)
+		pd->graphics->freeBitmapTable(IMGEarthGrassRight);
+
+	if (IMGEarthGrassLeft)
+		pd->graphics->freeBitmapTable(IMGEarthGrassLeft);
+
+	if (IMGEarthLeft)
+		pd->graphics->freeBitmapTable(IMGEarthLeft);
+
+	if (IMGEarthRight)
+		pd->graphics->freeBitmapTable(IMGEarthRight);
+
+	if (IMGEarthMiddle)
+		pd->graphics->freeBitmapTable(IMGEarthMiddle);
+
+	if (IMGFloatingFloor)
+		pd->graphics->freeBitmapTable(IMGFloatingFloor);
+
+	if (IMGFloatingFloorLeft)
+		pd->graphics->freeBitmapTable(IMGFloatingFloorLeft);
+
+	if (IMGFloatingFloorRight)
+		pd->graphics->freeBitmapTable(IMGFloatingFloorRight);
+
+	if (IMGFloatingFloorMiddle)
+		pd->graphics->freeBitmapTable(IMGFloatingFloorMiddle);
+
+	if (IMGTower)
+		pd->graphics->freeBitmapTable(IMGTower);
+
+	if (IMGStartTower)
+		pd->graphics->freeBitmapTable(IMGStartTower);
+
+	if (IMGTowerShaft)
+		pd->graphics->freeBitmapTable(IMGTowerShaft);
+
+	if (IMGRoof1)
+		pd->graphics->freeBitmapTable(IMGRoof1);
+
+	if (IMGRoof2)
+		pd->graphics->freeBitmapTable(IMGRoof2);
+
+	if (IMGRoofCornerLeft)
+		pd->graphics->freeBitmapTable(IMGRoofCornerLeft);
+
+	if (IMGRoofCornerRight)
+		pd->graphics->freeBitmapTable(IMGRoofCornerRight);
+
+	if (IMGRoofDownRight)
+		pd->graphics->freeBitmapTable(IMGRoofDownRight);
+
+	if (IMGRoofDownLeft)
+		pd->graphics->freeBitmapTable(IMGRoofDownLeft);
+
+	if (IMGRoofCornerBoth)
+		pd->graphics->freeBitmapTable(IMGRoofCornerBoth);
+
+	if (IMGSelection)
+		pd->graphics->freeBitmap(IMGSelection);
+
+	if (IMGGrid)
+		pd->graphics->freeBitmap(IMGGrid);
+
+	if (IMGBackground)
+		pd->graphics->freeBitmap(IMGBackground);
+
+	if (IMGIntro1)
+		pd->graphics->freeBitmap(IMGIntro1);
+
+	if (IMGIntro2)
+		pd->graphics->freeBitmap(IMGIntro2);
+
+	if (IMGIntro3)
+		pd->graphics->freeBitmap(IMGIntro3);
+
+	if (IMGTitleScreen)
+		pd->graphics->freeBitmap(IMGTitleScreen);
+}
+
 
 void LoadGraphics(void)
 {
@@ -123,6 +228,11 @@ void LoadGraphics(void)
 	if (IMGRoofCornerBoth)
 		pd->graphics->freeBitmapTable(IMGRoofCornerBoth);
 
+	if (IMGGrid)
+		pd->graphics->freeBitmap(IMGGrid);
+
+	if (IMGSelection)
+		pd->graphics->freeBitmap(IMGSelection);
 
 	if (IMGBackground)
 		pd->graphics->freeBitmap(IMGBackground);
@@ -138,6 +248,15 @@ void LoadGraphics(void)
 
 	if (IMGTitleScreen)
 		pd->graphics->freeBitmap(IMGTitleScreen);
+
+	pd->system->formatString(&Filename, "skins/%s/selection", skins[skin]);
+	IMGSelection = loadImageAtPath(Filename);
+	pd->system->realloc(Filename, 0);
+
+
+	pd->system->formatString(&Filename, "skins/%s/grid", skins[skin]);
+	IMGGrid = loadImageAtPath(Filename);
+	pd->system->realloc(Filename, 0);
 
 	pd->system->formatString(&Filename, "skins/%s/intro1", skins[skin]);
 	IMGIntro1 = loadImageAtPath(Filename);
@@ -299,6 +418,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			AskingQuestion = false;
 			NeedRedraw = true;
 			AskingQuestionID = -1;
+			prevButtons = currButtons;
 			playMenuSelectSound();
 			return true;
 		}
@@ -309,6 +429,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			AskingQuestion = false;
 			NeedRedraw = true;
 			AskingQuestionID = -1;
+			prevButtons = currButtons;
 			playMenuBackSound();
 			return true;
 		}
@@ -341,17 +462,51 @@ CWorldPart* FindPlayer()
 	return Player;
 }
 
+void SaveSelectedLevel(void)
+{
+	char* Filename;
+	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
+	{
+		pd->file->mkdir("levels");
+		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
+		CWorldParts_Save(WorldParts, Filename);
+		ThePlayer = FindPlayer();
+		pd->system->realloc(Filename, 0);
+	}
+}
+
 void LoadSelectedLevel(void)
 {
 	char* Filename;
 	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
 	{
 		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_Load(WorldParts, Filename);
+		CWorldParts_Load(WorldParts, Filename, LevelEditorMode);
 		ThePlayer = FindPlayer();
 		pd->system->realloc(Filename, 0);
 	}
 }
+
+
+void DestroyMenuItems(void)
+{
+	if (menuItem1)
+	{
+		pd->system->removeMenuItem(menuItem1);
+		menuItem1 = NULL;
+	}
+	if (menuItem2)
+	{
+		pd->system->removeMenuItem(menuItem2);
+		menuItem2 = NULL;
+	}
+	if (menuItem3)
+	{
+		pd->system->removeMenuItem(menuItem3);
+		menuItem3 = NULL;
+	}
+}
+
 
 void OtherMenuItemCallback(void* userdata)
 {
@@ -396,21 +551,125 @@ void OtherMenuItemCallback(void* userdata)
 	}
 }
 
-void CreateOtherMenuItems()
+void LevelEditorMenuItemCallback(void* userdata)
 {
-	const char* onOff[] = { "On", "Off" };
+	if (userdata == &menuItem1)
+	{
+		int errType;
+		if (!LevelErrorsFound(&errType))
+		{
+			SaveSelectedLevel();
+			GameState = GSGameInit;
+		}
+		else
+		{
+			if (errType == errNoPlayer)
+			{
+				AskQuestion(qsErrPlayer, "Can not play this level because there\nis no player in the level! Please add\na Player and try again.\n\nPress '(A)' to continue");
+				DestroyMenuItems();
+			}
+			else if (errType == errNoExit)
+			{
+				AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress '(A)' to continue");
+				DestroyMenuItems();
+			}
+		}
+	}
+
+	if (userdata == &menuItem2)
+	{
+		LevelHasChanged = true;
+		CWorldParts_RemoveAll(WorldParts);
+		NeedRedraw = true;
+	}
+
+	if (userdata == &menuItem3)
+	{
+		int tmp = pd->system->getMenuItemValue(menuItem3);
+		if (tmp == 0)
+		{
+			setShowPositionSaveState(false);
+			setShowGridSaveState(false);
+		}
+
+		if (tmp == 1)
+		{
+			setShowPositionSaveState(true);
+			setShowGridSaveState(false);
+		}
+
+		if (tmp == 2)
+		{
+			setShowPositionSaveState(false);
+			setShowGridSaveState(true);
+		}
+
+		if (tmp == 3)
+		{
+			setShowPositionSaveState(true);
+			setShowGridSaveState(true);
+		}
+
+		NeedRedraw = true;
+	}
+}
+
+void CreateLevelEditorMenuItems()
+{
 	if (menuItem1 == NULL)
 	{
+		menuItem1 = pd->system->addMenuItem("Play", LevelEditorMenuItemCallback, &menuItem1);
+	}
+	
+	if (menuItem2 == NULL)
+	{
+		menuItem2 = pd->system->addMenuItem("Clear", LevelEditorMenuItemCallback, &menuItem2);
+	}
+
+	if (menuItem3 == NULL)
+	{
+		const char* Views[] = { "None", "Info", "Grid", "Info + Grid" };
+		menuItem3 = pd->system->addOptionsMenuItem("View", Views, 4, LevelEditorMenuItemCallback, &menuItem3);
+		if (!ShowPositionSaveState() && !ShowGridSaveState())
+		{
+			pd->system->setMenuItemValue(menuItem3, 0);
+		}
+
+		if (ShowPositionSaveState() && !ShowGridSaveState())
+		{
+			pd->system->setMenuItemValue(menuItem3, 1);
+		}
+
+		if (!ShowPositionSaveState() && ShowGridSaveState())
+		{
+			pd->system->setMenuItemValue(menuItem3, 2);
+		}
+
+		if(ShowPositionSaveState() && ShowGridSaveState())
+		{
+			pd->system->setMenuItemValue(menuItem3, 3);
+		}
+
+	}
+}
+
+
+
+void CreateOtherMenuItems()
+{	
+	if (menuItem1 == NULL)
+	{
+		const char* onOff[] = { "On", "Off" };
 		menuItem1 = pd->system->addOptionsMenuItem("Music", onOff, 2, OtherMenuItemCallback, &menuItem1);
 		if(isMusicOnSaveState())
 			pd->system->setMenuItemValue(menuItem1, 0);
 		else
 			pd->system->setMenuItemValue(menuItem1, 1);
-	}
+	}	
 	
-	const char* normalInverted[] = { "Normal", "Inverted" };
 	if (menuItem2 == NULL)
 	{
+		const char* normalInverted[] = { "Normal", "Inverted" };
 		menuItem2 = pd->system->addOptionsMenuItem("Colors", normalInverted, 2, OtherMenuItemCallback, &menuItem2);
 		if(isInvertedSaveState())
 			pd->system->setMenuItemValue(menuItem2, 1);
@@ -441,10 +700,18 @@ void GameMenuItemCallback(void* userdata)
 
 	if (userdata == &menuItem3)
 	{
-		int tmp = pd->system->getMenuItemValue(menuItem3);
-		setSkinSaveState(tmp);
-		LoadGraphics();
-		NeedRedraw = true;
+		if (LevelEditorMode)
+		{
+			GameState = GSLevelEditorInit;
+		}
+		else
+		{
+			int tmp = pd->system->getMenuItemValue(menuItem3);
+			setSkinSaveState(tmp);
+			LoadGraphics();
+			NeedRedraw = true;
+		}
+		
 	}
 }
 
@@ -458,40 +725,59 @@ void CreateGameMenuItems()
 	{
 		menuItem2 = pd->system->addMenuItem("Free View", GameMenuItemCallback, &menuItem2);
 	}
+
 	if (menuItem3 == NULL)
 	{
-		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, GameMenuItemCallback, &menuItem3);
-		pd->system->setMenuItemValue(menuItem3, skin);
+		if (LevelEditorMode)
+		{
+			menuItem3 = pd->system->addMenuItem("Level Editor", GameMenuItemCallback, &menuItem3);
+		}
+		else
+		{
+			menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, GameMenuItemCallback, &menuItem3);
+			pd->system->setMenuItemValue(menuItem3, skin);
+		}
 	}
 }
 
-void DestroyMenuItems(void)
+bool LevelErrorsFound(int* ErrorType)
 {
-	if (menuItem1)
+	int Teller, NumPlayer = 0, NumExit = 0;
+	
+	*ErrorType = errNoError;
+	
+	for (Teller = 0; Teller < WorldParts->ItemCount; Teller++)
 	{
-		pd->system->removeMenuItem(menuItem1);
-		menuItem1 = NULL;
+		if (WorldParts->Items[Teller]->Type == IDPlayer)
+			NumPlayer++;
+		if (WorldParts->Items[Teller]->Type == IDExit)
+			NumExit++;
 	}
-	if (menuItem2)
+
+	if (NumPlayer == 0)
 	{
-		pd->system->removeMenuItem(menuItem2);
-		menuItem2 = NULL;
+		
+		*ErrorType = errNoPlayer;
+		return true;
 	}
-	if (menuItem3)
+
+	else if (NumExit == 0)
 	{
-		pd->system->removeMenuItem(menuItem3);
-		menuItem3 = NULL;
+		*ErrorType = errNoExit;
+		return true;
 	}
+
+	return false;
 }
 
 
 
 void StageSelectInit()
 {
-
 	pd->graphics->setFont(Mini);
 	LoadSelectedLevel();
 	NeedRedraw = true;
+	DestroyMenuItems();
 	CreateOtherMenuItems();
 }
 
@@ -514,15 +800,23 @@ void StageSelect()
 	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
 	{
 		playMenuSelectSound();
-		if (SelectedLevel <= lastUnlockedLevel())
-			GameState = GSGameInit;
+		if (LevelEditorMode)
+		{
+			if (SelectedLevel <= InstalledLevels)
+				GameState = GSLevelEditorInit;
+		}
 		else
 		{
-			char* Text;
-			pd->system->formatString(&Text, "This Level Hasn't been unlocked yet!\nDo you want to play the last unlocked\nlevel %d/%d?\n\nPress (A) to Play (B) to cancel", lastUnlockedLevel(), InstalledLevels);
-			AskQuestion(1, Text);
-			pd->system->realloc(Text, 0);
-			DestroyMenuItems();
+			if (SelectedLevel <= lastUnlockedLevel())
+				GameState = GSGameInit;
+			else
+			{
+				char* Text;
+				pd->system->formatString(&Text, "This Level Hasn't been unlocked yet!\nDo you want to play the last unlocked\nlevel %d/%d?\n\nPress (A) to Play (B) to cancel", lastUnlockedLevel(), InstalledLevels);
+				AskQuestion(qsNotUnlocked, Text);
+				pd->system->realloc(Text, 0);
+				DestroyMenuItems();
+			}
 		}
 	}
 
@@ -547,11 +841,30 @@ void StageSelect()
 		LoadSelectedLevel();
 	}
 
+	if (NeedRedraw)
+	{
+		NeedRedraw = false;
+		char* Text;
+		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+		CWorldParts_Draw(WorldParts);
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		if(LevelEditorMode)
+			pd->system->formatString(&Text, "Level: %d/%d - (A) Edit Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+		else if (SelectedLevel <= lastUnlockedLevel())
+			pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+		else
+			pd->system->formatString(&Text, "Level: %d/%d - Level is locked! - (B) Titlescreen", SelectedLevel, InstalledLevels);
+
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
+	}
+
 	int id;
 	bool answer;
 	if (AskQuestionUpdate(&id, &answer, false))
 	{
-		if (id == 1)
+		if (id == qsNotUnlocked)
 		{
 			if (answer)
 			{
@@ -564,24 +877,6 @@ void StageSelect()
 				CreateOtherMenuItems();
 			}
 		}
-	}
-	
-
-	if (NeedRedraw)
-	{
-		NeedRedraw = false;
-		char* Text;
-		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_Draw(WorldParts);
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		if (SelectedLevel <= lastUnlockedLevel())
-			pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
-		else
-			pd->system->formatString(&Text, "Level: %d/%d - Level is locked! - (B) Titlescreen", SelectedLevel, InstalledLevels);
-
-		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-		pd->system->realloc(Text, 0);
 	}
 }
 
@@ -666,9 +961,19 @@ void TitleScreen()
 		case tsMainMenu:
 			switch (titleSelection)
 			{
+			case mmLevelEditor:
+				if (InstalledLevels > 0)
+				{
+					LevelEditorMode = true;
+					SelectedLevel = 1;
+					GameState = GSStageSelectInit;
+					playMenuSelectSound();
+				}
+				break;
 			case mmStartGame:
 				if (InstalledLevels > 0)
 				{
+					LevelEditorMode = false;
 					SelectedLevel = lastUnlockedLevel();
 					GameState = GSStageSelectInit;
 					playMenuSelectSound();
@@ -761,23 +1066,26 @@ void TitleScreen()
 		switch (titleStep)
 		{
 		case tsMainMenu:
-			pd->system->formatString(&Text, "Start Game\nOptions\nCredits\n");
+			pd->system->formatString(&Text, "Start Game\nLevel Editor\nOptions\nCredits\n");
 			pd->graphics->setFont(Mini2X);
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 90);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 80);
 			pd->system->realloc(Text, 0);
 			switch (titleSelection)
 			{
 			case mmStartGame:
 				pd->system->formatString(&Text, ">>");
 				break;
-			case mmOptions:
+			case mmLevelEditor:
 				pd->system->formatString(&Text, "\n>>");
 				break;
-			case mmCredits:
+			case mmOptions:
 				pd->system->formatString(&Text, "\n\n>>");
 				break;
+			case mmCredits:
+				pd->system->formatString(&Text, "\n\n\n>>");
+				break;
 			}
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 115, 90);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 115, 80);
 			pd->system->realloc(Text, 0);
 			break;
 		case tsCredits:
@@ -862,8 +1170,11 @@ void Game(void)
 		DestroyMenuItems();
 		playMenuBackSound();
 		char* Text;
-		pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\nselector?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
-		AskQuestion(4, Text);
+		if (LevelEditorMode)
+			pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\neditor?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
+		else
+			pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\nselector?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
+		AskQuestion(qsQuitPlaying, Text);
 		pd->system->realloc(Text, 0);
 	}
 
@@ -997,6 +1308,12 @@ void Game(void)
 									break;
 								}
 							}
+
+							if (WorldParts->Items[teller]->PlayFieldY == NrOfRows - 1)
+							{
+								FloorFound = true;
+							}
+							
 							if (FloorFound)
 								//if there was see if there is space above the block and above the player
 								if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1)) &&
@@ -1026,6 +1343,12 @@ void Game(void)
 										break;
 									}
 								}
+								
+								if (WorldParts->Items[teller]->PlayFieldY == NrOfRows - 1)
+								{
+									FloorFound = true;
+								}
+
 								if (FloorFound)
 									//if there was see if there is space above the block and above the player
 									if (CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1) &&
@@ -1079,7 +1402,10 @@ void Game(void)
 		}
 	}
 
+	NeedRedraw = true;
 	
+
+
 	if (!AskingQuestion && NeedRedraw)
 	{
 		NeedRedraw = false;
@@ -1101,18 +1427,38 @@ void Game(void)
 	}
 	
 
+	int numAttached = 0;
+	int X =-1,Y =-1, Type = 0;
+	for (int i = 0; i < WorldParts->ItemCount; i++)
+	{
+		if (WorldParts->Items[i]->AttachedToPlayer)
+		{
+			numAttached++;
+			X = WorldParts->Items[i]->PlayFieldX;
+			Y = WorldParts->Items[i]->PlayFieldY;
+			Type = WorldParts->Items[i]->Type;
+		}
+	}
+	pd->graphics->setFont(Mini);
+	char* Text;
+	pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+	pd->system->formatString(&Text, "NumAttached:%d (%d,%d) %s", numAttached, X, Y, blockNames[Type]);
+	pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+	pd->system->realloc(Text, 0);
 
 	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
 	{
 		playLevelDoneSound();
 
-		if (SelectedLevel == lastUnlockedLevel())
+		if (!LevelEditorMode && (SelectedLevel == lastUnlockedLevel()))
 		{
 			if (lastUnlockedLevel() < InstalledLevels)
 			{
 				char* Text;
 				pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\nThe next level has now been unlocked!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
-				AskQuestion(1, Text);
+				AskQuestion(qsSolvedNotLastLevel, Text);
 				pd->system->realloc(Text, 0);
 				DestroyMenuItems();
 			}
@@ -1120,7 +1466,7 @@ void Game(void)
 			{
 				char* Text;
 				pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\nAll levels are now finished!\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
-				AskQuestion(2, Text);
+				AskQuestion(qsSolvedLastLevel, Text);
 				pd->system->realloc(Text, 0);
 				DestroyMenuItems();
 			}
@@ -1129,7 +1475,7 @@ void Game(void)
 		{
 			char* Text;
 			pd->system->formatString(&Text, "Congratulations !\n\nYou Succesfully Solved Level %d/%d\n\nPress (A) to continue", SelectedLevel, InstalledLevels);
-			AskQuestion(3, Text);
+			AskQuestion(qsSolvedLevel, Text);
 			pd->system->realloc(Text, 0);
 			DestroyMenuItems();
 		}
@@ -1139,39 +1485,53 @@ void Game(void)
 	int id;
 	bool answer;
 	//simple confirm messages
-	if ((AskingQuestionID >= 1) && (AskingQuestionID <= 3))
+	if ((AskingQuestionID == qsSolvedNotLastLevel) || (AskingQuestionID == qsSolvedLastLevel) || (AskingQuestionID == qsSolvedLevel))
 	{
 		if (AskQuestionUpdate(&id, &answer, true))
 		{
-			if ((id == 1) && answer)
+			if ((id == qsSolvedNotLastLevel) && answer)
 			{
 				SelectedLevel++;
 				unlockLevel(SelectedLevel);
 				GameState = GSStageSelectInit;
 			}
 
-			if ((id == 2) && answer)
+			if ((id == qsSolvedLastLevel) && answer)
 			{
 				GameState = GSTitleScreenInit;
 			}
 
-			if ((id == 3) && answer)
+			if ((id == qsSolvedLevel) && answer)
 			{
-				GameState = GSStageSelectInit;
+				if (LevelEditorMode)
+				{
+					GameState = GSLevelEditorInit;
+				}
+				else
+				{
+					GameState = GSStageSelectInit;
+				}
 			}
 		}
 	}
 
 	//Yes / No Questions
-	if (AskingQuestionID == 4)
+	if (AskingQuestionID == qsQuitPlaying)
 	{
 		if (AskQuestionUpdate(&id, &answer, false))
 		{
-			if (id == 4)
+			if (id == qsQuitPlaying)
 			{
 				if (answer)
 				{
-					GameState = GSStageSelectInit;
+					if (LevelEditorMode)
+					{
+						GameState = GSLevelEditorInit;
+					}
+					else
+					{
+						GameState = GSStageSelectInit;
+					}
 				}
 				else
 				{
@@ -1180,10 +1540,203 @@ void Game(void)
 			}
 		}
 	}
-
-
-
 }
+
+void LevelEditorInit(void)
+{
+	framecounter = 0;
+	NeedRedraw = true;	
+	bool PlayerFound = false;
+	DestroyMenuItems();
+	CreateLevelEditorMenuItems();
+	LoadSelectedLevel();
+	
+	
+	for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+		if (WorldParts->Items[Teller]->Type == IDPlayer)
+		{
+			PlayerFound = true;
+			CSelector_SetPosition(Selector, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY);
+			break;
+
+		}
+
+	CViewPort_SetVPLimit(WorldParts->ViewPort, 0, 0, NrOfCols - 1, NrOfRows - 1);
+	if (!PlayerFound)
+	{
+		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols / 2) - 12, (NrOfRows / 2) - 7, (NrOfCols / 2) + 12, (NrOfRows / 2) + 7);
+		CSelector_SetPosition(Selector, (NrOfCols / 2), (NrOfRows / 2));
+	}
+	
+	
+}
+
+void LevelEditor(void)
+{	
+	if (GameState == GSLevelEditorInit)
+	{
+		LevelEditorInit();
+		GameState -= GSDiff;
+	}
+
+	if (NeedRedraw)
+	{
+		NeedRedraw = false;
+		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
+		CWorldParts_Draw(WorldParts);
+		CSelector_Draw(Selector);
+		
+		if (ShowGridSaveState())
+			pd->graphics->drawBitmap(IMGGrid, 0, 0, kBitmapUnflipped);
+
+		if (ShowPositionSaveState())
+		{
+			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->setFont(Mini);
+			int BlockBelowSelector = CWorldParts_TypeAtPosition(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			char* Text;
+			pd->system->formatString(&Text, "Pos: %d,%d - Selector: %s / %s", Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, blockNames[Selector->Part->Type], blockNames[BlockBelowSelector]);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+			pd->system->realloc(Text, 0);
+		}
+	}
+
+	unsigned int crankResult = crankUpdate();
+	if (!AskingQuestion && (crankResult == CRANKMOVELEFT))
+	{
+		CSelector_DecSelection(Selector);
+		NeedRedraw = true;
+	}
+
+	if (!AskingQuestion && (crankResult == CRANKMOVERIGHT))
+	{
+		CSelector_IncSelection(Selector);
+		NeedRedraw = true;
+	}
+
+	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+	{
+		bool SamePartFound = false;
+		for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+			if ((WorldParts->Items[Teller]->PlayFieldX == Selector->Part->PlayFieldX) &&
+				(WorldParts->Items[Teller]->PlayFieldY == Selector->Part->PlayFieldY))
+			{
+				if (WorldParts->Items[Teller]->Type == Selector->Selection)
+				{
+					SamePartFound = true;
+				}
+				if (Selector->Selection == IDEmpty)
+				{
+					LevelHasChanged = true;
+					break;
+				}
+			}
+		if (Selector->Selection != IDEmpty)
+			if (!LevelHasChanged)
+				LevelHasChanged = !SamePartFound;
+		switch (Selector->Selection)
+		{
+		case IDEmpty:
+			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			break;
+		case IDPlayer:
+			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+			{
+				if (WorldParts->Items[Teller]->Type == IDPlayer)
+					CWorldParts_RemoveType(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY, IDPlayer);
+			}
+			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Z, Selector->Part->Group));
+			break;
+		case IDBox:
+		case IDFloor:
+		case IDExit:
+		case IDEarthGrassLeft:
+		case IDEarthGrassRight:
+		case IDEarthLeft:
+		case IDEarthMiddle:
+		case IDEarthRight:
+		case IDFloatingFloor:
+		case IDFloatingFloorLeft:
+		case IDFloatingFloorMiddle:
+		case IDFloatingFloorRight:
+		case IDFloorLeft:
+		case IDFloorRight:
+		case IDTower:
+		case IDStartTower:
+		case IDTowerShaft:
+		case IDRoof1:
+		case IDRoof2:
+		case IDRoofCornerLeft:
+		case IDRoofCornerRight:
+		case IDRoofCornerBoth:
+		case IDRoofDownRight:
+		case IDRoofDownLeft:
+			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Z, Selector->Part->Group));
+			break;
+		}
+		NeedRedraw = true;
+	}
+
+	framecounter++;
+	if (!AskingQuestion && (framecounter >= 4))
+	{
+		framecounter = 0;
+		if (currButtons & kButtonLeft)
+		{
+			NeedRedraw = true;
+			CSelector_MoveLeft(Selector);
+			if (Selector->Part->PlayFieldX < WorldParts->ViewPort->VPMinX + 3)
+				CViewPort_Move(WorldParts->ViewPort, -TileWidth, 0);
+			
+		}
+
+		if (currButtons & kButtonRight)
+		{
+			NeedRedraw = true;
+			CSelector_MoveRight(Selector);
+			if (Selector->Part->PlayFieldX > WorldParts->ViewPort->VPMaxX - 3)
+				CViewPort_Move(WorldParts->ViewPort, TileWidth, 0);
+		}
+
+		if (currButtons & kButtonUp)
+		{
+			NeedRedraw = true;
+			CSelector_MoveUp(Selector);
+			if (Selector->Part->PlayFieldY < WorldParts->ViewPort->VPMinY + 3)
+				CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth);
+		}
+
+		if (currButtons & kButtonDown)
+		{
+			NeedRedraw = true;
+			CSelector_MoveDown(Selector);
+			if (Selector->Part->PlayFieldY > WorldParts->ViewPort->VPMaxY - 3)
+				CViewPort_Move(WorldParts->ViewPort, 0, TileWidth);
+		}
+	}
+
+	if (!AskingQuestion && (currButtons & kButtonB))
+	{
+		SaveSelectedLevel();
+		GameState = GSStageSelectInit;
+	}
+
+	int id;
+	bool answer;
+	if (AskQuestionUpdate(&id, &answer, true))
+	{
+		if (answer)
+		{
+			CreateLevelEditorMenuItems();
+		}
+	
+	}
+}
+
 
 void IntroInit(void)
 {
@@ -1235,102 +1788,4 @@ void Intro(void)
 		if (IntroScreenNr > 3)
 			GameState = GSTitleScreenInit;
 	}
-}
-
-
-void UnLoadGraphics()
-{
-	if (IMGExit)
-		pd->graphics->freeBitmapTable(IMGExit);
-
-	if (IMGFloor)
-		pd->graphics->freeBitmapTable(IMGFloor);
-
-	if (IMGPlayer)
-		pd->graphics->freeBitmapTable(IMGPlayer);
-
-	if (IMGBox)
-		pd->graphics->freeBitmapTable(IMGBox);
-
-	if (IMGEmpty)
-		pd->graphics->freeBitmapTable(IMGEmpty);
-
-	if (IMGFloorLeft)
-		pd->graphics->freeBitmapTable(IMGFloorLeft);
-
-	if (IMGFloorRight)
-		pd->graphics->freeBitmapTable(IMGFloorRight);
-
-	if (IMGEarthGrassRight)
-		pd->graphics->freeBitmapTable(IMGEarthGrassRight);
-
-	if (IMGEarthGrassLeft)
-		pd->graphics->freeBitmapTable(IMGEarthGrassLeft);
-
-	if (IMGEarthLeft)
-		pd->graphics->freeBitmapTable(IMGEarthLeft);
-
-	if (IMGEarthRight)
-		pd->graphics->freeBitmapTable(IMGEarthRight);
-
-	if (IMGEarthMiddle)
-		pd->graphics->freeBitmapTable(IMGEarthMiddle);
-
-	if (IMGFloatingFloor)
-		pd->graphics->freeBitmapTable(IMGFloatingFloor);
-
-	if (IMGFloatingFloorLeft)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorLeft);
-
-	if (IMGFloatingFloorRight)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorRight);
-
-	if (IMGFloatingFloorMiddle)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorMiddle);
-
-	if (IMGTower)
-		pd->graphics->freeBitmapTable(IMGTower);
-
-	if (IMGStartTower)
-		pd->graphics->freeBitmapTable(IMGStartTower);
-
-	if (IMGTowerShaft)
-		pd->graphics->freeBitmapTable(IMGTowerShaft);
-
-	if (IMGRoof1)
-		pd->graphics->freeBitmapTable(IMGRoof1);
-
-	if (IMGRoof2)
-		pd->graphics->freeBitmapTable(IMGRoof2);
-
-	if (IMGRoofCornerLeft)
-		pd->graphics->freeBitmapTable(IMGRoofCornerLeft);
-
-	if (IMGRoofCornerRight)
-		pd->graphics->freeBitmapTable(IMGRoofCornerRight);
-
-	if (IMGRoofDownRight)
-		pd->graphics->freeBitmapTable(IMGRoofDownRight);
-
-	if (IMGRoofDownLeft)
-		pd->graphics->freeBitmapTable(IMGRoofDownLeft);
-
-	if (IMGRoofCornerBoth)
-		pd->graphics->freeBitmapTable(IMGRoofCornerBoth);
-
-
-	if (IMGBackground)
-		pd->graphics->freeBitmap(IMGBackground);
-
-	if (IMGIntro1)
-		pd->graphics->freeBitmap(IMGIntro1);
-
-	if (IMGIntro2)
-		pd->graphics->freeBitmap(IMGIntro2);
-
-	if (IMGIntro3)
-		pd->graphics->freeBitmap(IMGIntro3);
-
-	if (IMGTitleScreen)
-		pd->graphics->freeBitmap(IMGTitleScreen);
 }
