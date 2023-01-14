@@ -642,7 +642,8 @@ void CWorldPart_Move(CWorldPart* self)
 			{
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
 					((self->ParentList->Items[Teller]->Group == GroupFloor) ||
-						(self->ParentList->Items[Teller]->Group == GroupBox) || (self->ParentList->Items[Teller]->Group == GroupPlayer)))
+						(self->ParentList->Items[Teller]->Group == GroupBox) || (self->ParentList->Items[Teller]->Group == GroupPlayer) || 
+						(self->ParentList->Items[Teller]->Group == GroupExit)))
 				{
 					SomethingBelow = true;
 					break;
