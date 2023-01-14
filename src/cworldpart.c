@@ -425,7 +425,7 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 						//if a block is left or right besides the player to jump onto,
 						if ((((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX - 1) && (self->AnimBase == AnimBaseLeft)) ||
 							((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX + 1) && (self->AnimBase == AnimBaseRight))) &&
-							(self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY))
+							(self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY) && (self->ParentList->Items[Teller]->Type != IDExit))
 						{
 							CanJump = true;
 							//if it is a box check if the box has another box or a floor below it (io check if it's not falling down)
