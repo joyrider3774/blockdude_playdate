@@ -56,3 +56,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 /old sources Blockdude
+/out
+/.vs

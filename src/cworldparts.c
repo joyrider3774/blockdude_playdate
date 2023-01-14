@@ -108,7 +108,7 @@ void CWorldParts_Sort(CWorldParts* self)
 			Part = self->Items[Teller1];
 			Teller2 = Teller1;
 			//need to sort on Z for drawing but also on playfieldY for same Z so that 1st item is the highest one, otherwise blocks don't fall at same time
-			while ((Teller2 > 0) && ((self->Items[Teller2 - 1]->Z > Z) || (self->Items[Teller2 - 1]->Z == Z) && (self->Items[Teller2-1]->PlayFieldY < Y)))
+			while ((Teller2 > 0) && ((self->Items[Teller2 - 1]->Z > Z) || ((self->Items[Teller2 - 1]->Z == Z) && (self->Items[Teller2-1]->PlayFieldY < Y))))
 			{
 				self->Items[Teller2] = self->Items[Teller2 - 1];
 				Teller2--;
