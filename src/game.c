@@ -1402,10 +1402,6 @@ void Game(void)
 		}
 	}
 
-	NeedRedraw = true;
-	
-
-
 	if (!AskingQuestion && NeedRedraw)
 	{
 		NeedRedraw = false;
@@ -1426,28 +1422,6 @@ void Game(void)
 		}
 	}
 	
-
-	int numAttached = 0;
-	int X =-1,Y =-1, Type = 0;
-	for (int i = 0; i < WorldParts->ItemCount; i++)
-	{
-		if (WorldParts->Items[i]->AttachedToPlayer)
-		{
-			numAttached++;
-			X = WorldParts->Items[i]->PlayFieldX;
-			Y = WorldParts->Items[i]->PlayFieldY;
-			Type = WorldParts->Items[i]->Type;
-		}
-	}
-	pd->graphics->setFont(Mini);
-	char* Text;
-	pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-	pd->system->formatString(&Text, "NumAttached:%d (%d,%d) %s", numAttached, X, Y, blockNames[Type]);
-	pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-	pd->system->realloc(Text, 0);
-
 	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
 	{
 		playLevelDoneSound();
