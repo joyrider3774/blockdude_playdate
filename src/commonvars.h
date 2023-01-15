@@ -6,6 +6,12 @@
 #include "pd_api.h"
 
 #define FRAMERATE 40
+#define GameMoveSpeed 2       //dec if fps increases, Tilewidth & height must be divisable by this nr
+#define PlayerAnimDelay 8     //inc if fps increases
+#define FrameDelayInput 4     //inc if fps increases
+#define ViewportMove 2        //dec if fps increases
+
+
 #define MAXSKINS 3
 #define SMOOTHING 0
 #define WINDOW_WIDTH 400
@@ -65,6 +71,7 @@
 #define AnimBaseRight 4
 #define AnimBaseLeftJump 8
 #define AnimBaseRightJump 12
+
 
 #define errNoError 0
 #define errNoPlayer 1

@@ -1229,22 +1229,22 @@ void Game(void)
 
 		if (currButtons & kButtonLeft)
 		{
-			CViewPort_Move(WorldParts->ViewPort, -2, 0);
+			CViewPort_Move(WorldParts->ViewPort, -ViewportMove, 0);
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonRight)
 		{
-			CViewPort_Move(WorldParts->ViewPort, 2, 0);
+			CViewPort_Move(WorldParts->ViewPort, ViewportMove, 0);
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonUp)
 		{
-			CViewPort_Move(WorldParts->ViewPort, 0, -2);
+			CViewPort_Move(WorldParts->ViewPort, 0, -ViewportMove);
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonDown)
 		{
-			CViewPort_Move(WorldParts->ViewPort, 0, 2);
+			CViewPort_Move(WorldParts->ViewPort, 0, ViewportMove);
 			NeedRedraw = true;
 		}
 	}
@@ -1690,7 +1690,7 @@ void LevelEditor(void)
 	}
 
 	framecounter++;
-	if (!AskingQuestion && (framecounter >= 4))
+	if (!AskingQuestion && (framecounter >= FrameDelayInput))
 	{
 		framecounter = 0;
 		if (currButtons & kButtonLeft)
