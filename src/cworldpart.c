@@ -222,7 +222,7 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 					{
 						for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 						{
-							if (((self->ParentList->Items[Teller]->Group == GroupBox)) && ((self->PlayFieldY == self->ParentList->Items[Teller]->PlayFieldY) && (self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX)))
+							if (((self->ParentList->Items[Teller]->Group == GroupBox)) && ((self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY) && (self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX)))
 							{
 								CWorldPart_MoveTo(self->ParentList->Items[Teller], self->PlayFieldX, self->PlayFieldY - 1);
 								break;
@@ -239,9 +239,9 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 					{
 						for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 						{
-							if (((self->ParentList->Items[Teller]->Group == GroupBox)) && ((self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY - 1) && (self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX)))
+							if (((self->ParentList->Items[Teller]->Group == GroupBox)) && ((self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY-2) && (self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX)))
 							{
-								CWorldPart_MoveTo(self->ParentList->Items[Teller], self->PlayFieldX, self->PlayFieldY + 1);
+								CWorldPart_MoveTo(self->ParentList->Items[Teller], self->PlayFieldX, self->PlayFieldY -1);
 								break;
 							}
 						}
@@ -309,6 +309,16 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 					FloorFound = true;
 					break;
 				}
+
+				//to catch floating exits
+				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY) &&
+					(self->ParentList->Items[Teller]->Group == GroupExit))
+				{
+					self->AnimPhases = 4;
+					FloorFound = true;
+					break;
+				}
+
 			}
 		}
 
@@ -413,7 +423,10 @@ void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int 
 
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
 {
-	bool Result = true, CanJump = false, FloorFound = false;
+	bool Result = true, CanJump = false, FloorFound = false, BlockAboveFound = false;
+
+	if (!self->FirstArriveEventFired)
+		return false;
 
 	switch (self->Type)
 	{
@@ -428,14 +441,13 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 				{
 					//check to see
 					for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
-					{
-
+					{						
 						//if a block is left or right besides the player to jump onto,
 						if ((((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX - 1) && (self->AnimBase == AnimBaseLeft)) ||
 							((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX + 1) && (self->AnimBase == AnimBaseRight))) &&
 							(self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY) && (self->ParentList->Items[Teller]->Type != IDExit))
 						{
-							CanJump = true;
+							CanJump = self->PlayFieldY-1 > 0;
 							//if it is a box check if the box has another box or a floor below it (io check if it's not falling down)
 							if (self->ParentList->Items[Teller]->Type == IDBox)
 							{
@@ -473,7 +485,6 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 								break;
 							}
 						}
-
 					}
 				}
 
@@ -483,8 +494,8 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 				{
 					for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 					{
-
 						if (self->ParentList->Items[Teller]->Group == GroupBox)
+						{
 							if (self->ParentList->Items[Teller]->AttachedToPlayer)
 							{
 								if (CWorldPart_MovesInQue(self->ParentList->Items[Teller]))
@@ -493,33 +504,52 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 									break;
 								}
 							}
-					}
-				}
+						}
 
-				//if we can still move to it after the jump check
-				if (Result)
-				{
-					for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
-					{
+						//if we can still move to it after the jump check
 						//if there is an item on the new position
-						if ((self->ParentList->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->ParentList->Items[Teller]->PlayFieldY == PlayFieldYin))
+						if (Result)
 						{
-							//and it's a wall or floor, we can't move to it
-							if ((self->ParentList->Items[Teller]->Group == GroupFloor))
+							if ((self->ParentList->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->ParentList->Items[Teller]->PlayFieldY == PlayFieldYin))
 							{
-								Result = false;
-								break;
-							}
-							else
-							{
-								// it's a box
-								if (self->ParentList->Items[Teller]->Group == GroupBox)
+								//and it's a wall or floor, we can't move to it
+								if ((self->ParentList->Items[Teller]->Group == GroupFloor))
 								{
-									//we're moving horizontal or falling down so we can't move into the box
-									if (PlayFieldYin - self->PlayFieldY >= 0)
+									Result = false;
+									break;
+								}
+								else
+								{
+									// it's a box
+									if (self->ParentList->Items[Teller]->Group == GroupBox)
 									{
-										Result = false;
-										break;
+										//we're moving horizontal or falling down so we can't move into the box
+										if (PlayFieldYin - self->PlayFieldY >= 0)
+										{
+											Result = false;
+											break;
+										}
+										//were moving up
+										//check to see if there are no stackboxes or other things on top of the player blocking the jump
+										else
+										{
+											for (int Teller2 = 0; Teller2 < self->ParentList->ItemCount; Teller2++)
+											{
+												if ((((self->ParentList->Items[Teller2]->PlayFieldX == self->PlayFieldX) && (self->AnimBase == AnimBaseLeft)) ||
+													((self->ParentList->Items[Teller2]->PlayFieldX == self->PlayFieldX) && (self->AnimBase == AnimBaseRight))) &&
+													(self->ParentList->Items[Teller2]->PlayFieldY == PlayFieldYin - 1) &&
+													((self->ParentList->Items[Teller2]->Group == GroupFloor) || (self->ParentList->Items[Teller2]->Group == GroupBox) ||
+														(self->ParentList->Items[Teller2]->Group == GroupExit)))
+												{
+													Result = false;
+													break;
+												}
+											}
+											if (!Result)
+											{
+												break;
+											}
+										}
 									}
 								}
 							}
@@ -543,6 +573,7 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 			if (self->ParentList)
 			{
 				for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
+				{
 					if (((self->ParentList->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->ParentList->Items[Teller]->PlayFieldY == PlayFieldYin)))
 						if ((self->ParentList->Items[Teller]->Group == GroupFloor) || (self->ParentList->Items[Teller]->Group == GroupBox) ||
 							(self->ParentList->Items[Teller]->Group == GroupExit))
@@ -550,6 +581,7 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 							Result = false;
 							break;
 						}
+				}
 			}
 			else
 			{

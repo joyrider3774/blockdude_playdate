@@ -399,8 +399,10 @@ bool StageDone(CWorldPart* Player)
 		if (WorldParts->Items[Teller]->Type == IDExit)
 		{
 			if ((WorldParts->Items[Teller]->PlayFieldX == Player->PlayFieldX) && (WorldParts->Items[Teller]->PlayFieldY == Player->PlayFieldY))
+			{
 				Temp = true;
-			break;
+				break;
+			}
 		}
 	return Temp;
 }
@@ -1342,8 +1344,8 @@ void Game(void)
 								for (int teller2 = 0; teller2 < WorldParts->ItemCount; teller2++)
 								{
 									if ((WorldParts->Items[teller2]->PlayFieldX == ThePlayer->PlayFieldX + 1) && (WorldParts->Items[teller2]->PlayFieldY == ThePlayer->PlayFieldY + 1) &&
-										((WorldParts->Items[teller2]->Group == GroupFloor) || (WorldParts->Items[teller2]->Group == GroupBox)) ||
-										 (WorldParts->Items[teller2]->Group == GroupExit))
+										((WorldParts->Items[teller2]->Group == GroupFloor) || (WorldParts->Items[teller2]->Group == GroupBox) ||
+										 (WorldParts->Items[teller2]->Group == GroupExit)))
 									{
 										FloorFound = true;
 										break;
@@ -1448,7 +1450,7 @@ void Game(void)
 		}
 	}
 	
-	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
+	if (!AskingQuestion && !ThePlayer->IsMoving && (framecounter == 0) && StageDone(ThePlayer))
 	{
 		playLevelDoneSound();
 

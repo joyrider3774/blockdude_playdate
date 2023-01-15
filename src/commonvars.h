@@ -5,11 +5,11 @@
 #include <stdbool.h>
 #include "pd_api.h"
 
-#define FRAMERATE 40
-#define GameMoveSpeed 2       //dec if fps increases, Tilewidth & height must be divisable by this nr
-#define PlayerAnimDelay 8     //inc if fps increases
-#define FrameDelayInput 4     //inc if fps increases
-#define ViewportMove 2        //dec if fps increases
+#define FRAMERATE 25
+#define GameMoveSpeed 3       //dec if fps increases, Tilewidth & height must be divisable by this nr
+#define PlayerAnimDelay 5     //inc if fps increases
+#define FrameDelayInput 2     //inc if fps increases
+#define ViewportMove 3        //dec if fps increases
 
 
 #define MAXSKINS 3
