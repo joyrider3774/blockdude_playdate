@@ -7,7 +7,9 @@ CWorldParts* CWorldParts_Create()
 	CWorldParts* Result = pd->system->realloc(NULL, sizeof(CWorldParts));
 	if (Result)
 	{
+		Result->AllDirty = false;
 		Result->ItemCount = 0;
+		Result->DirtyCount = 0;
 		Result->DisableSorting = false;
 		Result->ViewPort = CViewPort_Create(0, 0, 24, 14, 0, 0, NrOfCols - 1, NrOfRows - 1);
 	}
@@ -20,6 +22,7 @@ void CWorldParts_CenterVPOnPlayer(CWorldParts* self)
 		if (self->Items[Teller]->Type == IDPlayer)
 		{
 			CViewPort_SetViewPort(self->ViewPort, self->Items[Teller]->PlayFieldX - 12, self->Items[Teller]->PlayFieldY - 7, self->Items[Teller]->PlayFieldX + 12, self->Items[Teller]->PlayFieldY + 7);
+			self->AllDirty = true;
 			break;
 		}
 }
@@ -53,6 +56,7 @@ void CWorldParts_RemoveAll(CWorldParts* self)
 		}
 	}
 	self->ItemCount = 0;
+	self->DirtyCount = 0;
 }
 
 void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
@@ -63,6 +67,19 @@ void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
 		{
 			if ((self->Items[Teller1]->PlayFieldX == PlayFieldXin) && (self->Items[Teller1]->PlayFieldY == PlayFieldYin))
 			{
+				//remove from dirty list
+				for (int i = 0; i < self->DirtyCount; i++)
+				{
+					if (self->DirtyList[i] == self->Items[Teller1])
+					{
+						for (int j = i; j < self->DirtyCount - 1; j++)
+							self->DirtyList[j] = self->DirtyList[j + 1];
+						self->DirtyCount--;
+						break;
+					}
+				}
+				
+				//now clear memory & remove for item list
 				pd->system->realloc(self->Items[Teller1], 0);
 				self->Items[Teller1] = NULL;
 				for (int Teller2 = Teller1; Teller2 < self->ItemCount - 1; Teller2++)
@@ -72,6 +89,7 @@ void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
 			}
 		}
 	}
+	self->AllDirty = true;
 }
 
 void CWorldParts_RemoveType(CWorldParts* self, int PlayFieldXin, int PlayFieldYin, int Type)
@@ -82,6 +100,19 @@ void CWorldParts_RemoveType(CWorldParts* self, int PlayFieldXin, int PlayFieldYi
 		{
 			if ((self->Items[Teller1]->PlayFieldX == PlayFieldXin) && (self->Items[Teller1]->PlayFieldY == PlayFieldYin) && (self->Items[Teller1]->Type == Type))
 			{
+				//remove from dirty list
+				for (int i = 0; i < self->DirtyCount; i++)
+				{
+					if (self->DirtyList[i] == self->Items[Teller1])
+					{
+						for (int j = i; j < self->DirtyCount - 1; j++)
+							self->DirtyList[j] = self->DirtyList[j + 1];
+						self->DirtyCount--;
+						break;
+					}
+				}
+
+				//now clear memory & remove for item list
 				pd->system->realloc(self->Items[Teller1], 0);
 				self->Items[Teller1] = NULL;
 				for (int Teller2 = Teller1; Teller2 < self->ItemCount - 1; Teller2++)
@@ -91,6 +122,7 @@ void CWorldParts_RemoveType(CWorldParts* self, int PlayFieldXin, int PlayFieldYi
 			}
 		}
 	}
+	self->AllDirty = true;
 }
 
 
@@ -124,6 +156,7 @@ void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart)
 	if (self->ItemCount < NrOfRows * NrOfCols)
 	{
 		WorldPart->ParentList = self;
+		CWorldParts_AddDirty(self, WorldPart);
 		self->Items[self->ItemCount] = WorldPart;
 		self->ItemCount++;
 		CWorldParts_Sort(self);
@@ -132,7 +165,7 @@ void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart)
 
 bool CWorldParts_Save(CWorldParts* self, char* Filename)
 {
-	char Buffer[3];
+	char Buffer[3] = "   ";
 	int ret;
 	SDFile* Fp = pd->file->open(Filename, kFileWrite);
 	if(Fp)
@@ -176,12 +209,13 @@ void CWorldParts_Load(CWorldParts* self, char* Filename, bool FromData)
 {
 	char Buffer[3];
 	int X, Y, Type;
-	CWorldParts_RemoveAll(self);
 	FileOptions opt;
 	if (FromData)
 		opt = kFileReadData;
 	else
 		opt = kFileRead;
+
+	CWorldParts_RemoveAll(self);
 
 	SDFile* Fp = pd->file->open(Filename, opt);
 	if (Fp)
@@ -248,20 +282,106 @@ void CWorldParts_Move(CWorldParts* self)
 		CWorldPart_Move(self->Items[Teller]);
 }
 
-void CWorldParts_Draw(CWorldParts* self)
+int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 {
-	for (int Teller = 0; Teller < self->ItemCount; Teller++)
+	int Result = 0;
+
+	if (self->AllDirty)
+		return Result;
+
+	for (int Teller = 0; Teller < self->DirtyCount; Teller++)
 	{
-		if ((self->Items[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->Items[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
-			(self->Items[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->Items[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
+		if ((self->DirtyList[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
+			(self->DirtyList[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
 		{
-			CWorldPart_Draw(self->Items[Teller]);
+			CWorldPart_Draw(self->DirtyList[Teller], true, BlackBackGround);
+			Result++;
 		}
+	}
+	return Result;
+}
+void CWorldParts_AddDirty(CWorldParts* self, CWorldPart* Part)
+{
+	if (!Part->Dirty)
+	{
+		self->DirtyList[self->DirtyCount] = Part;
+		self->DirtyCount++;
 	}
 }
 
+int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
+{
+	int Result = 0;
+	//fullscreen update
+	if (self->AllDirty)
+	{
+		for (int Teller = 0; Teller < self->ItemCount; Teller++)
+		{
+			if ((self->Items[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->Items[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
+				(self->Items[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->Items[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
+			{
+				CWorldPart_Draw(self->Items[Teller], false, BlackBackGround);
+				self->Items[Teller]->Dirty = false;
+				Result++;
+			}
+		}
+		self->AllDirty = false;
+		self->DirtyCount = 0;
+	}
+	//smaller list with only dirty items to draw (smaller loop)
+	else
+	{
+		for (int Teller = 0; Teller < self->DirtyCount; Teller++)
+		{
+			if ((self->DirtyList[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
+				(self->DirtyList[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
+			{
+				CWorldPart_Draw(self->DirtyList[Teller], false, BlackBackGround);
+				self->DirtyList[Teller]->Dirty = false;
+				Result++;
+			}
+		}
+		self->AllDirty = false;
+		self->DirtyCount = 0;
+	}
+
+	return Result;
+}
+
+CWorldPart* CWorldParts_PartAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
+{
+	if ((PlayFieldYin < 0) || (PlayFieldYin >= NrOfRows) || (PlayFieldXin < 0) || (PlayFieldXin >= NrOfCols))
+		return NULL;
+
+	for (int Teller = 0; Teller < self->ItemCount; Teller++)
+	{
+		if ((self->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->Items[Teller]->PlayFieldY == PlayFieldYin))
+		{
+			return self->Items[Teller];
+		}
+	}
+	return NULL;
+}
+
+int CWorldParts_GroupCount(CWorldParts* self, int GroupIn)
+{
+	int Result = 0;
+	for (int Teller = 0; Teller < self->ItemCount; Teller++)
+	{
+		if ((self->Items[Teller]->Group == GroupIn))
+		{
+			Result++;
+		}
+	}
+	return Result;
+}
+
+
 int CWorldParts_TypeAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
 {
+	if ((PlayFieldYin < 0) || (PlayFieldYin >= NrOfRows) || (PlayFieldXin < 0) || (PlayFieldXin >= NrOfCols))
+		return 0;
+
 	for (int Teller = 0; Teller < self->ItemCount; Teller++)
 	{
 		if ((self->Items[Teller]->PlayFieldX == PlayFieldXin) && (self->Items[Teller]->PlayFieldY == PlayFieldYin))

@@ -34,6 +34,10 @@ struct CWorldPart {
 	bool NeedToMoveLeft;
 	bool ItemAttached;
 	bool NeedToMoveRight;
+	bool Dirty;
+	int PrevDrawX;
+	int PrevDrawY;
+	int PrevDrawAnimPhase;
 	int AnimCounter, AnimBase, AnimDelay, AnimDelayCounter, AnimPhases;
 };
 
@@ -54,6 +58,6 @@ void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY);
 void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 void CWorldPart_Move(CWorldPart* self);
-void CWorldPart_Draw(CWorldPart* self);
+void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround);
 
 #endif

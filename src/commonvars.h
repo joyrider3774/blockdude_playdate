@@ -5,25 +5,24 @@
 #include <stdbool.h>
 #include "pd_api.h"
 
-#define FRAMERATE 25
-#define GameMoveSpeed 3       //dec if fps increases, Tilewidth & height must be divisable by this nr
-#define PlayerAnimDelay 5     //inc if fps increases
-#define FrameDelayInput 2     //inc if fps increases
-#define ViewportMove 3        //dec if fps increases
+#define FRAMERATE 50
+#define GameMoveSpeed 2       //dec if fps increases, Tilewidth & height must be divisable by this nr
+#define PlayerAnimDelay 10     //inc if fps increases
+#define FrameDelayInput 4     //inc if fps increases
+#define ViewportMove 2       //dec if fps increases
 
 
 #define MAXSKINS 3
-#define SMOOTHING 0
 #define WINDOW_WIDTH 400
 #define WINDOW_HEIGHT 240
+#define HALFWINDOWWIDTH 200
+#define HALFWINDOWHEIGHT 120
 #define TileWidth 16
 #define TileHeight 16
-#define HALFWINDOWWIDTH (WINDOW_WIDTH >> 1)
-#define HALFWINDOWHEIGHT (WINDOW_HEIGHT >> 1)
 #define InstalledLevels 21
-#define AlphaInc 20
 #define NrOfRows 50
 #define NrOfCols 50
+
 #define IDEmpty 1
 #define IDPlayer 2
 #define IDBox 3
@@ -50,33 +49,25 @@
 #define IDRoofCornerBoth 24
 #define IDRoofDownRight 25
 #define IDRoofDownLeft 26
+
 #define GroupFloor 1
 #define GroupPlayer 2
 #define GroupBox 3
 #define GroupExit 4
-#define ZPlayer 10 //has to be drawn last + It has to be moved as last also for the logic to work. (otherwise a box can fall down when a player jumps)
-#define ZWall 5
-#define ZBox 5
-#define ZFloor 5
+
+#define ZPlayer 4 //has to be drawn last + It has to be moved as last also for the logic to work. (otherwise a box can fall down when a player jumps)
+#define ZBox 3
+#define ZFloor 2
 #define ZExit 1
-#define InputDelay 13
-#define MaxMusicFiles 1
-#define NrOfSounds 4
-#define SND_MENU 0
-#define SND_SELECT 1
-#define SND_ERROR 2
-#define SND_STAGEEND 3
-#define MaxAlpha 150
+
 #define AnimBaseLeft 0
 #define AnimBaseRight 4
 #define AnimBaseLeftJump 8
 #define AnimBaseRightJump 12
 
-
 #define errNoError 0
 #define errNoPlayer 1
 #define errNoExit 2
-
 
 #define mmStartGame 0
 #define mmLevelEditor 1

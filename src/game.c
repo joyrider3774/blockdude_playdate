@@ -549,6 +549,7 @@ void OtherMenuItemCallback(void* userdata)
 		int tmp = pd->system->getMenuItemValue(menuItem3);
 		setSkinSaveState(tmp);
 		LoadGraphics();
+		WorldParts->AllDirty = true;
 		NeedRedraw = true;
 	}
 }
@@ -712,6 +713,7 @@ void GameMenuItemCallback(void* userdata)
 			int tmp = pd->system->getMenuItemValue(menuItem3);
 			setSkinSaveState(tmp);
 			LoadGraphics();
+			WorldParts->AllDirty = true;
 			NeedRedraw = true;
 		}
 		
@@ -857,7 +859,7 @@ void StageSelect()
 			pd->graphics->clear(kColorWhite);
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_Draw(WorldParts);
+		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
 		if(LevelEditorMode)
@@ -886,6 +888,8 @@ void StageSelect()
 			else
 			{
 				CreateOtherMenuItems();
+				//we asked question so need to redraw everything
+				WorldParts->AllDirty = true;
 			}
 		}
 	}
@@ -1169,6 +1173,8 @@ void GameInit(void)
 	CreateGameMenuItems();
 }
 
+bool wastwo = false;
+
 void Game(void)
 {
 	if (GameState == GSGameInit)
@@ -1232,21 +1238,25 @@ void Game(void)
 		if (currButtons & kButtonLeft)
 		{
 			CViewPort_Move(WorldParts->ViewPort, -ViewportMove, 0);
+			WorldParts->AllDirty = true;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonRight)
 		{
 			CViewPort_Move(WorldParts->ViewPort, ViewportMove, 0);
+			WorldParts->AllDirty = true;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonUp)
 		{
 			CViewPort_Move(WorldParts->ViewPort, 0, -ViewportMove);
+			WorldParts->AllDirty = true;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonDown)
 		{
 			CViewPort_Move(WorldParts->ViewPort, 0, ViewportMove);
+			WorldParts->AllDirty = true;
 			NeedRedraw = true;
 		}
 	}
@@ -1390,24 +1400,37 @@ void Game(void)
 
 	}
 
+
 	NeedRedraw |= Moving || Que;
+	int Tmp2 = 0;
+	int Tmp3 = 0;
+	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
+	{
+		if (WorldParts->Items[teller]->IsMoving)
+			Tmp3++;
+	}
 
 	//need to draw and move one more time to draw final state and make boxes drop down further
 	//otherwise there is a hickup while keeping moving with the player in the animation
 	//or boxes not being fully on the ground or dropping further
 	if (!AskingQuestion && !NeedRedraw && (framecounter > 0))
 	{
+		Tmp2++;
 		framecounter--;
-		if (skinSaveState() == 1)
+		if (WorldParts->AllDirty)
 		{
-			pd->graphics->clear(kColorBlack);
-		}
-		else
-		{
-			pd->graphics->clear(kColorWhite);
+			if (skinSaveState() == 1)
+			{
+				pd->graphics->clear(kColorBlack);
+			}
+			else
+			{
+				pd->graphics->clear(kColorWhite);
+			}
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_Draw(WorldParts);
+		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
+		int tmp = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 		CWorldParts_Move(WorldParts);
 		if (FreeView)
 		{
@@ -1420,23 +1443,38 @@ void Game(void)
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 			pd->system->realloc(Text, 0);
 		}
+
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->setFont(Mini);
+		char* Text;
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d T:%d B:%d F:%d D:%d D2:%d %d %d %d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), tmp, WorldParts->DirtyCount,  Tmp2, wastwo, Tmp3);
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
 	}
 
 	if (!AskingQuestion && NeedRedraw)
 	{
+		Tmp2++;
 		NeedRedraw = false;
 		framecounter = 1;
-		if (skinSaveState() == 1)
+		if (WorldParts->AllDirty)
 		{
-			pd->graphics->clear(kColorBlack);
-		}
-		else
-		{
-			pd->graphics->clear(kColorWhite);
+			if (skinSaveState() == 1)
+			{
+				pd->graphics->clear(kColorBlack);
+			}
+			else
+			{
+				pd->graphics->clear(kColorWhite);
+			}
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_Draw(WorldParts);
+		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
+		int tmp = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 		CWorldParts_Move(WorldParts);
+
 		if (FreeView)
 		{
 			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
@@ -1448,8 +1486,22 @@ void Game(void)
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 			pd->system->realloc(Text, 0);
 		}
+
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->setFont(Mini);
+		char* Text;
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d T:%d B:%d F:%d D:%d D2:%d %d %d %d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), tmp, WorldParts->DirtyCount, Tmp2, wastwo, Tmp3);
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
 	}
-	
+
+	if (Tmp2 == 2)
+	{
+		wastwo = true;
+	}
+
 	if (!AskingQuestion && !ThePlayer->IsMoving && (framecounter == 0) && StageDone(ThePlayer))
 	{
 		playLevelDoneSound();
@@ -1538,6 +1590,7 @@ void Game(void)
 				else
 				{
 					CreateGameMenuItems();
+					WorldParts->AllDirty = true;
 				}
 			}
 		}
@@ -1584,16 +1637,21 @@ void LevelEditor(void)
 	if (NeedRedraw)
 	{
 		NeedRedraw = false;
-		if (skinSaveState() == 1)
+		WorldParts->AllDirty = true;
+		if (WorldParts->AllDirty)
 		{
-			pd->graphics->clear(kColorBlack);
-		}
-		else
-		{
-			pd->graphics->clear(kColorWhite);
+			if (skinSaveState() == 1)
+			{
+				pd->graphics->clear(kColorBlack);
+			}
+			else
+			{
+				pd->graphics->clear(kColorWhite);
+			}
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
-		CWorldParts_Draw(WorldParts);
+		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
+		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 		CSelector_Draw(Selector);
 		
 		if (ShowGridSaveState())
@@ -1618,12 +1676,14 @@ void LevelEditor(void)
 	{
 		CSelector_DecSelection(Selector);
 		NeedRedraw = true;
+		WorldParts->AllDirty = true;
 	}
 
 	if (!AskingQuestion && (crankResult == CRANKMOVERIGHT))
 	{
 		CSelector_IncSelection(Selector);
 		NeedRedraw = true;
+		WorldParts->AllDirty = true;
 	}
 
 	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
@@ -1742,6 +1802,7 @@ void LevelEditor(void)
 		if (answer)
 		{
 			CreateLevelEditorMenuItems();
+			WorldParts->AllDirty = true;
 		}
 	
 	}

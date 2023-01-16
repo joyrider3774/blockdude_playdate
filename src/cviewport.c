@@ -42,12 +42,13 @@ void CViewPort_SetVPLimit(CViewPort* self, int MinX, int MinY, int MaxX, int Max
 }
 
 
-void CViewPort_Move(CViewPort* self, int Xi, int Yi)
+bool CViewPort_Move(CViewPort* self, int Xi, int Yi)
 {
+	bool Result = false;
 	if ((self->MinScreenX + Xi <= TileWidth * (self->VPLimitMaxX)) && (self->MinScreenX + Xi >= self->VPLimitMinX * TileWidth) && (self->MaxScreenX + Xi <= TileWidth * (self->VPLimitMaxX)) && (self->MaxScreenX + Xi >= self->VPLimitMinX * TileWidth) &&
 		(self->MinScreenY + Yi <= TileHeight * (self->VPLimitMaxY)) && (self->MinScreenY + Yi >= self->VPLimitMinY * TileHeight) && (self->MaxScreenY + Yi <= TileHeight * (self->VPLimitMaxY)) && (self->MaxScreenY + Yi >= self->VPLimitMinY * TileHeight))
 	{
-
+		Result = true;
 		self->MinScreenX += Xi;
 		self->MaxScreenX += Xi;
 		self->MinScreenY += Yi;
@@ -59,6 +60,7 @@ void CViewPort_Move(CViewPort* self, int Xi, int Yi)
 		self->BackgroundX += (Xi / 2);
 		self->BackgroundY += (Yi / 2);
 	}
+	return Result;
 }
 
 void CViewPort_SetViewPort(CViewPort* self, int MinX, int MinY, int MaxX, int MaxY)

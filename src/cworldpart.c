@@ -21,7 +21,7 @@ CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, co
 		Result->AnimDelay = 0;
 		Result->AnimDelayCounter = 0;
 		Result->AnimPhases = 0;
-
+		Result->Dirty = false;
 		Result->PlayFieldX = PlayFieldXin;
 		Result->PlayFieldY = PlayFieldYin;
 		Result->Xi = 0;
@@ -35,10 +35,13 @@ CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, co
 		Result->MoveSpeed = 0;
 		Result->ParentList = 0;
 		Result->AnimPhase = 0;
+		Result->PrevDrawAnimPhase = 0;
 		Result->Selected = false;
 		Result->FirstArriveEventFired = false;
 		Result->Z = Zin;
 		Result->Group = GroupIn;
+		Result->PrevDrawX = -1;
+		Result->PrevDrawY = -1;
 
 		if (Typein == IDPlayer)
 		{
@@ -105,10 +108,7 @@ void CWorldPart_MoveQueInsert(CWorldPart* self, int pos, SPoint point)
 
 void CWorldPart_AddToMoveQue(CWorldPart* self, int PlayFieldXIn, int PlayFieldYIn)
 {
-	SPoint Temp;
-	Temp.X = PlayFieldXIn;
-	Temp.Y = PlayFieldYIn;
-
+	SPoint Temp = { .X = PlayFieldXIn, .Y = PlayFieldYIn };
 
 	if (self->MoveQueBack == -1)
 		CWorldPart_MoveQuePushBack(self, Temp);
@@ -157,11 +157,26 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				if (self->X < self->PlayFieldX * TileWidth)
 				{
 					//this comes from a jump and falling down
-					if (!self->NeedToMoveRight && !CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
-						playWalkSound();
+					if (!self->NeedToMoveRight)
+					{
+						//if(!CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
+						//	playWalkSound();
+
+						CWorldPart* Tmp = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin + 1);
+						if (Tmp != NULL)
+						{
+							if ((Tmp->Group == GroupFloor) || (Tmp->Group == GroupBox))
+								playWalkSound();
+						}
+					}
 
 					self->Xi = self->MoveSpeed;
-					self->AnimBase = AnimBaseRight;
+					if (self->AnimBase != AnimBaseRight)
+					{
+						self->AnimBase = AnimBaseRight;
+						CWorldParts_AddDirty(self->ParentList, self);
+					}
+
 					if (self->ParentList)
 					{
 						for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
@@ -181,11 +196,25 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				if (self->X > self->PlayFieldX * TileWidth)
 				{
 					//this comes from a jump and from falling down
-					if (!self->NeedToMoveLeft && !CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
-						playWalkSound();
+					if (!self->NeedToMoveLeft)
+					{
+						//if(!CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
+						//	playWalkSound();
+
+						CWorldPart* Tmp = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin + 1);
+						if (Tmp != NULL)
+						{
+							if ((Tmp->Group == GroupFloor) || (Tmp->Group == GroupBox))
+								playWalkSound();
+						}
+					}
 
 					self->Xi = -self->MoveSpeed;
-					self->AnimBase = AnimBaseLeft;
+					if (self->AnimBase != AnimBaseLeft)
+					{
+						self->AnimBase = AnimBaseLeft;
+						CWorldParts_AddDirty(self->ParentList, self);
+					}
 					if (self->ParentList)
 					{
 						for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
@@ -210,12 +239,14 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 					{
 						self->NeedToMoveLeft = true;
 						self->AnimBase = AnimBaseLeftJump;
+						CWorldParts_AddDirty(self->ParentList, self);
 					}
 					else
 						if (self->AnimBase == AnimBaseRight)
 						{
 							self->AnimBase = AnimBaseRightJump;
 							self->NeedToMoveRight = true;
+							CWorldParts_AddDirty(self->ParentList, self);
 						}
 
 					if (self->ParentList)
@@ -255,12 +286,14 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				{
 					Result = true;
 					self->AnimBase = AnimBaseRight;
+					CWorldParts_AddDirty(self->ParentList, self);
 				}
 				//Left
 				if ((self->AnimBase != AnimBaseLeft) && (PlayFieldXin < self->PlayFieldX))
 				{
 					Result = true;
 					self->AnimBase = AnimBaseLeft;
+					CWorldParts_AddDirty(self->ParentList, self);
 				}
 				self->AnimPhase = self->AnimBase + self->AnimCounter;
 			}
@@ -399,13 +432,25 @@ void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY)
 	if (self->Type == IDPlayer)
 	{
 		if ((ScreenPosX > (self->ParentList->ViewPort->MaxScreenX) - HALFWINDOWWIDTH) && (self->Xi > 0))
-			CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi);
+		{
+			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
+				self->ParentList->AllDirty = true;
+		}
 		if ((ScreenPosX < (self->ParentList->ViewPort->MaxScreenX) - HALFWINDOWWIDTH) && (self->Xi < 0))
-			CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi);
+		{
+			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
+				self->ParentList->AllDirty = true;
+		}
 		if ((ScreenPosY > (self->ParentList->ViewPort->MaxScreenY) - HALFWINDOWHEIGHT) && (self->Yi > 0))
-			CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi);
+		{
+			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
+				self->ParentList->AllDirty = true;
+		}
 		if ((ScreenPosY < (self->ParentList->ViewPort->MaxScreenY) - HALFWINDOWHEIGHT) && (self->Yi < 0))
-			CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi);
+		{
+			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
+				self->ParentList->AllDirty = true;
+		}
 	}
 }
 
@@ -423,7 +468,7 @@ void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int 
 
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
 {
-	bool Result = true, CanJump = false, FloorFound = false, BlockAboveFound = false;
+	bool Result = true, CanJump = false, FloorFound = false;
 
 	if (!self->FirstArriveEventFired)
 		return false;
@@ -603,7 +648,7 @@ void CWorldPart_Move(CWorldPart* self)
 {
 	bool FloorFound = false;
 	bool SomethingBelow = false;
-
+	
 	switch (self->Type)
 	{
 	case IDPlayer:
@@ -611,6 +656,7 @@ void CWorldPart_Move(CWorldPart* self)
 		{
 			CWorldPart_Event_ArrivedOnNewSpot(self);
 			self->FirstArriveEventFired = true;
+			CWorldParts_AddDirty(self->ParentList, self);
 		}
 
 		if (self->ParentList)
@@ -646,6 +692,7 @@ void CWorldPart_Move(CWorldPart* self)
 		{
 			if (self->MoveDelayCounter == self->MoveDelay)
 			{
+				CWorldParts_AddDirty(self->ParentList, self);
 				self->X += self->Xi;
 				self->Y += self->Yi;
 				CWorldPart_Event_Moving(self, self->X, self->Y);
@@ -679,6 +726,7 @@ void CWorldPart_Move(CWorldPart* self)
 		{
 			CWorldPart_Event_ArrivedOnNewSpot(self);
 			self->FirstArriveEventFired = true;
+			CWorldParts_AddDirty(self->ParentList, self);
 		}
 		//move moet hergedaan worden zodat de player als er op z'n start positie geen block onder hem zit toch naar beneden valt en niet blijft staan
 
@@ -726,6 +774,7 @@ void CWorldPart_Move(CWorldPart* self)
 		{
 			if (self->MoveDelayCounter == self->MoveDelay)
 			{
+				CWorldParts_AddDirty(self->ParentList, self);
 				self->X += self->Xi;
 				self->Y += self->Yi;
 				CWorldPart_Event_Moving(self, self->X, self->Y);
@@ -743,6 +792,7 @@ void CWorldPart_Move(CWorldPart* self)
 			self->MoveDelayCounter++;
 		}
 		else
+		{
 			if (self->MoveQueBack > -1)
 			{
 				if (CWorldPart_CanMoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y))
@@ -753,9 +803,7 @@ void CWorldPart_Move(CWorldPart* self)
 				else
 					CWorldPart_MoveQueClear(self);
 			}
-
-
-
+		}
 		break;
 	default:
 		//floors & exits don't move
@@ -770,12 +818,14 @@ void CWorldPart_Move(CWorldPart* self)
 			{
 				CWorldPart_Event_ArrivedOnNewSpot(self);
 				self->FirstArriveEventFired = true;
+				CWorldParts_AddDirty(self->ParentList, self);
 			}
 
 			if (self->IsMoving)
 			{
 				if (self->MoveDelayCounter == self->MoveDelay)
 				{
+					CWorldParts_AddDirty(self->ParentList, self);
 					self->X += self->Xi;
 					self->Y += self->Yi;
 					CWorldPart_Event_Moving(self, self->X, self->Y);
@@ -793,6 +843,7 @@ void CWorldPart_Move(CWorldPart* self)
 				self->MoveDelayCounter++;
 			}
 			else
+			{
 				if (self->MoveQueBack > -1)
 				{
 					if (CWorldPart_CanMoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y))
@@ -803,12 +854,13 @@ void CWorldPart_Move(CWorldPart* self)
 					else
 						CWorldPart_MoveQueClear(self);
 				}
+			}
 		}
 		break;
 	}
 }
 
-void CWorldPart_Draw(CWorldPart* self)
+void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround)
 {
 	LCDBitmapTable* Img = NULL;
 
@@ -894,30 +946,51 @@ void CWorldPart_Draw(CWorldPart* self)
 		break;
 	}
 
-	CWorldPart_Event_BeforeDraw(self);
 	int x, y;
-	LCDBitmap* Bitmap = pd->graphics->getTableBitmap(Img, self->AnimPhase);
-	if (self->ParentList)
+	LCDBitmap* Bitmap;
+
+	if (ClearPrevDrawPosition)
 	{
-		x = self->X - self->ParentList->ViewPort->MinScreenX;
-		y = self->Y - self->ParentList->ViewPort->MinScreenY;
+		if (BlackBackGround)
+			pd->graphics->setDrawMode(kDrawModeFillBlack);
+		else
+			pd->graphics->setDrawMode(kDrawModeFillWhite);
+		Bitmap = pd->graphics->getTableBitmap(Img, self->PrevDrawAnimPhase);
+		pd->graphics->drawBitmap(Bitmap, self->PrevDrawX, self->PrevDrawY, kBitmapUnflipped);
+		pd->graphics->setDrawMode(kDrawModeCopy);
 	}
 	else
 	{
-		x = self->X;
-		y = self->Y;
-	}
-	pd->graphics->drawBitmap(Bitmap, x, y, kBitmapUnflipped);
 
-	if (self->Selected && (self->Type != IDEmpty))
-	{
+		CWorldPart_Event_BeforeDraw(self);
+
+
+		Bitmap = pd->graphics->getTableBitmap(Img, self->AnimPhase);
 		if (self->ParentList)
 		{
-			pd->graphics->drawBitmap(IMGSelection, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, kBitmapUnflipped);
+			x = self->X - self->ParentList->ViewPort->MinScreenX;
+			y = self->Y - self->ParentList->ViewPort->MinScreenY;
 		}
 		else
 		{
-			pd->graphics->drawBitmap(IMGSelection, self->X, self->Y, kBitmapUnflipped);
+			x = self->X;
+			y = self->Y;
+		}
+		self->PrevDrawX = x;
+		self->PrevDrawY = y;
+		self->PrevDrawAnimPhase = self->AnimPhase;
+		pd->graphics->drawBitmap(Bitmap, x, y, kBitmapUnflipped);
+
+		if (self->Selected && (self->Type != IDEmpty))
+		{
+			if (self->ParentList)
+			{
+				pd->graphics->drawBitmap(IMGSelection, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, kBitmapUnflipped);
+			}
+			else
+			{
+				pd->graphics->drawBitmap(IMGSelection, self->X, self->Y, kBitmapUnflipped);
+			}
 		}
 	}
 }
