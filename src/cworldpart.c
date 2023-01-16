@@ -42,6 +42,9 @@ CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, co
 		Result->Group = GroupIn;
 		Result->PrevDrawX = -1;
 		Result->PrevDrawY = -1;
+		Result->PrevDrawPlayFieldX = -1;
+		Result->PrevDrawPlayFieldY = -1;
+
 
 		if (Typein == IDPlayer)
 		{
@@ -286,16 +289,18 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				{
 					Result = true;
 					self->AnimBase = AnimBaseRight;
-					CWorldParts_AddDirty(self->ParentList, self);
 				}
 				//Left
 				if ((self->AnimBase != AnimBaseLeft) && (PlayFieldXin < self->PlayFieldX))
 				{
 					Result = true;
 					self->AnimBase = AnimBaseLeft;
-					CWorldParts_AddDirty(self->ParentList, self);
 				}
-				self->AnimPhase = self->AnimBase + self->AnimCounter;
+				if (self->AnimPhase != self->AnimBase + self->AnimCounter)
+				{
+					CWorldParts_AddDirty(self->ParentList, self);
+					self->AnimPhase = self->AnimBase + self->AnimCounter;
+				}
 			}
 
 		}
@@ -329,18 +334,23 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 	{
 	case IDPlayer:
 	{
-		//floorfound check moet hier gebeuren zodat wanneer men van een "blok springt" naar benede valt en niet blijft voortschuiven
+		//check for floor so we can drop down if not found
 		bool FloorFound = false;
 		if (self->ParentList)
 		{
 			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 			{
+				//in case the block was attached to a player but blocked by wall the player moved under
+				if (self->ParentList->Items[Teller]->AttachedToPlayer)
+				{
+					CWorldPart_Event_ArrivedOnNewSpot(self->ParentList->Items[Teller]);
+				}
+
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
 					((self->ParentList->Items[Teller]->Group == GroupFloor) || (self->ParentList->Items[Teller]->Group == GroupBox)))
 				{
 					self->AnimPhases = 4;
 					FloorFound = true;
-					break;
 				}
 
 				//to catch floating exits
@@ -349,9 +359,7 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 				{
 					self->AnimPhases = 4;
 					FloorFound = true;
-					break;
 				}
-
 			}
 		}
 
@@ -366,6 +374,7 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 			CWorldPart_MoveTo(self, self->PlayFieldX - 1, self->PlayFieldY);
 			self->NeedToMoveLeft = false;
 		}
+
 		if (self->NeedToMoveRight)
 		{
 			CWorldPart_MoveTo(self, self->PlayFieldX + 1, self->PlayFieldY);
@@ -385,24 +394,54 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 		{
 			int PlayerID = 0;
 			bool PlayerBelow = false;
+			bool SomethingBelow = (self->PlayFieldY == NrOfRows - 1);
 			//see if there is a Player below the block
 			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
 			{
 				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
 					(self->ParentList->Items[Teller]->Type == IDPlayer))
 				{
-
+					SomethingBelow = true;
 					PlayerBelow = true;
 					PlayerID = Teller;
 					break;
-
 				}
+
+				if(!SomethingBelow)
+					if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1)&&
+						((self->ParentList->Items[Teller]->Group == GroupFloor) ||
+							(self->ParentList->Items[Teller]->Group == GroupBox) || (self->ParentList->Items[Teller]->Group == GroupPlayer) ||
+							(self->ParentList->Items[Teller]->Group == GroupExit)))
+					{
+						SomethingBelow = true;
+					}
+
 			}
+
 			if (PlayerBelow)
 				CWorldPart_AttachToPlayer(self, self->ParentList->Items[PlayerID]);
 			else
 				if (self->AttachedToPlayer && !CWorldPart_MovesInQue(self))
 					CWorldPart_DeattachFromPlayer(self);
+
+			//if nothing is below and there are no moves in the queue move it down
+			if ((!SomethingBelow) && (!CWorldPart_MovesInQue(self)))
+			{
+				if (self->AttachedToPlayer)
+				{
+					/*if (!self->Player->IsMoving)
+					{
+						self->AttachedToPlayer = false;
+						self->Player = NULL;
+					}*/
+					//CWorldPart_Event_ArrivedOnNewSpot(self);
+				}
+				/*if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)) && (self->PlayFieldY < NrOfRows - 1))
+				{
+					playDropSound();
+				}*/
+				CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
+			}
 
 		}
 		break;
@@ -424,7 +463,12 @@ void CWorldPart_Event_BeforeDraw(CWorldPart* self)
 		}
 	}
 	else
-		self->AnimPhase = self->AnimBase;
+	{
+		if (self->AnimPhase != self->AnimBase)
+		{
+			self->AnimPhase = self->AnimBase;
+		}
+	}
 }
 
 void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY)
@@ -470,12 +514,15 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 {
 	bool Result = true, CanJump = false, FloorFound = false;
 
-	if (!self->FirstArriveEventFired)
-		return false;
+	//if (!self->FirstArriveEventFired)
+	//	return false;
 
 	switch (self->Type)
 	{
 	case IDPlayer:
+		/*if (self->IsMoving)
+			return(false);*/
+
 		if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
 		{
 
@@ -646,128 +693,23 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 
 void CWorldPart_Move(CWorldPart* self)
 {
-	bool FloorFound = false;
-	bool SomethingBelow = false;
 	
-	switch (self->Type)
+	//floors & exits don't move
+	if ((self->Group == GroupFloor) || (self->Group == GroupExit))
 	{
-	case IDPlayer:
+		if (!self->FirstArriveEventFired)
+		{
+			self->FirstArriveEventFired = true;
+			CWorldParts_AddDirty(self->ParentList, self);
+		}
+	}
+	else
+	{
 		if (!self->FirstArriveEventFired)
 		{
 			CWorldPart_Event_ArrivedOnNewSpot(self);
 			self->FirstArriveEventFired = true;
 			CWorldParts_AddDirty(self->ParentList, self);
-		}
-
-		if (self->ParentList)
-		{
-			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
-			{
-				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
-					((self->ParentList->Items[Teller]->Group == GroupFloor) || (self->ParentList->Items[Teller]->Group == GroupBox)))
-				{
-					self->AnimPhases = 4;
-					FloorFound = true;
-					break;
-				}
-			}
-		}
-
-		if (self->PlayFieldY == NrOfRows - 1)
-		{
-			self->AnimPhases = 4;
-			FloorFound = true;
-		}
-
-		if (!FloorFound && self->ParentList)
-		{
-			self->AnimPhases = 1;
-			self->AnimCounter = 0;
-
-			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
-		}
-
-
-		if (self->IsMoving)
-		{
-			if (self->MoveDelayCounter == self->MoveDelay)
-			{
-				CWorldParts_AddDirty(self->ParentList, self);
-				self->X += self->Xi;
-				self->Y += self->Yi;
-				CWorldPart_Event_Moving(self, self->X, self->Y);
-				if ((abs(self->X - (self->PlayFieldX * TileWidth)) < GameMoveSpeed) && (abs(self->Y - (self->PlayFieldY * TileHeight)) < GameMoveSpeed))
-				{
-					self->IsMoving = false;
-					self->Xi = 0;
-					self->Yi = 0;
-					self->X = self->PlayFieldX * TileWidth;
-					self->Y = self->PlayFieldY * TileHeight;
-					CWorldPart_Event_ArrivedOnNewSpot(self);
-				}
-				self->MoveDelayCounter = -1;
-			}
-			self->MoveDelayCounter++;
-		}
-		else
-			if (self->MoveQueBack > -1)
-			{
-				if (CWorldPart_CanMoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y))
-				{
-					CWorldPart_MoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y);
-					CWorldPart_MoveQuePopBack(self);
-				}
-				else
-					CWorldPart_MoveQueClear(self);
-			}
-		break;
-	case IDBox:
-		if (!self->FirstArriveEventFired)
-		{
-			CWorldPart_Event_ArrivedOnNewSpot(self);
-			self->FirstArriveEventFired = true;
-			CWorldParts_AddDirty(self->ParentList, self);
-		}
-		//move moet hergedaan worden zodat de player als er op z'n start positie geen block onder hem zit toch naar beneden valt en niet blijft staan
-
-		if (self->ParentList)
-		{
-			//see if there is something below the block
-			for (int Teller = 0; Teller < self->ParentList->ItemCount; Teller++)
-			{
-				if ((self->ParentList->Items[Teller]->PlayFieldX == self->PlayFieldX) && (self->ParentList->Items[Teller]->PlayFieldY == self->PlayFieldY + 1) &&
-					((self->ParentList->Items[Teller]->Group == GroupFloor) ||
-						(self->ParentList->Items[Teller]->Group == GroupBox) || (self->ParentList->Items[Teller]->Group == GroupPlayer) ||
-						(self->ParentList->Items[Teller]->Group == GroupExit)))
-				{
-					SomethingBelow = true;
-					break;
-				}
-			}
-		}
-
-		//assume ground on edges
-		if (self->PlayFieldY == NrOfRows - 1)
-		{
-			SomethingBelow = true;
-		}
-
-		//if nothing is below and there are no moves in the queue move it down
-		if ((!SomethingBelow) && (!CWorldPart_MovesInQue(self)))
-		{
-			if (self->AttachedToPlayer)
-			{
-				if (!self->Player->IsMoving)
-				{
-					self->AttachedToPlayer = false;
-					self->Player = NULL;
-				}
-			}
-			if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)) && (self->PlayFieldY < NrOfRows - 1))
-			{
-				playDropSound();
-			}
-			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
 		}
 
 		if (self->IsMoving)
@@ -786,13 +728,14 @@ void CWorldPart_Move(CWorldPart* self)
 					self->X = self->PlayFieldX * TileWidth;
 					self->Y = self->PlayFieldY * TileHeight;
 					CWorldPart_Event_ArrivedOnNewSpot(self);
+
 				}
+
 				self->MoveDelayCounter = -1;
 			}
 			self->MoveDelayCounter++;
 		}
 		else
-		{
 			if (self->MoveQueBack > -1)
 			{
 				if (CWorldPart_CanMoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y))
@@ -801,62 +744,14 @@ void CWorldPart_Move(CWorldPart* self)
 					CWorldPart_MoveQuePopBack(self);
 				}
 				else
+				{
+					if (self->AttachedToPlayer)
+					{
+						CWorldPart_DeattachFromPlayer(self);
+					}
 					CWorldPart_MoveQueClear(self);
-			}
-		}
-		break;
-	default:
-		//floors & exits don't move
-		if ((self->Group == GroupFloor) || (self->Group == GroupExit))
-		{
-			if (!self->FirstArriveEventFired)
-				self->FirstArriveEventFired = true;
-		}
-		else
-		{
-			if (!self->FirstArriveEventFired)
-			{
-				CWorldPart_Event_ArrivedOnNewSpot(self);
-				self->FirstArriveEventFired = true;
-				CWorldParts_AddDirty(self->ParentList, self);
-			}
-
-			if (self->IsMoving)
-			{
-				if (self->MoveDelayCounter == self->MoveDelay)
-				{
-					CWorldParts_AddDirty(self->ParentList, self);
-					self->X += self->Xi;
-					self->Y += self->Yi;
-					CWorldPart_Event_Moving(self, self->X, self->Y);
-					if ((abs(self->X - (self->PlayFieldX * TileWidth)) < GameMoveSpeed) && (abs(self->Y - (self->PlayFieldY * TileHeight)) < GameMoveSpeed))
-					{
-						self->IsMoving = false;
-						self->Xi = 0;
-						self->Yi = 0;
-						self->X = self->PlayFieldX * TileWidth;
-						self->Y = self->PlayFieldY * TileHeight;
-						CWorldPart_Event_ArrivedOnNewSpot(self);
-					}
-					self->MoveDelayCounter = -1;
-				}
-				self->MoveDelayCounter++;
-			}
-			else
-			{
-				if (self->MoveQueBack > -1)
-				{
-					if (CWorldPart_CanMoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y))
-					{
-						CWorldPart_MoveTo(self, self->MoveQue[self->MoveQueBack].X, self->MoveQue[self->MoveQueBack].Y);
-						CWorldPart_MoveQuePopBack(self);
-					}
-					else
-						CWorldPart_MoveQueClear(self);
 				}
 			}
-		}
-		break;
 	}
 }
 
@@ -960,11 +855,8 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 		pd->graphics->setDrawMode(kDrawModeCopy);
 	}
 	else
-	{
-
+	{		
 		CWorldPart_Event_BeforeDraw(self);
-
-
 		Bitmap = pd->graphics->getTableBitmap(Img, self->AnimPhase);
 		if (self->ParentList)
 		{
@@ -976,6 +868,8 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 			x = self->X;
 			y = self->Y;
 		}
+		self->PrevDrawPlayFieldX = self->PlayFieldX;
+		self->PrevDrawPlayFieldY = self->PlayFieldY;
 		self->PrevDrawX = x;
 		self->PrevDrawY = y;
 		self->PrevDrawAnimPhase = self->AnimPhase;

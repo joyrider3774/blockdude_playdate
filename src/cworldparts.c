@@ -291,8 +291,8 @@ int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 
 	for (int Teller = 0; Teller < self->DirtyCount; Teller++)
 	{
-		if ((self->DirtyList[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
-			(self->DirtyList[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
+		if ((self->DirtyList[Teller]->PrevDrawPlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PrevDrawPlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
+			(self->DirtyList[Teller]->PrevDrawPlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PrevDrawPlayFieldY - 1 <= self->ViewPort->VPMaxY))
 		{
 			CWorldPart_Draw(self->DirtyList[Teller], true, BlackBackGround);
 			Result++;
@@ -304,6 +304,7 @@ void CWorldParts_AddDirty(CWorldParts* self, CWorldPart* Part)
 {
 	if (!Part->Dirty)
 	{
+		Part->Dirty = true;
 		self->DirtyList[self->DirtyCount] = Part;
 		self->DirtyCount++;
 	}
@@ -321,9 +322,11 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				(self->Items[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->Items[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
 			{
 				CWorldPart_Draw(self->Items[Teller], false, BlackBackGround);
-				self->Items[Teller]->Dirty = false;
 				Result++;
 			}
+			self->Items[Teller]->Dirty = false;
+			self->Items[Teller]->PrevDrawPlayFieldX = self->Items[Teller]->PlayFieldX;
+			self->Items[Teller]->PrevDrawPlayFieldY = self->Items[Teller]->PlayFieldY;
 		}
 		self->AllDirty = false;
 		self->DirtyCount = 0;
@@ -337,9 +340,11 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				(self->DirtyList[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY))
 			{
 				CWorldPart_Draw(self->DirtyList[Teller], false, BlackBackGround);
-				self->DirtyList[Teller]->Dirty = false;
 				Result++;
 			}
+			self->DirtyList[Teller]->PrevDrawPlayFieldX = self->DirtyList[Teller]->PlayFieldX;
+			self->DirtyList[Teller]->PrevDrawPlayFieldY = self->DirtyList[Teller]->PlayFieldY;
+			self->DirtyList[Teller]->Dirty = false;
 		}
 		self->AllDirty = false;
 		self->DirtyCount = 0;

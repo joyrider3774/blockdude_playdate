@@ -1201,6 +1201,7 @@ void Game(void)
 	bool CarryingBox = false;
 	bool Que = false;
 	bool Moving = false;
+	bool AttchedBoxQueOrMoving = false;
 	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
 	{
 		if (WorldParts->Items[teller]->IsMoving)
@@ -1218,6 +1219,7 @@ void Game(void)
 			if (WorldParts->Items[teller]->AttachedToPlayer)
 			{
 				CarryingBox = true;
+				AttchedBoxQueOrMoving = CWorldPart_MovesInQue(WorldParts->Items[teller]) || WorldParts->Items[teller]->IsMoving;
 			}		
 		}
 
@@ -1261,7 +1263,7 @@ void Game(void)
 		}
 	}
 	else
-	if (!AskingQuestion && !ThePlayer->IsMoving && !BoxMoving && !Que)
+	if (!AskingQuestion && !ThePlayer->IsMoving && !AttchedBoxQueOrMoving)
 	{
 
 		//pickup 
@@ -1282,7 +1284,8 @@ void Game(void)
 							//move it to the left
 							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY);
 							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY + 1);
-							CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
+							//detaching is set automatically otherwise it would be set too early while the block is still detaching
+							//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
 							NeedRedraw = true;
 							playDropSound();
 						}
@@ -1297,7 +1300,8 @@ void Game(void)
 								//move it to right
 								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY);
 								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY + 1);
-								CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
+								//detaching is set automatically otherwise it would be set too early while the block is still detaching
+								//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
 								NeedRedraw = true;
 								playDropSound();
 							}
@@ -1400,23 +1404,75 @@ void Game(void)
 
 	}
 
-
 	NeedRedraw |= Moving || Que;
-	int Tmp2 = 0;
-	int Tmp3 = 0;
+
+	int DrawCount = 0;
+
+	//extra drawable frame after a needredraw is to sure make all blocks set on final position 
+	//on end of level etc
+	if (!AskingQuestion && NeedRedraw)
+	{
+		NeedRedraw = false;		
+		CWorldParts_Move(WorldParts);
+		if (WorldParts->AllDirty)
+		{
+			if (skinSaveState() == 1)
+			{
+				pd->graphics->clear(kColorBlack);
+			}
+			else
+			{
+				pd->graphics->clear(kColorWhite);
+			}
+		}
+		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
+		DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		
+
+		if (FreeView)
+		{
+			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+			pd->graphics->setFont(Mini);
+			char* Text;
+			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+			pd->system->realloc(Text, 0);
+		}
+	}
+
+#ifdef _DEBUG
+	int MovingCount = 0;
+	int AttachedCount = 0;
+
 	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
 	{
 		if (WorldParts->Items[teller]->IsMoving)
-			Tmp3++;
+			MovingCount++;
 	}
 
-	//need to draw and move one more time to draw final state and make boxes drop down further
-	//otherwise there is a hickup while keeping moving with the player in the animation
-	//or boxes not being fully on the ground or dropping further
-	if (!AskingQuestion && !NeedRedraw && (framecounter > 0))
+	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
 	{
-		Tmp2++;
-		framecounter--;
+		if (WorldParts->Items[teller]->AttachedToPlayer)
+			AttachedCount++;
+	}
+
+	pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+	pd->graphics->setFont(Mini);
+	char* Text;
+	pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), DrawCount, WorldParts->DirtyCount, MovingCount ,AttachedCount);
+	pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+	pd->system->realloc(Text, 0);
+
+#endif
+
+	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
+	{
+		//to one extra move & draw to make sure boxes are on final spot
+		CWorldParts_Move(WorldParts);
 		if (WorldParts->AllDirty)
 		{
 			if (skinSaveState() == 1)
@@ -1428,82 +1484,9 @@ void Game(void)
 				pd->graphics->clear(kColorWhite);
 			}
 		}
-		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		int tmp = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
-		CWorldParts_Move(WorldParts);
-		if (FreeView)
-		{
-			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->setFont(Mini);
-			char* Text;
-			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-			pd->system->realloc(Text, 0);
-		}
+		DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->setFont(Mini);
-		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d T:%d B:%d F:%d D:%d D2:%d %d %d %d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), tmp, WorldParts->DirtyCount,  Tmp2, wastwo, Tmp3);
-		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-		pd->system->realloc(Text, 0);
-	}
-
-	if (!AskingQuestion && NeedRedraw)
-	{
-		Tmp2++;
-		NeedRedraw = false;
-		framecounter = 1;
-		if (WorldParts->AllDirty)
-		{
-			if (skinSaveState() == 1)
-			{
-				pd->graphics->clear(kColorBlack);
-			}
-			else
-			{
-				pd->graphics->clear(kColorWhite);
-			}
-		}
-		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		int tmp = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
-		CWorldParts_Move(WorldParts);
-
-		if (FreeView)
-		{
-			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->setFont(Mini);
-			char* Text;
-			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-			pd->system->realloc(Text, 0);
-		}
-
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->setFont(Mini);
-		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d T:%d B:%d F:%d D:%d D2:%d %d %d %d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), tmp, WorldParts->DirtyCount, Tmp2, wastwo, Tmp3);
-		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-		pd->system->realloc(Text, 0);
-	}
-
-	if (Tmp2 == 2)
-	{
-		wastwo = true;
-	}
-
-	if (!AskingQuestion && !ThePlayer->IsMoving && (framecounter == 0) && StageDone(ThePlayer))
-	{
 		playLevelDoneSound();
 
 		if (!LevelEditorMode && (SelectedLevel == lastUnlockedLevel()))
