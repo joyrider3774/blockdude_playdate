@@ -233,7 +233,7 @@ void CSelector_DecSelection(CSelector* self)
 
 void CSelector_Draw(CSelector* self)
 {
-	CWorldPart_Draw(self->Part, false, false);
+	CWorldPart_Draw(self->Part, false, false, NULL);
 }
 
 void CSelector_deinit(CSelector* self)

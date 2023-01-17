@@ -55,8 +55,8 @@ bool CViewPort_Move(CViewPort* self, int Xi, int Yi)
 		self->MaxScreenY += Yi;
 		self->VPMinX = self->MinScreenX / TileWidth;
 		self->VPMinY = self->MinScreenY / TileHeight;
-		self->VPMaxX = self->MaxScreenX / TileHeight;
-		self->VPMaxY = self->MaxScreenY / TileWidth;
+		self->VPMaxX = self->MaxScreenX / TileWidth;
+		self->VPMaxY = self->MaxScreenY / TileHeight;
 		self->BackgroundX += (Xi / 2);
 		self->BackgroundY += (Yi / 2);
 	}
@@ -158,7 +158,7 @@ CViewPort* CViewPort_Create(int MinX, int MinY, int MaxX, int MaxY, int MinX2, i
 		}
 		Result->BackgroundX = 0;
 		Result->BackgroundY = 0;
-		Result->Width = Result->VPMaxX - Result->VPMinX + 1;
+		Result->Width = Result->VPMaxX - Result->VPMinX +1;
 		Result->Height = Result->VPMaxY - Result->VPMinY + 1;
 	}
 	return Result;

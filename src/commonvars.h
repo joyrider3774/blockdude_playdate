@@ -5,11 +5,11 @@
 #include <stdbool.h>
 #include "pd_api.h"
 
-#define FRAMERATE 50
-#define GameMoveSpeed 2       //dec if fps increases, Tilewidth & height must be divisable by this nr
-#define PlayerAnimDelay 10     //inc if fps increases
-#define FrameDelayInput 4     //inc if fps increases
-#define ViewportMove 2       //dec if fps increases
+#define FRAMERATE 25
+#define GameMoveSpeed 3       //dec if fps increases, Tilewidth & height must be divisable by this nr
+#define PlayerAnimDelay 5     //inc if fps increases
+#define FrameDelayInput 2     //inc if fps increases
+#define ViewportMove 3       //dec if fps increases
 
 
 #define MAXSKINS 3
@@ -68,6 +68,8 @@
 #define errNoError 0
 #define errNoPlayer 1
 #define errNoExit 2
+#define errBlocksPlayerNotOnAFloor 3
+#define errBlocksOnPlayerNotOne 4
 
 #define mmStartGame 0
 #define mmLevelEditor 1
@@ -103,12 +105,14 @@
 
 #define qsErrPlayer 1
 #define qsErrExit 2
-#define qsNotSaved 3
-#define qsNotUnlocked 4
-#define qsSolvedNotLastLevel 5
-#define qsSolvedLastLevel 6
-#define qsSolvedLevel 7
-#define qsQuitPlaying 8
+#define qsErrBlocksOrPlayerNotOnAFloor 3
+#define qsErrBlocksOnPlayerNotOne 4
+#define qsNotSaved 5
+#define qsNotUnlocked 6
+#define qsSolvedNotLastLevel 7
+#define qsSolvedLastLevel 8
+#define qsSolvedLevel 9
+#define qsQuitPlaying 10
 
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;
@@ -124,7 +128,7 @@ extern LCDBitmapTable* IMGFloor, * IMGPlayer, * IMGBox, * IMGEmpty, * IMGExit, *
 * IMGFloatingFloorRight, * IMGFloatingFloorMiddle, * IMGTower, * IMGStartTower, * IMGTowerShaft, * IMGRoof1, * IMGRoof2, * IMGRoofCornerLeft,
 * IMGRoofCornerRight, * IMGRoofDownRight, * IMGRoofDownLeft, * IMGRoofCornerBoth;
 
-extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTitleScreen,* IMGGrid, * IMGSelection;
+extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTitleScreen,* IMGGrid, * IMGSelection, * ScreenLevel;
 
 extern LCDFont *Nano, *Mini, *Mini2X;
 
@@ -133,7 +137,7 @@ extern const char* skins[];
 extern int skin;
 extern int GameState;
 extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion, FreeView, LevelHasChanged, LevelEditorMode;
+extern bool AskingQuestion, FreeView, LevelHasChanged, LevelEditorMode, showDebugInfo;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;

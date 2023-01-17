@@ -22,13 +22,13 @@ const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Floor", "Exit", 
 
 const char* skins[] = { "Default", "Tech", "Ti-83" };
 
-LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackground = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
+LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackground = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL, * ScreenLevel = NULL;
 
 LCDFont* Nano, * Mini, * Mini2X;
 
 int GameState = GSIntroInit;
 int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic;
-bool AskingQuestion = false, FreeView = false, LevelHasChanged = false, LevelEditorMode = false;
+bool AskingQuestion = false, FreeView = false, LevelHasChanged = false, LevelEditorMode = false, showDebugInfo = false;
 int IntroScreenNr = 1;
 int framecounter = 0;
 

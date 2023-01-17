@@ -42,6 +42,28 @@ LCDFont* loadFontAtPath(const char* path)
 	return fnt;
 }
 
+void DrawBitmapSrcRec(LCDBitmap* Bitmap, int dstX, int dstY, int srcX, int srcY, int srcW, int srcH, LCDBitmapFlip FlipMode)
+{
+	pd->graphics->pushContext(Bitmap);
+	pd->graphics->setClipRect(srcX, srcY, srcW, srcH);
+	pd->graphics->pushContext(NULL);
+	pd->graphics->setClipRect(dstX, dstY, srcW, srcH);
+	pd->graphics->setDrawOffset(-srcX + dstX, -srcY + dstY);
+	pd->graphics->drawBitmap(Bitmap, 0, 0, FlipMode);
+	pd->graphics->setDrawOffset(0, 0);
+	pd->graphics->clearClipRect();
+	pd->graphics->popContext();
+	pd->graphics->popContext();
+}
+
+void DrawBitmapScaledSrcRec(LCDBitmap* Bitmap, float xscale, float yscale, int dstX, int dstY, int srcX, int srcY, int srcW, int srcH)
+{
+	pd->graphics->setClipRect(dstX, dstY, (int)(srcW * xscale), (int)(srcH * yscale));
+	pd->graphics->setDrawOffset((int)(-srcX * xscale) + dstX, (int)(-srcY * yscale) + dstY);
+	pd->graphics->drawScaledBitmap(Bitmap, 0, 0, xscale, yscale);
+	pd->graphics->setDrawOffset(0, 0);
+	pd->graphics->clearClipRect();
+}
 
 void UnLoadGraphics()
 {
@@ -541,6 +563,7 @@ void OtherMenuItemCallback(void* userdata)
 			setInvertedSaveState(true);
 			pd->display->setInverted(isInvertedSaveState());
 		}
+		WorldParts->AllDirty = true;
 		NeedRedraw = true;
 	}
 
@@ -574,6 +597,16 @@ void LevelEditorMenuItemCallback(void* userdata)
 			else if (errType == errNoExit)
 			{
 				AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress '(A)' to continue");
+				DestroyMenuItems();
+			}
+			else if (errType == errBlocksPlayerNotOnAFloor)
+			{
+				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes or players not on a floor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+				DestroyMenuItems();
+			}
+			else if (errType == errBlocksOnPlayerNotOne)
+			{
+				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because the\nplayer is carrying more than one box!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
 				DestroyMenuItems();
 			}
 		}
@@ -692,6 +725,7 @@ void GameMenuItemCallback(void* userdata)
 	if (userdata == &menuItem1)
 	{
 		LoadSelectedLevel();
+		WorldParts->AllDirty = true;
 		FreeView = false;
 		NeedRedraw = true;
 	}
@@ -747,21 +781,48 @@ void CreateGameMenuItems()
 
 bool LevelErrorsFound(int* ErrorType)
 {
-	int Teller, NumPlayer = 0, NumExit = 0;
-	
+	int Teller, NumPlayer = 0, NumExit = 0, NumBlocksNotFloor = 0, NumPlayerNotFloor = 0, NumBlocksOnPlayerNotOne = 0;
+	CWorldPart* Part;
+
 	*ErrorType = errNoError;
-	
+
 	for (Teller = 0; Teller < WorldParts->ItemCount; Teller++)
 	{
 		if (WorldParts->Items[Teller]->Type == IDPlayer)
+		{
 			NumPlayer++;
+			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY + 1);
+			if (Part == NULL)
+				NumPlayerNotFloor++;
+
+			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY - 1);
+			if (Part != NULL)
+			{
+				if (Part->Group == GroupBox)
+				{
+					Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY - 2);
+					if (Part != NULL)
+					{
+						if (Part->Group == GroupBox)
+							NumBlocksOnPlayerNotOne++;
+					}
+				}
+			}
+		}
 		if (WorldParts->Items[Teller]->Type == IDExit)
 			NumExit++;
+
+		if (WorldParts->Items[Teller]->Group == GroupBox)
+		{
+			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY + 1);
+			if (Part == NULL)
+				NumBlocksNotFloor++;
+		}
 	}
 
 	if (NumPlayer == 0)
 	{
-		
+
 		*ErrorType = errNoPlayer;
 		return true;
 	}
@@ -769,6 +830,18 @@ bool LevelErrorsFound(int* ErrorType)
 	else if (NumExit == 0)
 	{
 		*ErrorType = errNoExit;
+		return true;
+	}
+
+	else if ((NumBlocksNotFloor > 0) || (NumPlayerNotFloor > 0))
+	{
+		*ErrorType = errBlocksPlayerNotOnAFloor;
+		return true;
+	}
+
+	else if (NumBlocksOnPlayerNotOne > 0)
+	{
+		*ErrorType = errBlocksOnPlayerNotOne;
 		return true;
 	}
 
@@ -850,6 +923,10 @@ void StageSelect()
 	{
 		NeedRedraw = false;
 		char* Text;
+		if (WorldParts->LevelBitmap)
+		{
+			pd->graphics->pushContext(WorldParts->LevelBitmap);
+		}
 		if (skinSaveState() == 1)
 		{
 			pd->graphics->clear(kColorBlack);
@@ -858,8 +935,16 @@ void StageSelect()
 		{
 			pd->graphics->clear(kColorWhite);
 		}
+		if (WorldParts->LevelBitmap)
+		{
+			pd->graphics->popContext();
+		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
 		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		if (WorldParts->LevelBitmap)
+		{
+			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
+		}
 		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
 		if(LevelEditorMode)
@@ -1171,9 +1256,8 @@ void GameInit(void)
 	NeedRedraw = true;
 	DestroyMenuItems();
 	CreateGameMenuItems();
+	WorldParts->AllDirty = true;
 }
-
-bool wastwo = false;
 
 void Game(void)
 {
@@ -1196,7 +1280,6 @@ void Game(void)
 		pd->system->realloc(Text, 0);
 	}
 
-	bool BoxMoving = false;
 	//find out if a box is moving or if a box is being carried by the player
 	bool CarryingBox = false;
 	bool Que = false;
@@ -1207,11 +1290,6 @@ void Game(void)
 		if (WorldParts->Items[teller]->IsMoving)
 		{
 			Moving = true;
-
-			if (WorldParts->Items[teller]->Type == IDBox)
-			{
-				BoxMoving = true;
-			}
 		}
 
 		if (WorldParts->Items[teller]->Type == IDBox)
@@ -1240,25 +1318,25 @@ void Game(void)
 		if (currButtons & kButtonLeft)
 		{
 			CViewPort_Move(WorldParts->ViewPort, -ViewportMove, 0);
-			WorldParts->AllDirty = true;
+			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonRight)
 		{
 			CViewPort_Move(WorldParts->ViewPort, ViewportMove, 0);
-			WorldParts->AllDirty = true;
+			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonUp)
 		{
 			CViewPort_Move(WorldParts->ViewPort, 0, -ViewportMove);
-			WorldParts->AllDirty = true;
+			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 			NeedRedraw = true;
 		}
 		if (currButtons & kButtonDown)
 		{
 			CViewPort_Move(WorldParts->ViewPort, 0, ViewportMove);
-			WorldParts->AllDirty = true;
+			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 			NeedRedraw = true;
 		}
 	}
@@ -1407,15 +1485,22 @@ void Game(void)
 	NeedRedraw |= Moving || Que;
 
 	int DrawCount = 0;
-
+	int DirtyCount = 0;
+	int AllDirtyCount = 0;
 	//extra drawable frame after a needredraw is to sure make all blocks set on final position 
 	//on end of level etc
 	if (!AskingQuestion && NeedRedraw)
 	{
 		NeedRedraw = false;		
 		CWorldParts_Move(WorldParts);
+		DirtyCount = WorldParts->DirtyCount;
+		AllDirtyCount = WorldParts->AllDirty;
 		if (WorldParts->AllDirty)
 		{
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->pushContext(WorldParts->LevelBitmap);
+			}
 			if (skinSaveState() == 1)
 			{
 				pd->graphics->clear(kColorBlack);
@@ -1424,11 +1509,17 @@ void Game(void)
 			{
 				pd->graphics->clear(kColorWhite);
 			}
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->popContext();
+			}
 		}
 		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
 		DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
-		
-
+		if (WorldParts->LevelBitmap)
+		{
+			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
+		}
 		if (FreeView)
 		{
 			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
@@ -1442,39 +1533,53 @@ void Game(void)
 		}
 	}
 
-#ifdef _DEBUG
-	int MovingCount = 0;
-	int AttachedCount = 0;
-
-	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
+	if (showDebugInfo)
 	{
-		if (WorldParts->Items[teller]->IsMoving)
-			MovingCount++;
+		int MovingCount = 0;
+		int AttachedCount = 0;
+		int BoxCount = 0;
+		int FloorCount = 0;
+
+		for (int teller = 0; teller < WorldParts->ItemCount; teller++)
+		{
+			if (WorldParts->Items[teller]->IsMoving)
+				MovingCount++;
+
+			if (WorldParts->Items[teller]->AttachedToPlayer)
+				AttachedCount++;
+			
+			if (WorldParts->Items[teller]->Group == GroupBox)
+			{
+				BoxCount++;
+			}
+
+			if (WorldParts->Items[teller]->Group == GroupFloor)
+			{
+				FloorCount++;
+			}
+		}
+
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->setFont(Mini);
+		char* Text;
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, BoxCount, FloorCount, DrawCount, DirtyCount, MovingCount, AttachedCount, AllDirtyCount);
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
 	}
-
-	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
-	{
-		if (WorldParts->Items[teller]->AttachedToPlayer)
-			AttachedCount++;
-	}
-
-	pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-	pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-	pd->graphics->setFont(Mini);
-	char* Text;
-	pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), DrawCount, WorldParts->DirtyCount, MovingCount ,AttachedCount);
-	pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-	pd->system->realloc(Text, 0);
-
-#endif
 
 	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
 	{
+
 		//to one extra move & draw to make sure boxes are on final spot
 		CWorldParts_Move(WorldParts);
 		if (WorldParts->AllDirty)
 		{
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->pushContext(WorldParts->LevelBitmap);
+			}
 			if (skinSaveState() == 1)
 			{
 				pd->graphics->clear(kColorBlack);
@@ -1483,9 +1588,18 @@ void Game(void)
 			{
 				pd->graphics->clear(kColorWhite);
 			}
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->popContext();
+			}
+
 		}
 		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		if (WorldParts->LevelBitmap)
+		{
+			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
+		}
 
 		playLevelDoneSound();
 
@@ -1623,6 +1737,10 @@ void LevelEditor(void)
 		WorldParts->AllDirty = true;
 		if (WorldParts->AllDirty)
 		{
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->pushContext(WorldParts->LevelBitmap);
+			}
 			if (skinSaveState() == 1)
 			{
 				pd->graphics->clear(kColorBlack);
@@ -1631,10 +1749,18 @@ void LevelEditor(void)
 			{
 				pd->graphics->clear(kColorWhite);
 			}
+			if (WorldParts->LevelBitmap)
+			{
+				pd->graphics->popContext();
+			}
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
 		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
 		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		if (WorldParts->LevelBitmap)
+		{
+			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
+		}
 		CSelector_Draw(Selector);
 		
 		if (ShowGridSaveState())
@@ -1815,6 +1941,17 @@ void Intro(void)
 	if (currButtons & kButtonUp)
 	{
 		debugMode = true;
+	}
+
+	if (currButtons & kButtonDown)
+	{
+		showDebugInfo = true;
+	}
+
+	if (currButtons & kButtonRight)
+	{
+		if (WorldParts->LevelBitmap == NULL)
+			CWorldParts_CreateLevelBitmap(WorldParts, (skin == 1));
 	}
 
 	if (NeedRedraw)

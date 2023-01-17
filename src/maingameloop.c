@@ -23,6 +23,7 @@ void setupGame(void)
     LoadFonts();
     WorldParts = CWorldParts_Create();
     Selector = CSelector_Create(WorldParts);
+    ScreenLevel = pd->graphics->newBitmap(400, 240, kColorWhite);
 }
 
 // main update function

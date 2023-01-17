@@ -478,22 +478,22 @@ void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY)
 		if ((ScreenPosX > (self->ParentList->ViewPort->MaxScreenX) - HALFWINDOWWIDTH) && (self->Xi > 0))
 		{
 			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
-				self->ParentList->AllDirty = true;
+				self->ParentList->AllDirty = self->ParentList->LevelBitmap == NULL;
 		}
 		if ((ScreenPosX < (self->ParentList->ViewPort->MaxScreenX) - HALFWINDOWWIDTH) && (self->Xi < 0))
 		{
 			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
-				self->ParentList->AllDirty = true;
+				self->ParentList->AllDirty = self->ParentList->LevelBitmap == NULL;
 		}
 		if ((ScreenPosY > (self->ParentList->ViewPort->MaxScreenY) - HALFWINDOWHEIGHT) && (self->Yi > 0))
 		{
 			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
-				self->ParentList->AllDirty = true;
+				self->ParentList->AllDirty = self->ParentList->LevelBitmap == NULL;
 		}
 		if ((ScreenPosY < (self->ParentList->ViewPort->MaxScreenY) - HALFWINDOWHEIGHT) && (self->Yi < 0))
 		{
 			if (CViewPort_Move(self->ParentList->ViewPort, self->Xi, self->Yi))
-				self->ParentList->AllDirty = true;
+				self->ParentList->AllDirty = self->ParentList->LevelBitmap == NULL;
 		}
 	}
 }
@@ -755,7 +755,7 @@ void CWorldPart_Move(CWorldPart* self)
 	}
 }
 
-void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround)
+void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, LCDBitmap* ToBitMap)
 {
 	LCDBitmapTable* Img = NULL;
 
@@ -843,22 +843,31 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 
 	int x, y;
 	LCDBitmap* Bitmap;
+	if (ToBitMap)
+	{
+		pd->graphics->pushContext(ToBitMap);
+	}
 
 	if (ClearPrevDrawPosition)
 	{
+		Bitmap = pd->graphics->getTableBitmap(Img, self->PrevDrawAnimPhase);
+		
+		pd->graphics->drawBitmap(Bitmap, self->PrevDrawX, self->PrevDrawY, kBitmapUnflipped);
+
 		if (BlackBackGround)
 			pd->graphics->setDrawMode(kDrawModeFillBlack);
 		else
-			pd->graphics->setDrawMode(kDrawModeFillWhite);
-		Bitmap = pd->graphics->getTableBitmap(Img, self->PrevDrawAnimPhase);
+			pd->graphics->setDrawMode(kDrawModeFillWhite);			
+
 		pd->graphics->drawBitmap(Bitmap, self->PrevDrawX, self->PrevDrawY, kBitmapUnflipped);
-		pd->graphics->setDrawMode(kDrawModeCopy);
+
+		pd->graphics->setDrawMode(kDrawModeCopy);		
 	}
 	else
 	{		
 		CWorldPart_Event_BeforeDraw(self);
 		Bitmap = pd->graphics->getTableBitmap(Img, self->AnimPhase);
-		if (self->ParentList)
+		if ((ToBitMap == NULL) && self->ParentList)
 		{
 			x = self->X - self->ParentList->ViewPort->MinScreenX;
 			y = self->Y - self->ParentList->ViewPort->MinScreenY;
@@ -877,7 +886,7 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 
 		if (self->Selected && (self->Type != IDEmpty))
 		{
-			if (self->ParentList)
+			if ((ToBitMap == NULL) && self->ParentList)
 			{
 				pd->graphics->drawBitmap(IMGSelection, self->X - self->ParentList->ViewPort->MinScreenX, self->Y - self->ParentList->ViewPort->MinScreenY, kBitmapUnflipped);
 			}
@@ -886,5 +895,9 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 				pd->graphics->drawBitmap(IMGSelection, self->X, self->Y, kBitmapUnflipped);
 			}
 		}
+	}
+	if (ToBitMap)
+	{
+		pd->graphics->popContext();
 	}
 }

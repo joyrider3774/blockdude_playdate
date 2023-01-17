@@ -3,11 +3,13 @@
 
 #include "commonvars.h"
 #include "cviewport.h"
+#include "pd_api.h"
 
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;
 
 struct CWorldParts {
+	LCDBitmap* LevelBitmap;
 	bool DisableSorting;
 	bool AllDirty;
 	CViewPort* ViewPort;
@@ -18,6 +20,7 @@ struct CWorldParts {
 };
 
 CWorldParts* CWorldParts_Create();
+void CWorldParts_CreateLevelBitmap(CWorldParts* self, bool BlackBackground);
 void CWorldParts_CenterVPOnPlayer(CWorldParts* self);
 void CWorldParts_LimitVPLevel(CWorldParts* self);
 void CWorldParts_RemoveAll(CWorldParts* self);
