@@ -9,8 +9,9 @@ CSelector* CSelector_Create(CWorldParts* List)
 	CSelector* Result = pd->system->realloc(NULL, sizeof(CSelector));
 	Result->PList = List;
 	Result->Selection = IDPlayer;
-	Result->Part = CWorldPart_create(0, 0, IDPlayer, ZPlayer, GroupPlayer);
+	Result->Part = CWorldPart_create(0, 0, IDPlayer, GroupPlayer);
 	Result->Part->ParentList = Result->PList;
+	Result->Part->ParentList->IgnorePart = Result->Part;
 	Result->Part->Selected = true;
 	return Result;
 }
@@ -52,86 +53,87 @@ void CSelector_IncSelection(CSelector* self)
 	switch (self->Selection)
 	{
 	case IDEmpty:
-		self->Part = CWorldPart_create(X, Y, IDEmpty, 1000, 0);
+		self->Part = CWorldPart_create(X, Y, IDEmpty, GroupNone);
 		break;
 	case IDBox:
-		self->Part = CWorldPart_create(X, Y, IDBox, ZBox, GroupBox);
+		self->Part = CWorldPart_create(X, Y, IDBox, GroupBox);
 		break;
 	case IDPlayer:
-		self->Part = CWorldPart_create(X, Y, IDPlayer, ZPlayer, GroupPlayer);
+		self->Part = CWorldPart_create(X, Y, IDPlayer, GroupPlayer);
 		break;
 	case IDFloor:
-		self->Part = CWorldPart_create(X, Y, IDFloor, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloor, GroupFloor);
 		break;
 	case IDExit:
-		self->Part = CWorldPart_create(X, Y, IDExit, ZExit, GroupExit);
+		self->Part = CWorldPart_create(X, Y, IDExit, GroupExit);
 		break;
 	case IDEarthGrassLeft:
-		self->Part = CWorldPart_create(X, Y, IDEarthGrassLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthGrassLeft, GroupFloor);
 		break;
 	case IDEarthGrassRight:
-		self->Part = CWorldPart_create(X, Y, IDEarthGrassRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthGrassRight, GroupFloor);
 		break;
 	case IDEarthLeft:
-		self->Part = CWorldPart_create(X, Y, IDEarthLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthLeft, GroupFloor);
 		break;
 	case IDEarthMiddle:
-		self->Part = CWorldPart_create(X, Y, IDEarthMiddle, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthMiddle, GroupFloor);
 		break;
 	case IDEarthRight:
-		self->Part = CWorldPart_create(X, Y, IDEarthRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthRight, GroupFloor);
 		break;
 	case IDFloatingFloor:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloor, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloor, GroupFloor);
 		break;
 	case IDFloatingFloorLeft:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorLeft, GroupFloor);
 		break;
 	case IDFloatingFloorMiddle:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorMiddle, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorMiddle, GroupFloor);
 		break;
 	case IDFloatingFloorRight:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorRight, GroupFloor);
 		break;
 	case IDFloorLeft:
-		self->Part = CWorldPart_create(X, Y, IDFloorLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloorLeft, GroupFloor);
 		break;
 	case IDFloorRight:
-		self->Part = CWorldPart_create(X, Y, IDFloorRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloorRight, GroupFloor);
 		break;
 	case IDTower:
-		self->Part = CWorldPart_create(X, Y, IDTower, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDTower, GroupFloor);
 		break;
 	case IDStartTower:
-		self->Part = CWorldPart_create(X, Y, IDStartTower, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDStartTower, GroupFloor);
 		break;
 	case IDTowerShaft:
-		self->Part = CWorldPart_create(X, Y, IDTowerShaft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDTowerShaft, GroupFloor);
 		break;
 	case IDRoof1:
-		self->Part = CWorldPart_create(X, Y, IDRoof1, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoof1, GroupFloor);
 		break;
 	case IDRoof2:
-		self->Part = CWorldPart_create(X, Y, IDRoof2, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoof2, GroupFloor);
 		break;
 	case IDRoofCornerLeft:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerLeft, GroupFloor);
 		break;
 	case IDRoofCornerRight:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerRight, GroupFloor);
 		break;
 	case IDRoofCornerBoth:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerBoth, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerBoth, GroupFloor);
 		break;
 	case IDRoofDownRight:
-		self->Part = CWorldPart_create(X, Y, IDRoofDownRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofDownRight, GroupFloor);
 		break;
 	case IDRoofDownLeft:
-		self->Part = CWorldPart_create(X, Y, IDRoofDownLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofDownLeft, GroupFloor);
 		break;
 
 	}
 	self->Part->ParentList = self->PList;
+	self->Part->ParentList->IgnorePart = self->Part;
 	self->Part->Selected = true;
 }
 
@@ -147,86 +149,87 @@ void CSelector_DecSelection(CSelector* self)
 	switch (self->Selection)
 	{
 	case IDEmpty:
-		self->Part = CWorldPart_create(X, Y, IDEmpty, 1000, 0);
+		self->Part = CWorldPart_create(X, Y, IDEmpty, GroupNone);
 		break;
 	case IDBox:
-		self->Part = CWorldPart_create(X, Y, IDBox, ZBox, GroupBox);
+		self->Part = CWorldPart_create(X, Y, IDBox, GroupBox);
 		break;
 	case IDPlayer:
-		self->Part = CWorldPart_create(X, Y, IDPlayer, ZPlayer, GroupPlayer);
+		self->Part = CWorldPart_create(X, Y, IDPlayer, GroupPlayer);
 		break;
 	case IDFloor:
-		self->Part = CWorldPart_create(X, Y, IDFloor, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloor, GroupFloor);
 		break;
 	case IDExit:
-		self->Part = CWorldPart_create(X, Y, IDExit, ZExit, GroupExit);
+		self->Part = CWorldPart_create(X, Y, IDExit, GroupExit);
 		break;
 	case IDEarthGrassLeft:
-		self->Part = CWorldPart_create(X, Y, IDEarthGrassLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthGrassLeft, GroupFloor);
 		break;
 	case IDEarthGrassRight:
-		self->Part = CWorldPart_create(X, Y, IDEarthGrassRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthGrassRight, GroupFloor);
 		break;
 	case IDEarthLeft:
-		self->Part = CWorldPart_create(X, Y, IDEarthLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthLeft, GroupFloor);
 		break;
 	case IDEarthMiddle:
-		self->Part = CWorldPart_create(X, Y, IDEarthMiddle, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthMiddle, GroupFloor);
 		break;
 	case IDEarthRight:
-		self->Part = CWorldPart_create(X, Y, IDEarthRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDEarthRight, GroupFloor);
 		break;
 	case IDFloatingFloor:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloor, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloor, GroupFloor);
 		break;
 	case IDFloatingFloorLeft:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorLeft, GroupFloor);
 		break;
 	case IDFloatingFloorMiddle:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorMiddle, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorMiddle, GroupFloor);
 		break;
 	case IDFloatingFloorRight:
-		self->Part = CWorldPart_create(X, Y, IDFloatingFloorRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloatingFloorRight, GroupFloor);
 		break;
 	case IDFloorLeft:
-		self->Part = CWorldPart_create(X, Y, IDFloorLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloorLeft, GroupFloor);
 		break;
 	case IDFloorRight:
-		self->Part = CWorldPart_create(X, Y, IDFloorRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDFloorRight, GroupFloor);
 		break;
 	case IDTower:
-		self->Part = CWorldPart_create(X, Y, IDTower, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDTower, GroupFloor);
 		break;
 	case IDStartTower:
-		self->Part = CWorldPart_create(X, Y, IDStartTower, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDStartTower, GroupFloor);
 		break;
 	case IDTowerShaft:
-		self->Part = CWorldPart_create(X, Y, IDTowerShaft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDTowerShaft, GroupFloor);
 		break;
 	case IDRoof1:
-		self->Part = CWorldPart_create(X, Y, IDRoof1, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoof1, GroupFloor);
 		break;
 	case IDRoof2:
-		self->Part = CWorldPart_create(X, Y, IDRoof2, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoof2, GroupFloor);
 		break;
 	case IDRoofCornerLeft:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerLeft, GroupFloor);
 		break;
 	case IDRoofCornerRight:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerRight, GroupFloor);
 		break;
 	case IDRoofCornerBoth:
-		self->Part = CWorldPart_create(X, Y, IDRoofCornerBoth, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofCornerBoth, GroupFloor);
 		break;
 	case IDRoofDownRight:
-		self->Part = CWorldPart_create(X, Y, IDRoofDownRight, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofDownRight, GroupFloor);
 		break;
 	case IDRoofDownLeft:
-		self->Part = CWorldPart_create(X, Y, IDRoofDownLeft, ZFloor, GroupFloor);
+		self->Part = CWorldPart_create(X, Y, IDRoofDownLeft, GroupFloor);
 		break;
 
 	}
 	self->Part->ParentList = self->PList;
+	self->Part->ParentList->IgnorePart = self->Part;
 	self->Part->Selected = true;
 
 }

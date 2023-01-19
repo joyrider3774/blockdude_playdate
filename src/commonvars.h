@@ -5,11 +5,12 @@
 #include <stdbool.h>
 #include "pd_api.h"
 
-#define FRAMERATE 25
-#define GameMoveSpeed 3       //dec if fps increases, Tilewidth & height must be divisable by this nr
-#define PlayerAnimDelay 5     //inc if fps increases
-#define FrameDelayInput 2     //inc if fps increases
-#define ViewportMove 3       //dec if fps increases
+#define FRAMERATE 50
+#define GameMoveSpeed 2					//dec if fps increases, Tilewidth & height must be divisable by this nr
+#define PlayerAnimDelay 8				//inc if fps increases
+#define FrameDelayInput 4				//inc if fps increases (Tilewidth & height must be disivable by this nr and the nr may not be bigger than TileWidth / MoveSpeed)
+#define FrameDelayInputLevelEditor 4
+#define ViewportMove 2					//dec if fps increases
 
 
 #define MAXSKINS 3
@@ -28,6 +29,7 @@
 #define IDBox 3
 #define IDFloor 4
 #define IDExit 5
+
 #define IDEarthGrassLeft 6
 #define IDEarthGrassRight 7
 #define IDEarthLeft 8
@@ -50,15 +52,15 @@
 #define IDRoofDownRight 25
 #define IDRoofDownLeft 26
 
+//these groups also define drawing order for all dirty items as well as logic
+#define GroupNone 10 //special used in level editor
+#define GroupExit 0
 #define GroupFloor 1
-#define GroupPlayer 2
-#define GroupBox 3
-#define GroupExit 4
+#define GroupBox 2
+#define GroupPlayer 3 //has to be drawn and moved last for logic to work
+#define NrOfGroups 4 //group none is ignored
 
-#define ZPlayer 4 //has to be drawn last + It has to be moved as last also for the logic to work. (otherwise a box can fall down when a player jumps)
-#define ZBox 3
-#define ZFloor 2
-#define ZExit 1
+
 
 #define AnimBaseLeft 0
 #define AnimBaseRight 4
@@ -137,11 +139,10 @@ extern const char* skins[];
 extern int skin;
 extern int GameState;
 extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion, FreeView, LevelHasChanged, LevelEditorMode, showDebugInfo;
+extern bool AskingQuestion, FreeView, LevelEditorMode, showDebugInfo;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;
-extern CWorldPart* ThePlayer;
 extern CSelector* Selector;
 
 void setPDPtr(PlaydateAPI* p);

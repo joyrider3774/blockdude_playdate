@@ -416,17 +416,16 @@ void LoadFonts(void)
 
 bool StageDone(CWorldPart* Player)
 {
-	bool Temp = false;
-	for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
-		if (WorldParts->Items[Teller]->Type == IDExit)
+	//this works because player is on a higher group (it is handled & found last so the exit is found first if we are at that position)
+	CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, Player->PlayFieldX, Player->PlayFieldY);
+	if(Part)
+	{
+		if(Part->Type == IDExit)
 		{
-			if ((WorldParts->Items[Teller]->PlayFieldX == Player->PlayFieldX) && (WorldParts->Items[Teller]->PlayFieldY == Player->PlayFieldY))
-			{
-				Temp = true;
-				break;
-			}
+			return true;
 		}
-	return Temp;
+	}
+	return false;
 }
 
 bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
@@ -472,20 +471,6 @@ void AskQuestion(int Id, char* Msg)
 	AskingQuestion = true;
 }
 
-CWorldPart* FindPlayer()
-{
-	CWorldPart* Player = NULL;
-	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
-	{
-		if (WorldParts->Items[teller]->Type == IDPlayer)
-		{
-			Player = WorldParts->Items[teller];
-			break;
-		}
-	}
-	return Player;
-}
-
 void SaveSelectedLevel(void)
 {
 	char* Filename;
@@ -494,7 +479,18 @@ void SaveSelectedLevel(void)
 		pd->file->mkdir("levels");
 		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
 		CWorldParts_Save(WorldParts, Filename);
-		ThePlayer = FindPlayer();
+		pd->system->realloc(Filename, 0);
+	}
+}
+
+void SaveSelectedLevelPositional(void)
+{
+	char* Filename;
+	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
+	{
+		pd->file->mkdir("levels");
+		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
+		CWorldParts_SavePositional(WorldParts, Filename);
 		pd->system->realloc(Filename, 0);
 	}
 }
@@ -506,7 +502,6 @@ void LoadSelectedLevel(void)
 	{
 		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
 		CWorldParts_Load(WorldParts, Filename, LevelEditorMode);
-		ThePlayer = FindPlayer();
 		pd->system->realloc(Filename, 0);
 	}
 }
@@ -601,7 +596,7 @@ void LevelEditorMenuItemCallback(void* userdata)
 			}
 			else if (errType == errBlocksPlayerNotOnAFloor)
 			{
-				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes or players not on a floor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes, players or exits not on a\nfloor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
 				DestroyMenuItems();
 			}
 			else if (errType == errBlocksOnPlayerNotOne)
@@ -614,7 +609,6 @@ void LevelEditorMenuItemCallback(void* userdata)
 
 	if (userdata == &menuItem2)
 	{
-		LevelHasChanged = true;
 		CWorldParts_RemoveAll(WorldParts);
 		NeedRedraw = true;
 	}
@@ -645,7 +639,7 @@ void LevelEditorMenuItemCallback(void* userdata)
 			setShowPositionSaveState(true);
 			setShowGridSaveState(true);
 		}
-
+		WorldParts->AllDirty = true;
 		NeedRedraw = true;
 	}
 }
@@ -781,34 +775,36 @@ void CreateGameMenuItems()
 
 bool LevelErrorsFound(int* ErrorType)
 {
-	int Teller, NumPlayer = 0, NumExit = 0, NumBlocksNotFloor = 0, NumPlayerNotFloor = 0, NumBlocksOnPlayerNotOne = 0;
+	int Teller, NumPlayer = 0, NumExit = 0, NumBlocksNotFloor = 0, NumExitsNotFloor = 0, NumPlayerNotFloor = 0, NumBlocksOnPlayerNotOne = 0;
 	CWorldPart* Part;
 
 	*ErrorType = errNoError;
 
-	for (Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+	if(WorldParts->Player)
 	{
-		if (WorldParts->Items[Teller]->Type == IDPlayer)
-		{
-			NumPlayer++;
-			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY + 1);
-			if (Part == NULL)
-				NumPlayerNotFloor++;
+		NumPlayer++;
+		Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY + 1);
+		if (Part == NULL)
+			NumPlayerNotFloor++;
 
-			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY - 1);
-			if (Part != NULL)
+		Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+		if (Part != NULL)
+		{
+			if (Part->Group == GroupBox)
 			{
-				if (Part->Group == GroupBox)
+				Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 2);
+				if (Part != NULL)
 				{
-					Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY - 2);
-					if (Part != NULL)
-					{
-						if (Part->Group == GroupBox)
-							NumBlocksOnPlayerNotOne++;
-					}
+					if (Part->Group == GroupBox)
+						NumBlocksOnPlayerNotOne++;
 				}
 			}
 		}
+	}
+	
+	for (Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+	{
+
 		if (WorldParts->Items[Teller]->Type == IDExit)
 			NumExit++;
 
@@ -817,6 +813,13 @@ bool LevelErrorsFound(int* ErrorType)
 			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY + 1);
 			if (Part == NULL)
 				NumBlocksNotFloor++;
+		}
+		
+		if (WorldParts->Items[Teller]->Group == GroupExit)
+		{
+			Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY + 1);
+			if (Part == NULL)
+				NumExitsNotFloor++;
 		}
 	}
 
@@ -833,7 +836,7 @@ bool LevelErrorsFound(int* ErrorType)
 		return true;
 	}
 
-	else if ((NumBlocksNotFloor > 0) || (NumPlayerNotFloor > 0))
+	else if ((NumBlocksNotFloor > 0) || (NumPlayerNotFloor > 0) || (NumExitsNotFloor > 0))
 	{
 		*ErrorType = errBlocksPlayerNotOnAFloor;
 		return true;
@@ -903,10 +906,11 @@ void StageSelect()
 	{
 		playMenuSound();
 		NeedRedraw = true;
-		SelectedLevel--;		
+		SelectedLevel--;
 		if (SelectedLevel < 1)
 			SelectedLevel = 1;
 		LoadSelectedLevel();
+		WorldParts->AllDirty = true;
 	}
 
 	if (!AskingQuestion && (currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
@@ -917,6 +921,7 @@ void StageSelect()
 		if (SelectedLevel > InstalledLevels)
 			SelectedLevel = InstalledLevels;
 		LoadSelectedLevel();
+		WorldParts->AllDirty = true;
 	}
 
 	if (NeedRedraw)
@@ -927,6 +932,7 @@ void StageSelect()
 		{
 			pd->graphics->pushContext(WorldParts->LevelBitmap);
 		}
+
 		if (skinSaveState() == 1)
 		{
 			pd->graphics->clear(kColorBlack);
@@ -935,6 +941,7 @@ void StageSelect()
 		{
 			pd->graphics->clear(kColorWhite);
 		}
+
 		if (WorldParts->LevelBitmap)
 		{
 			pd->graphics->popContext();
@@ -1248,14 +1255,15 @@ void TitleScreen()
 	}
 }
 
+
 void GameInit(void)
 {
 	FreeView = false;
-	CWorldParts_LimitVPLevel(WorldParts);
-	ThePlayer = FindPlayer();
 	NeedRedraw = true;
 	DestroyMenuItems();
 	CreateGameMenuItems();
+	CWorldParts_FindPlayer(WorldParts);
+	CWorldParts_LimitVPLevel(WorldParts);
 	WorldParts->AllDirty = true;
 }
 
@@ -1280,298 +1288,299 @@ void Game(void)
 		pd->system->realloc(Text, 0);
 	}
 
-	//find out if a box is moving or if a box is being carried by the player
-	bool CarryingBox = false;
-	bool Que = false;
-	bool Moving = false;
-	bool AttchedBoxQueOrMoving = false;
-	for (int teller = 0; teller < WorldParts->ItemCount; teller++)
-	{
-		if (WorldParts->Items[teller]->IsMoving)
-		{
-			Moving = true;
-		}
-
-		if (WorldParts->Items[teller]->Type == IDBox)
-		{
-			if (WorldParts->Items[teller]->AttachedToPlayer)
-			{
-				CarryingBox = true;
-				AttchedBoxQueOrMoving = CWorldPart_MovesInQue(WorldParts->Items[teller]) || WorldParts->Items[teller]->IsMoving;
-			}		
-		}
-
-		if (CWorldPart_MovesInQue(WorldParts->Items[teller]))
-			Que = true;
-	}
-
 	if (FreeView)
 	{
-		if (((currButtons & kButtonB) && (!(prevButtons & kButtonB))) || 
+		if (((currButtons & kButtonB) && (!(prevButtons & kButtonB))) ||
 			((currButtons & kButtonA) && (!(prevButtons & kButtonA))))
 		{
 			FreeView = false;
 			CWorldParts_CenterVPOnPlayer(WorldParts);
 			NeedRedraw = true;
 		}
-
-		if (currButtons & kButtonLeft)
-		{
-			CViewPort_Move(WorldParts->ViewPort, -ViewportMove, 0);
-			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
-			NeedRedraw = true;
-		}
-		if (currButtons & kButtonRight)
-		{
-			CViewPort_Move(WorldParts->ViewPort, ViewportMove, 0);
-			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
-			NeedRedraw = true;
-		}
-		if (currButtons & kButtonUp)
-		{
-			CViewPort_Move(WorldParts->ViewPort, 0, -ViewportMove);
-			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
-			NeedRedraw = true;
-		}
-		if (currButtons & kButtonDown)
-		{
-			CViewPort_Move(WorldParts->ViewPort, 0, ViewportMove);
-			WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
-			NeedRedraw = true;
-		}
 	}
 	else
-	if (!AskingQuestion && !ThePlayer->IsMoving && !AttchedBoxQueOrMoving)
 	{
-
-		//pickup 
-		if (((currButtons & kButtonA) && (!(prevButtons & kButtonA))))
+		if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
 		{
-			for (int teller = 0; teller < WorldParts->ItemCount; teller++)
+			//pickup 
+			if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+			{
 				//dropping a block
-			{   //if there is a block on top of the player and were facing left
-				if (CarryingBox)
+				//if there is a block on top of the player and were facing left				
+				if (WorldParts->NumBoxesAttachedToPlayer > 0)
 				{
-					if ((WorldParts->Items[teller]->PlayFieldX == ThePlayer->PlayFieldX) &&
-						(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY - 1) &&
-						(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseLeft))
-					{  
-						// and it can move to the left
-						if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY)))
+					CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+					if (Part)
+					{
+						if (Part->Group == GroupBox)
 						{
-							//move it to the left
-							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY);
-							CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY + 1);
-							//detaching is set automatically otherwise it would be set too early while the block is still detaching
-							//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
-							NeedRedraw = true;
-							playDropSound();
+							if (WorldParts->Player->AnimBase == AnimBaseLeft)
+							{
+								// and it can move to the left
+								if ((CWorldPart_CanMoveTo(Part, Part->PlayFieldX - 1, Part->PlayFieldY)))
+								{
+									//move it to the left
+									CWorldPart_AddToMoveQue(Part, Part->PlayFieldX - 1, Part->PlayFieldY);
+									CWorldPart_AddToMoveQue(Part, Part->PlayFieldX - 1, Part->PlayFieldY + 1);
+									//detaching is set automatically otherwise it would be set too early while the block is still detaching
+									//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
+									//NeedRedraw = true;
+									playDropSound();
+								}
+							}
+							else
+							{
+								// if there is block on top of theplayer were facing right
+								if (WorldParts->Player->AnimBase == AnimBaseRight)
+								{
+									// and it can move to the left
+									if ((CWorldPart_CanMoveTo(Part, Part->PlayFieldX + 1, Part->PlayFieldY)))
+									{
+										//move it to right
+										CWorldPart_AddToMoveQue(Part, Part->PlayFieldX + 1, Part->PlayFieldY);
+										CWorldPart_AddToMoveQue(Part, Part->PlayFieldX + 1, Part->PlayFieldY + 1);
+										//detaching is set automatically otherwise it would be set too early while the block is still detaching
+										//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
+										//NeedRedraw = true;
+										playDropSound();
+									}
+
+								}
+							}
 						}
 					}
-					else // if there is block on top of theplayer were facing right
-						if ((WorldParts->Items[teller]->PlayFieldX == ThePlayer->PlayFieldX) &&
-							(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY - 1) &&
-							(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseRight))
-						{   //and it can be moved to the right
-							if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY)))
-							{
-								//move it to right
-								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY);
-								CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY + 1);
-								//detaching is set automatically otherwise it would be set too early while the block is still detaching
-								//CWorldPart_DeattachFromPlayer(WorldParts->Items[teller]);
-								NeedRedraw = true;
-								playDropSound();
-							}
-
-						}
 				}
 				else
-					if (!CarryingBox)
+				{
+					if (WorldParts->NumBoxesAttachedToPlayer == 0)
 					{
 						bool FloorFound = false;
 						//picking up a block
 						//if there is a block left to the player and were facing left
-						if ((WorldParts->Items[teller]->PlayFieldX == ThePlayer->PlayFieldX - 1) &&
-							(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY) &&
-							(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseLeft))
+						if (WorldParts->Player->AnimBase == AnimBaseLeft)
 						{
-							//see if there is a floor or block beneath the block
-							for (int teller2 = 0; teller2 < WorldParts->ItemCount; teller2++)
+							CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY);
+							if (Part)
 							{
-								if ((WorldParts->Items[teller2]->PlayFieldX == ThePlayer->PlayFieldX - 1) && (WorldParts->Items[teller2]->PlayFieldY == ThePlayer->PlayFieldY + 1) &&
-									((WorldParts->Items[teller2]->Group == GroupFloor) || (WorldParts->Items[teller2]->Group == GroupBox) || 
-									(WorldParts->Items[teller2]->Group == GroupExit)))
+								if (Part->Group == GroupBox)
 								{
-									FloorFound = true;
-									break;
-								}
-							}
+									//see if there is a floor or block beneath the block
+									CWorldPart* Part2 = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY + 1);
+									if (Part2)
+									{
+										if ((Part2->Group == GroupFloor) || (Part2->Group == GroupBox) || (Part2->Group == GroupExit))
+										{
+											FloorFound = true;
+										}
+									}
 
-							if (WorldParts->Items[teller]->PlayFieldY == NrOfRows - 1)
-							{
-								FloorFound = true;
-							}
-							
-							if (FloorFound)
-								//if there was see if there is space above the block and above the player
-								if ((CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1)) &&
-									(CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY - 1)))
-								{
-									//Attach the block to the player & move the block
-									CWorldPart_AttachToPlayer(WorldParts->Items[teller], ThePlayer);
-									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
-									CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX + 1, WorldParts->Items[teller]->PlayFieldY - 1);
-									NeedRedraw = true;
-									playPickupSound();
-								}
-						}
-						else
-							//if there is a block right to the player and were facing right
-							if ((WorldParts->Items[teller]->PlayFieldX == ThePlayer->PlayFieldX + 1) &&
-								(WorldParts->Items[teller]->PlayFieldY == ThePlayer->PlayFieldY) &&
-								(WorldParts->Items[teller]->Type == IDBox) && (ThePlayer->AnimBase == AnimBaseRight))
-							{
-								//see if there is a floor or block beneath the block
-								for (int teller2 = 0; teller2 < WorldParts->ItemCount; teller2++)
-								{
-									if ((WorldParts->Items[teller2]->PlayFieldX == ThePlayer->PlayFieldX + 1) && (WorldParts->Items[teller2]->PlayFieldY == ThePlayer->PlayFieldY + 1) &&
-										((WorldParts->Items[teller2]->Group == GroupFloor) || (WorldParts->Items[teller2]->Group == GroupBox) ||
-										 (WorldParts->Items[teller2]->Group == GroupExit)))
+									if (Part->PlayFieldY == NrOfRows - 1)
 									{
 										FloorFound = true;
-										break;
 									}
-								}
-								
-								if (WorldParts->Items[teller]->PlayFieldY == NrOfRows - 1)
-								{
-									FloorFound = true;
-								}
 
-								if (FloorFound)
-									//if there was see if there is space above the block and above the player
-									if (CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1) &&
-										CWorldPart_CanMoveTo(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY - 1))
+									if (FloorFound)
 									{
-										//Attach the block to the player & move the block
-										CWorldPart_AttachToPlayer(WorldParts->Items[teller], ThePlayer);
-										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX, WorldParts->Items[teller]->PlayFieldY - 1);
-										CWorldPart_AddToMoveQue(WorldParts->Items[teller], WorldParts->Items[teller]->PlayFieldX - 1, WorldParts->Items[teller]->PlayFieldY - 1);
-										NeedRedraw = true;
-										playPickupSound();
+										//if there was see if there is space above the block and above the player
+										if ((CWorldPart_CanMoveTo(Part, Part->PlayFieldX, Part->PlayFieldY - 1)) &&
+											(CWorldPart_CanMoveTo(Part, Part->PlayFieldX + 1, Part->PlayFieldY - 1)))
+										{
+											//Attach the block to the player & move the block
+											CWorldPart_AttachToPlayer(Part, WorldParts->Player);
+											CWorldPart_AddToMoveQue(Part, Part->PlayFieldX, Part->PlayFieldY - 1);
+											CWorldPart_AddToMoveQue(Part, Part->PlayFieldX + 1, Part->PlayFieldY - 1);
+											//NeedRedraw = true;
+											playPickupSound();
+										}
 									}
+								}
 							}
+						}
+						else
+						{
+							if (WorldParts->Player->AnimBase == AnimBaseRight)
+							{
+								CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY);
+								if (Part)
+								{
+									if (Part->Group == GroupBox)
+									{
+										//see if there is a floor or block beneath the block
+										CWorldPart* Part2 = CWorldParts_PartAtPosition(WorldParts, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY + 1);
+										if (Part2)
+										{
+											if ((Part2->Group == GroupFloor) || (Part2->Group == GroupBox) || (Part2->Group == GroupExit))
+											{
+												FloorFound = true;
+											}
+										}
+
+
+										if (Part->PlayFieldY == NrOfRows - 1)
+										{
+											FloorFound = true;
+										}
+
+										if (FloorFound)
+										{
+											//if there was see if there is space above the block and above the player
+											if (CWorldPart_CanMoveTo(Part, Part->PlayFieldX, Part->PlayFieldY - 1) &&
+												CWorldPart_CanMoveTo(Part, Part->PlayFieldX - 1, Part->PlayFieldY - 1))
+											{
+												//Attach the block to the player & move the block
+												CWorldPart_AttachToPlayer(Part, WorldParts->Player);
+												CWorldPart_AddToMoveQue(Part, Part->PlayFieldX, Part->PlayFieldY - 1);
+												CWorldPart_AddToMoveQue(Part, Part->PlayFieldX - 1, Part->PlayFieldY - 1);
+												//NeedRedraw = true;
+												playPickupSound();
+											}
+										}
+									}
+								}
+							}
+						}
 					}
+				}
 			}
 		}
-		//move up
-		if (currButtons & kButtonUp)
-		{
-			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX, ThePlayer->PlayFieldY - 1);
-		}
+	}
 
+	if (FreeView)
+	{
 		if (currButtons & kButtonLeft)
 		{
-			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX - 1, ThePlayer->PlayFieldY);
+			if (CViewPort_Move(WorldParts->ViewPort, -ViewportMove, 0))
+			{
+				WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+				NeedRedraw = true;
+			}
 		}
 		if (currButtons & kButtonRight)
 		{
-			NeedRedraw |= CWorldPart_MoveTo(ThePlayer, ThePlayer->PlayFieldX + 1, ThePlayer->PlayFieldY);
+			if (CViewPort_Move(WorldParts->ViewPort, ViewportMove, 0))
+			{
+				WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+				NeedRedraw = true;
+			}
 		}
+		if (currButtons & kButtonUp)
+		{
+			if (CViewPort_Move(WorldParts->ViewPort, 0, -ViewportMove))
+			{
+				WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+				NeedRedraw = true;
+			}
+		}
+		if (currButtons & kButtonDown)
+		{
+			if (CViewPort_Move(WorldParts->ViewPort, 0, ViewportMove))
+			{
+				WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+				NeedRedraw = true;
+			}
+		}
+	}
+	else
+	{
+		//need to have a input delay, its too taxing otherwise
+		framecounter++;
+		if (framecounter >= FrameDelayInput)
+		{
+			framecounter = 0;
+			{
+				if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
+				{
 
+					//move up
+					if (currButtons & kButtonUp)
+					{
+						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+					}
+
+					if (currButtons & kButtonLeft)
+					{
+						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY);
+					}
+
+					if (currButtons & kButtonRight)
+					{
+						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY);
+					}
+				}
+			}
+		}
 	}
 
-	NeedRedraw |= Moving || Que;
+	
 
 	int DrawCount = 0;
 	int DirtyCount = 0;
 	int AllDirtyCount = 0;
 	//extra drawable frame after a needredraw is to sure make all blocks set on final position 
 	//on end of level etc
-	if (!AskingQuestion && NeedRedraw)
+	
+	if (!AskingQuestion)
 	{
-		NeedRedraw = false;		
-		CWorldParts_Move(WorldParts);
-		DirtyCount = WorldParts->DirtyCount;
-		AllDirtyCount = WorldParts->AllDirty;
-		if (WorldParts->AllDirty)
+		NeedRedraw |=  CWorldParts_Move(WorldParts);
+		if (NeedRedraw)
 		{
+			NeedRedraw = false;
+
+			DirtyCount = WorldParts->DirtyCount;
+			AllDirtyCount = WorldParts->AllDirty;
+			if (WorldParts->AllDirty)
+			{
+				if (WorldParts->LevelBitmap)
+				{
+					pd->graphics->pushContext(WorldParts->LevelBitmap);
+				}
+				if (skinSaveState() == 1)
+				{
+					pd->graphics->clear(kColorBlack);
+				}
+				else
+				{
+					pd->graphics->clear(kColorWhite);
+				}
+				if (WorldParts->LevelBitmap)
+				{
+					pd->graphics->popContext();
+				}
+			}
+			CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
+			DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 			if (WorldParts->LevelBitmap)
 			{
-				pd->graphics->pushContext(WorldParts->LevelBitmap);
+				DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
 			}
-			if (skinSaveState() == 1)
+			if (FreeView)
 			{
-				pd->graphics->clear(kColorBlack);
+				pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+				pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+				pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+				pd->graphics->setFont(Mini);
+				char* Text;
+				pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
+				pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+				pd->system->realloc(Text, 0);
 			}
-			else
-			{
-				pd->graphics->clear(kColorWhite);
-			}
-			if (WorldParts->LevelBitmap)
-			{
-				pd->graphics->popContext();
-			}
-		}
-		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
-		if (WorldParts->LevelBitmap)
-		{
-			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
-		}
-		if (FreeView)
-		{
-			pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-			pd->graphics->setFont(Mini);
-			char* Text;
-			pd->system->formatString(&Text, "Freeview mode: Use dpad to move around (A) or (B) to exit", SelectedLevel, InstalledLevels);
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-			pd->system->realloc(Text, 0);
 		}
 	}
 
 	if (showDebugInfo)
 	{
-		int MovingCount = 0;
-		int AttachedCount = 0;
-		int BoxCount = 0;
-		int FloorCount = 0;
-
-		for (int teller = 0; teller < WorldParts->ItemCount; teller++)
-		{
-			if (WorldParts->Items[teller]->IsMoving)
-				MovingCount++;
-
-			if (WorldParts->Items[teller]->AttachedToPlayer)
-				AttachedCount++;
-			
-			if (WorldParts->Items[teller]->Group == GroupBox)
-			{
-				BoxCount++;
-			}
-
-			if (WorldParts->Items[teller]->Group == GroupFloor)
-			{
-				FloorCount++;
-			}
-		}
-
 		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
 		pd->graphics->setFont(Mini);
 		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, BoxCount, FloorCount, DrawCount, DirtyCount, MovingCount, AttachedCount, AllDirtyCount);
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), DrawCount, DirtyCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, AllDirtyCount);
 		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 		pd->system->realloc(Text, 0);
 	}
 
-	if (!AskingQuestion && !ThePlayer->IsMoving && StageDone(ThePlayer))
+	if (!AskingQuestion && !WorldParts->Player->IsMoving && StageDone(WorldParts->Player))
 	{
-
 		//to one extra move & draw to make sure boxes are on final spot
 		CWorldParts_Move(WorldParts);
 		if (WorldParts->AllDirty)
@@ -1698,23 +1707,18 @@ void LevelEditorInit(void)
 {
 	framecounter = 0;
 	NeedRedraw = true;	
-	bool PlayerFound = false;
 	DestroyMenuItems();
 	CreateLevelEditorMenuItems();
 	LoadSelectedLevel();
+	WorldParts->AllDirty = true;
 	
-	
-	for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
-		if (WorldParts->Items[Teller]->Type == IDPlayer)
-		{
-			PlayerFound = true;
-			CSelector_SetPosition(Selector, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY);
-			break;
-
-		}
+	if(WorldParts->Player)
+	{
+		CSelector_SetPosition(Selector, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY);
+	}
 
 	CViewPort_SetVPLimit(WorldParts->ViewPort, 0, 0, NrOfCols - 1, NrOfRows - 1);
-	if (!PlayerFound)
+	if (WorldParts->Player == NULL)
 	{
 		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols / 2) - 12, (NrOfRows / 2) - 7, (NrOfCols / 2) + 12, (NrOfRows / 2) + 7);
 		CSelector_SetPosition(Selector, (NrOfCols / 2), (NrOfRows / 2));
@@ -1785,36 +1789,18 @@ void LevelEditor(void)
 	{
 		CSelector_DecSelection(Selector);
 		NeedRedraw = true;
-		WorldParts->AllDirty = true;
+		WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 	}
 
 	if (!AskingQuestion && (crankResult == CRANKMOVERIGHT))
 	{
 		CSelector_IncSelection(Selector);
 		NeedRedraw = true;
-		WorldParts->AllDirty = true;
+		WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 	}
 
 	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
 	{
-		bool SamePartFound = false;
-		for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
-			if ((WorldParts->Items[Teller]->PlayFieldX == Selector->Part->PlayFieldX) &&
-				(WorldParts->Items[Teller]->PlayFieldY == Selector->Part->PlayFieldY))
-			{
-				if (WorldParts->Items[Teller]->Type == Selector->Selection)
-				{
-					SamePartFound = true;
-				}
-				if (Selector->Selection == IDEmpty)
-				{
-					LevelHasChanged = true;
-					break;
-				}
-			}
-		if (Selector->Selection != IDEmpty)
-			if (!LevelHasChanged)
-				LevelHasChanged = !SamePartFound;
 		switch (Selector->Selection)
 		{
 		case IDEmpty:
@@ -1822,12 +1808,8 @@ void LevelEditor(void)
 			break;
 		case IDPlayer:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
-			for (int Teller = 0; Teller < WorldParts->ItemCount; Teller++)
-			{
-				if (WorldParts->Items[Teller]->Type == IDPlayer)
-					CWorldParts_RemoveType(WorldParts, WorldParts->Items[Teller]->PlayFieldX, WorldParts->Items[Teller]->PlayFieldY, IDPlayer);
-			}
-			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Z, Selector->Part->Group));
+			CWorldParts_RemoveType(WorldParts, Selector->Part->Type);
+			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Group));
 			break;
 		case IDBox:
 		case IDFloor:
@@ -1854,14 +1836,14 @@ void LevelEditor(void)
 		case IDRoofDownRight:
 		case IDRoofDownLeft:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
-			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Z, Selector->Part->Group));
+			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Group));
 			break;
 		}
 		NeedRedraw = true;
 	}
 
 	framecounter++;
-	if (!AskingQuestion && (framecounter >= FrameDelayInput))
+	if (!AskingQuestion && (framecounter >= FrameDelayInputLevelEditor))
 	{
 		framecounter = 0;
 		if (currButtons & kButtonLeft)
@@ -1869,7 +1851,8 @@ void LevelEditor(void)
 			NeedRedraw = true;
 			CSelector_MoveLeft(Selector);
 			if (Selector->Part->PlayFieldX < WorldParts->ViewPort->VPMinX + 3)
-				CViewPort_Move(WorldParts->ViewPort, -TileWidth, 0);
+				if (CViewPort_Move(WorldParts->ViewPort, -TileWidth, 0))
+					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 			
 		}
 
@@ -1878,7 +1861,8 @@ void LevelEditor(void)
 			NeedRedraw = true;
 			CSelector_MoveRight(Selector);
 			if (Selector->Part->PlayFieldX > WorldParts->ViewPort->VPMaxX - 3)
-				CViewPort_Move(WorldParts->ViewPort, TileWidth, 0);
+				if(CViewPort_Move(WorldParts->ViewPort, TileWidth, 0))
+					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 		}
 
 		if (currButtons & kButtonUp)
@@ -1886,7 +1870,8 @@ void LevelEditor(void)
 			NeedRedraw = true;
 			CSelector_MoveUp(Selector);
 			if (Selector->Part->PlayFieldY < WorldParts->ViewPort->VPMinY + 3)
-				CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth);
+				if(CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth))
+					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 		}
 
 		if (currButtons & kButtonDown)
@@ -1894,7 +1879,8 @@ void LevelEditor(void)
 			NeedRedraw = true;
 			CSelector_MoveDown(Selector);
 			if (Selector->Part->PlayFieldY > WorldParts->ViewPort->VPMaxY - 3)
-				CViewPort_Move(WorldParts->ViewPort, 0, TileWidth);
+				if(CViewPort_Move(WorldParts->ViewPort, 0, TileWidth))
+					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
 		}
 	}
 

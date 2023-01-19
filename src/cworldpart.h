@@ -16,6 +16,7 @@ struct SPoint {
 typedef struct CWorldParts CWorldParts;
 typedef struct CWorldPart CWorldPart;
 struct CWorldPart {
+	CWorldPart* AttachedPart;
 	int MoveDelayCounter;
 	bool FirstArriveEventFired;
 	int Type, MoveSpeed, MoveDelay, Xi, Yi, X, Y, AnimPhase, PlayFieldX, PlayFieldY, Z, Group;
@@ -24,7 +25,6 @@ struct CWorldPart {
 	SPoint MoveQue[MOVEQUESIZE];
 	bool PickupLeft, PickupRight;
 	CWorldPart *Player;
-	bool AttachedToPlayer;
 	CWorldParts *ParentList;
 	bool IsMoving;
 	bool Selected;
@@ -40,7 +40,7 @@ struct CWorldPart {
 	int AnimCounter, AnimBase, AnimDelay, AnimDelayCounter, AnimPhases;
 };
 
-CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, const int Typein, const int Zin, const int GroupIn);
+CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, const int Typein, const int GroupIn);
 void CWorldPart_MoveQueClear(CWorldPart* self);
 void CWorldPart_MoveQuePopBack(CWorldPart* self);
 void CWorldPart_MoveQuePushBack(CWorldPart* self, SPoint point);
@@ -48,7 +48,7 @@ void CWorldPart_MoveQueInsert(CWorldPart* self, int pos, SPoint point);
 void CWorldPart_AddToMoveQue(CWorldPart* self, int PlayFieldXIn, int PlayFieldYIn);
 bool CWorldPart_MovesInQue(CWorldPart* self);
 void CWorldPart_AttachToPlayer(CWorldPart* self, CWorldPart* PlayerIn);
-void CWorldPart_DeattachFromPlayer(CWorldPart* self);
+void CWorldPart_DeattachFromPlayer(CWorldPart* self, CWorldPart* PlayerIn);
 void CWorldPart_SetAnimPhase(CWorldPart* self, int AnimPhaseIn);
 bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self);
@@ -56,7 +56,7 @@ void CWorldPart_Event_BeforeDraw(CWorldPart* self);
 void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY);
 void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
-void CWorldPart_Move(CWorldPart* self);
+bool CWorldPart_Move(CWorldPart* self);
 void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, LCDBitmap* ToBitMap);
 
 #endif

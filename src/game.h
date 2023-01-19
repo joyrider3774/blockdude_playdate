@@ -6,7 +6,6 @@
 
 void LoadGraphics(void);
 bool StageDone(CWorldPart* Player);
-CWorldPart* FindPlayer(void);
 void AskQuestion(int Id, char* Msg);
 bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton);
 void StageSelect(void);
