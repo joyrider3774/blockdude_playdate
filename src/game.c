@@ -775,7 +775,7 @@ void CreateGameMenuItems()
 
 bool LevelErrorsFound(int* ErrorType)
 {
-	int Teller, NumPlayer = 0, NumExit = 0, NumBlocksNotFloor = 0, NumExitsNotFloor = 0, NumPlayerNotFloor = 0, NumBlocksOnPlayerNotOne = 0;
+	int NumPlayer = 0, NumExit = 0, NumBlocksNotFloor = 0, NumExitsNotFloor = 0, NumPlayerNotFloor = 0, NumBlocksOnPlayerNotOne = 0;
 	CWorldPart* Part;
 
 	*ErrorType = errNoError;
@@ -802,7 +802,7 @@ bool LevelErrorsFound(int* ErrorType)
 		}
 	}
 	
-	for (Teller = 0; Teller < WorldParts->ItemCount; Teller++)
+	for (unsigned Teller = 0; Teller < WorldParts->ItemCount; Teller++)
 	{
 
 		if (WorldParts->Items[Teller]->Type == IDExit)
@@ -1255,6 +1255,20 @@ void TitleScreen()
 	}
 }
 
+void DoShowDebugInfo()
+{
+	if (showDebugInfo)
+	{
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->setFont(Mini);
+		char* Text;
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), WorldParts->DrawCount, WorldParts->DirtyClearedCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, WorldParts->AllDirtyCount);
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
+	}
+}
 
 void GameInit(void)
 {
@@ -1513,12 +1527,6 @@ void Game(void)
 
 	
 
-	int DrawCount = 0;
-	int DirtyCount = 0;
-	int AllDirtyCount = 0;
-	//extra drawable frame after a needredraw is to sure make all blocks set on final position 
-	//on end of level etc
-	
 	if (!AskingQuestion)
 	{
 		NeedRedraw |=  CWorldParts_Move(WorldParts);
@@ -1526,8 +1534,6 @@ void Game(void)
 		{
 			NeedRedraw = false;
 
-			DirtyCount = WorldParts->DirtyCount;
-			AllDirtyCount = WorldParts->AllDirty;
 			if (WorldParts->AllDirty)
 			{
 				if (WorldParts->LevelBitmap)
@@ -1548,7 +1554,7 @@ void Game(void)
 				}
 			}
 			CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-			DrawCount = CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+			CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 			if (WorldParts->LevelBitmap)
 			{
 				DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
@@ -1565,18 +1571,6 @@ void Game(void)
 				pd->system->realloc(Text, 0);
 			}
 		}
-	}
-
-	if (showDebugInfo)
-	{
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->setFont(Mini);
-		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), DrawCount, DirtyCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, AllDirtyCount);
-		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-		pd->system->realloc(Text, 0);
 	}
 
 	if (!AskingQuestion && !WorldParts->Player->IsMoving && StageDone(WorldParts->Player))
@@ -1701,6 +1695,9 @@ void Game(void)
 			}
 		}
 	}
+
+
+	DoShowDebugInfo();
 }
 
 void LevelEditorInit(void)
@@ -1738,7 +1735,8 @@ void LevelEditor(void)
 	if (NeedRedraw)
 	{
 		NeedRedraw = false;
-		WorldParts->AllDirty = true;
+		//always redraw everything in case of none levelbitmap mode
+		WorldParts->AllDirty |= WorldParts->LevelBitmap == NULL;
 		if (WorldParts->AllDirty)
 		{
 			if (WorldParts->LevelBitmap)
@@ -1758,7 +1756,7 @@ void LevelEditor(void)
 				pd->graphics->popContext();
 			}
 		}
-		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);		
+
 		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
 		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
 		if (WorldParts->LevelBitmap)
@@ -1766,7 +1764,16 @@ void LevelEditor(void)
 			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
 		}
 		CSelector_Draw(Selector);
-		
+		//in case of bitmap mode always redraw the tile at the selector
+		if (WorldParts->LevelBitmap)
+		{
+			CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			if (Part)
+			{
+				CWorldParts_AddDirty(WorldParts, Part);
+			}
+		}
+
 		if (ShowGridSaveState())
 			pd->graphics->drawBitmap(IMGGrid, 0, 0, kBitmapUnflipped);
 
@@ -1805,11 +1812,15 @@ void LevelEditor(void)
 		{
 		case IDEmpty:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			//need to redraw everything in this case to clear the erased part
+			WorldParts->AllDirty = true;
 			break;
 		case IDPlayer:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
 			CWorldParts_RemoveType(WorldParts, Selector->Part->Type);
 			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Group));
+			//need to redraw everything in this case to clear previous player position
+			WorldParts->AllDirty = true;
 			break;
 		case IDBox:
 		case IDFloor:
@@ -1838,6 +1849,15 @@ void LevelEditor(void)
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
 			CWorldParts_Add(WorldParts, CWorldPart_create(Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, Selector->Part->Type, Selector->Part->Group));
 			break;
+		}
+		//in case of bitmap mode always redraw the tile at the selector
+		if (WorldParts->LevelBitmap)
+		{
+			CWorldPart* Part = CWorldParts_PartAtPosition(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
+			if (Part)
+			{
+				CWorldParts_AddDirty(WorldParts, Part);
+			}
 		}
 		NeedRedraw = true;
 	}
@@ -1901,6 +1921,8 @@ void LevelEditor(void)
 		}
 	
 	}
+
+	DoShowDebugInfo();
 }
 
 
