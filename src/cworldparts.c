@@ -23,7 +23,7 @@ CWorldParts* CWorldParts_Create(bool UseLevelBitmapMode)
 		Result->NumPartsMovingQueued = 0;
 		Result->NumBoxesAttachedToPlayer = 0;
 		Result->NumPartsAttachedToPlayer = 0;
-		Result->ViewPort = CViewPort_Create(0, 0, 24, 14, 0, 0, NrOfCols - 1, NrOfRows - 1);
+		Result->ViewPort = CViewPort_Create(0, 0, NrOfColsVisible -1, NrOfRowsVisible - 1, 0, 0, NrOfCols - 1, NrOfRows - 1);
 		if (UseLevelBitmapMode)
 		{
 			CWorldParts_CreateLevelBitmap(Result, false);
@@ -78,7 +78,12 @@ void CWorldParts_CenterVPOnPlayer(CWorldParts* self)
 
 	if (self->Player)
 	{
-		CViewPort_SetViewPort(self->ViewPort, self->Player->PlayFieldX - 12, self->Player->PlayFieldY - 7, self->Player->PlayFieldX + 12, self->Player->PlayFieldY + 7);
+		CViewPort_SetViewPort(self->ViewPort, self->Player->PlayFieldX - ((NrOfColsVisible - 1) >> 1), self->Player->PlayFieldY - ((NrOfRowsVisible - 1) >> 1), self->Player->PlayFieldX + ((NrOfColsVisible - 1) >> 1), self->Player->PlayFieldY + ((NrOfRowsVisible - 1) >> 1));
+		self->AllDirty = self->LevelBitmap == NULL;
+	}
+	else
+	{
+		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols >> 1) - ((NrOfColsVisible - 1) >> 1), (NrOfRows >> 1) - ((NrOfRowsVisible - 1) >> 1), (NrOfCols >> 1) + ((NrOfColsVisible - 1) >> 1), (NrOfRows >> 1) + ((NrOfRowsVisible - 1) >> 1));
 		self->AllDirty = self->LevelBitmap == NULL;
 	}
 }
@@ -516,7 +521,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 			starty = 0;
 			endx = NrOfCols - 1;
 			endy = NrOfRows - 1;
-			numitems = (endx - startx) * (endy - starty) * (NrOfGroups-1); //there is only 1 player
+			numitems = ((endx - startx) * (endy - starty) * (NrOfGroups-1)) + 1; //there is only 1 player
 
 		}
 		else
@@ -534,7 +539,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				endx = NrOfCols - 1;
 			if (endy > NrOfRows - 1)
 				endy = NrOfRows - 1;
-			numitems = (endx - startx) * (endy - starty) * (NrOfGroups-1); //there is only 1 player
+			numitems = ((endx - startx) * (endy - starty) * (NrOfGroups - 1)) + 1; //there is only 1 player
 		}
 
 		if (self->ItemCount < numitems)

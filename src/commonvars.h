@@ -20,6 +20,8 @@
 #define HALFWINDOWHEIGHT 120
 #define TileWidth 16
 #define TileHeight 16
+#define NrOfRowsVisible (WINDOW_HEIGHT / TileHeight)
+#define NrOfColsVisible (WINDOW_WIDTH / TileWidth) 
 #define InstalledLevels 21
 #define NrOfRows 50
 #define NrOfCols 50

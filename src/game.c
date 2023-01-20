@@ -1745,8 +1745,7 @@ void LevelEditorInit(void)
 	CViewPort_SetVPLimit(WorldParts->ViewPort, 0, 0, NrOfCols - 1, NrOfRows - 1);
 	if (WorldParts->Player == NULL)
 	{
-		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols / 2) - 12, (NrOfRows / 2) - 7, (NrOfCols / 2) + 12, (NrOfRows / 2) + 7);
-		CSelector_SetPosition(Selector, (NrOfCols / 2), (NrOfRows / 2));
+		CSelector_SetPosition(Selector, WorldParts->ViewPort->VPMinX + ((NrOfColsVisible - 1) >> 1), WorldParts->ViewPort->VPMinY + ((NrOfRowsVisible - 1) >> 1));
 	}
 	
 	

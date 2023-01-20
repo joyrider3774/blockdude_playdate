@@ -134,8 +134,8 @@ CViewPort* CViewPort_Create(int MinX, int MinY, int MaxX, int MaxY, int MinX2, i
 		{
 			Result->VPMinX = 0;
 			Result->VPMinY = 0;
-			Result->VPMaxX = (WINDOW_WIDTH / TileWidth) - 1;
-			Result->VPMaxY = (WINDOW_HEIGHT / TileHeight) - 1;
+			Result->VPMaxX = NrOfColsVisible - 1;
+			Result->VPMaxY = NrOfRowsVisible - 1;
 			Result->MinScreenX = 0;
 			Result->MinScreenY = 0;
 			Result->MaxScreenX = WINDOW_WIDTH;
