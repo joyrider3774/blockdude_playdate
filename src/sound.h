@@ -25,6 +25,10 @@ void setSoundOn(int value);
 int isMusicOn(void);
 int isSoundOn(void);
 void stopMusic(void);
-FilePlayer* loadSoundFile(const char* path);
+void deInitMusic(void);
+void deInitSound(void);
+SamplePlayer* loadSoundFile(AudioSample* Sample, const char* path);
+
+
 
 #endif

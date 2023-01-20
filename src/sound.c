@@ -7,16 +7,28 @@
 int prev_music = -1, music_on = 0, sound_on = 0, force = 0;
 
 FilePlayer* musicPlayer;
-FilePlayer* levelDoneSound;
-FilePlayer* errorSound;
-FilePlayer* menuSound;
-FilePlayer* menuSelectSound;
-FilePlayer* menuBackSound;
-FilePlayer* pickupSound;
-FilePlayer* dropSound;
-FilePlayer* jumpSound;
-FilePlayer* walkSound;
-FilePlayer* fallSound;
+
+SamplePlayer* levelDoneSoundPlayer;
+SamplePlayer* errorSoundPlayer;
+SamplePlayer* menuSoundPlayer;
+SamplePlayer* menuSelectSoundPlayer;
+SamplePlayer* menuBackSoundPlayer;
+SamplePlayer* pickupSoundPlayer;
+SamplePlayer* dropSoundPlayer;
+SamplePlayer* jumpSoundPlayer;
+SamplePlayer* walkSoundPlayer;
+SamplePlayer* fallSoundPlayer;
+
+AudioSample* levelDoneSound;
+AudioSample* errorSound;
+AudioSample* menuSound;
+AudioSample* menuSelectSound;
+AudioSample* menuBackSound;
+AudioSample* pickupSound;
+AudioSample* dropSound;
+AudioSample* jumpSound;
+AudioSample* walkSound;
+AudioSample* fallSound;
 
 void stopMusic(void)
 {
@@ -63,28 +75,76 @@ int isSoundOn(void)
     return sound_on;
 }
 
-FilePlayer* loadSoundFile(const char* path)
-{
-    FilePlayer* soundPlayer = pd->sound->fileplayer->newPlayer();
-    pd->sound->fileplayer->setStopOnUnderrun(soundPlayer, 0);
-    pd->sound->fileplayer->setVolume(soundPlayer, 0.7f, 0.7f);
-    pd->sound->fileplayer->setRate(soundPlayer, 1.0f);
-    pd->sound->fileplayer->loadIntoPlayer(soundPlayer, path);
+SamplePlayer* loadSoundFile(AudioSample* Sample, const char* path)
+{   
+    Sample = NULL;
+    SamplePlayer* soundPlayer = pd->sound->sampleplayer->newPlayer();
+    if (soundPlayer)
+    {
+        Sample = pd->sound->sample->load(path);
+        if (Sample)
+        {
+            pd->sound->sampleplayer->setSample(soundPlayer, Sample);
+            pd->sound->sampleplayer->setVolume(soundPlayer, 0.7f, 0.7f);
+            pd->sound->sampleplayer->setRate(soundPlayer, 1.0f);
+        }
+    }
     return soundPlayer;
+}
+
+void FreeSample(AudioSample* Sample)
+{
+    if (Sample)
+    {
+        pd->sound->sample->freeSample(Sample);
+    }
+    Sample = NULL;
+}
+
+void FreeSoundPlayer(SamplePlayer* SoundPlayer)
+{
+    if (SoundPlayer)
+    {
+        pd->sound->sampleplayer->freePlayer(SoundPlayer);
+    }
+    SoundPlayer = NULL;
 }
 
 void initSound(void)
 {
-    levelDoneSound = loadSoundFile("sound/stageend");
-    errorSound = loadSoundFile("sound/error");
-    menuSelectSound = loadSoundFile("sound/select");
-    menuSound = loadSoundFile("sound/menu");
-    menuBackSound = loadSoundFile("sound/back");
-    pickupSound = loadSoundFile("sound/pickup");
-    dropSound = loadSoundFile("sound/drop");
-    jumpSound = loadSoundFile("sound/jump");
-    walkSound = loadSoundFile("sound/walk");
-    fallSound = loadSoundFile("sound/fall");
+    levelDoneSoundPlayer = loadSoundFile(levelDoneSound, "sound/stageend");
+    errorSoundPlayer = loadSoundFile(errorSound, "sound/error");
+    menuSelectSoundPlayer = loadSoundFile(menuSelectSound, "sound/select");
+    menuSoundPlayer = loadSoundFile(menuSound, "sound/menu");
+    menuBackSoundPlayer = loadSoundFile(menuBackSound, "sound/back");
+    pickupSoundPlayer = loadSoundFile(pickupSound, "sound/pickup");
+    dropSoundPlayer = loadSoundFile(dropSound, "sound/drop");
+    jumpSoundPlayer = loadSoundFile(jumpSound, "sound/jump");
+    walkSoundPlayer = loadSoundFile(walkSound, "sound/walk");
+    fallSoundPlayer = loadSoundFile(fallSound, "sound/fall");
+}
+
+void deInitSound(void)
+{
+    FreeSample(levelDoneSound);
+    FreeSample(errorSound);
+    FreeSample(menuSelectSound);
+    FreeSample(menuSound);
+    FreeSample(pickupSound);
+    FreeSample(dropSound);
+    FreeSample(jumpSound);
+    FreeSample(walkSound);
+    FreeSample(fallSound);
+
+    FreeSoundPlayer(levelDoneSoundPlayer);
+    FreeSoundPlayer(errorSoundPlayer);
+    FreeSoundPlayer(menuSelectSoundPlayer);
+    FreeSoundPlayer(menuSoundPlayer);
+    FreeSoundPlayer(pickupSoundPlayer);
+    FreeSoundPlayer(dropSoundPlayer);
+    FreeSoundPlayer(jumpSoundPlayer);
+    FreeSoundPlayer(walkSoundPlayer);
+    FreeSoundPlayer(fallSoundPlayer);
 }
 
 void playMusicFile(const char* path, int repeat)
@@ -133,102 +193,78 @@ void initMusic(void)
     pd->sound->fileplayer->setRate(musicPlayer, 1.0f);
 }
 
-void playSound(FilePlayer* soundPlayer)
+void deInitMusic(void)
 {
-    if (pd->sound->fileplayer->isPlaying(soundPlayer))
+    if (pd->sound->fileplayer->isPlaying(musicPlayer))
     {
-        pd->sound->fileplayer->stop(soundPlayer);
+        pd->sound->fileplayer->stop(musicPlayer);
     }
-    pd->sound->fileplayer->play(soundPlayer, 1);   
+
+    pd->sound->fileplayer->freePlayer(musicPlayer);
+    musicPlayer = NULL;
+}
+
+void playSound(SamplePlayer* soundPlayer)
+{
+    if (!sound_on)
+    {
+        return;
+    }
+
+    if (pd->sound->sampleplayer->isPlaying(soundPlayer))
+    {
+        pd->sound->sampleplayer->stop(soundPlayer);
+    }
+    pd->sound->sampleplayer->play(soundPlayer, 1, 1.0f);   
 }
 
 void playJumpSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    playSound(jumpSound);
+    playSound(jumpSoundPlayer);
 }
 
 void playFallSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    playSound(fallSound);
+    playSound(fallSoundPlayer);
 }
 
 void playLevelDoneSound(void)
 {
-    if(!sound_on)
-    {
-        return;
-    }
-    playSound(levelDoneSound);
+    playSound(levelDoneSoundPlayer);
 }
 
 void playWalkSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    playSound(walkSound);
+    playSound(walkSoundPlayer);
 }
 
 void playErrorSound(void)
 {
-    if(!sound_on)
-    {
-        return;
-    }
-    playSound(errorSound);
+    playSound(errorSoundPlayer);
 }
 
 void playMenuSelectSound(void)
 {
-    if(!sound_on)
-    {
-        return;
-    }
-    playSound(menuSelectSound);
+    playSound(menuSelectSoundPlayer);
 }
 
 void playMenuBackSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    playSound(menuBackSound);
+    playSound(menuBackSoundPlayer);
 }
 
 void playPickupSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    playSound(pickupSound);
+    playSound(pickupSoundPlayer);
 }
 
 void playDropSound(void)
 {
-    if (!sound_on)
-    {
-        return;
-    }
-    if(!pd->sound->fileplayer->isPlaying(dropSound))
-        playSound(dropSound);
+    if(!pd->sound->sampleplayer->isPlaying(dropSoundPlayer))
+        playSound(dropSoundPlayer);
 }
 
 void playMenuSound(void)
 {
-    if(!sound_on)
-    {
-        return;
-    }
-    playSound(menuSound);
+    playSound(menuSoundPlayer);
 }
