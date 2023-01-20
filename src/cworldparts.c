@@ -2,7 +2,7 @@
 #include "cworldpart.h"
 #include "commonvars.h"
 
-CWorldParts* CWorldParts_Create()
+CWorldParts* CWorldParts_Create(bool UseLevelBitmapMode)
 {
 	CWorldParts* Result = pd->system->realloc(NULL, sizeof(CWorldParts));
 	if (Result)
@@ -24,6 +24,10 @@ CWorldParts* CWorldParts_Create()
 		Result->NumBoxesAttachedToPlayer = 0;
 		Result->NumPartsAttachedToPlayer = 0;
 		Result->ViewPort = CViewPort_Create(0, 0, 24, 14, 0, 0, NrOfCols - 1, NrOfRows - 1);
+		if (UseLevelBitmapMode)
+		{
+			CWorldParts_CreateLevelBitmap(Result, false);
+		}
 	}
 	return Result;
 }
@@ -473,7 +477,7 @@ int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 		if ((self->LevelBitmap != NULL) || ((self->DirtyList[Teller]->PrevDrawPlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PrevDrawPlayFieldX -1 <= self->ViewPort->VPMaxX) &&
 			(self->DirtyList[Teller]->PrevDrawPlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PrevDrawPlayFieldY -1 <= self->ViewPort->VPMaxY)))
 		{
-			//CWorldPart_Draw(self->DirtyList[Teller], true, BlackBackGround, self->LevelBitmap);
+			//CWorldPart_Draw(self->DirtyList[Teller], true, BlackBackGround, (self->LevelBitmap != NULL));
 			pd->graphics->fillRect(self->DirtyList[Teller]->PrevDrawX, self->DirtyList[Teller]->PrevDrawY, TileWidth, TileHeight, BlackBackGround ? kColorBlack: kColorWhite);
 			self->DirtyClearedCount++;
 		}
@@ -540,7 +544,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				if ((self->LevelBitmap != NULL) || ((self->Items[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->Items[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
 					(self->Items[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->Items[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY)))
 				{
-					CWorldPart_Draw(self->Items[Teller], false, BlackBackGround, self->LevelBitmap);
+					CWorldPart_Draw(self->Items[Teller], false, BlackBackGround, (self->LevelBitmap != NULL));
 					self->DrawCount++;
 				}
 				self->Items[Teller]->Dirty = false;
@@ -557,7 +561,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				{
 					if (self->Player)
 					{
-						CWorldPart_Draw(self->Player, false, BlackBackGround, self->LevelBitmap);
+						CWorldPart_Draw(self->Player, false, BlackBackGround, (self->LevelBitmap != NULL));
 						self->DrawCount++;
 						self->Player->Dirty = false;
 						self->Player->PrevDrawPlayFieldX = self->Player->PlayFieldX;
@@ -572,7 +576,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 					{
 						if (self->PositionalItems[i][x][y] && (self->PositionalItems[i][x][y] != self->IgnorePart))
 						{
-							CWorldPart_Draw(self->PositionalItems[i][x][y], false, BlackBackGround, self->LevelBitmap);
+							CWorldPart_Draw(self->PositionalItems[i][x][y], false, BlackBackGround, (self->LevelBitmap != NULL));
 							self->DrawCount++;
 							self->PositionalItems[i][x][y]->Dirty = false;
 							self->PositionalItems[i][x][y]->PrevDrawPlayFieldX = self->PositionalItems[i][x][y]->PlayFieldX;
@@ -591,7 +595,7 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 			if ((self->LevelBitmap != NULL) || ((self->DirtyList[Teller]->PlayFieldX >= self->ViewPort->VPMinX) && (self->DirtyList[Teller]->PlayFieldX - 1 <= self->ViewPort->VPMaxX) &&
 				(self->DirtyList[Teller]->PlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PlayFieldY - 1 <= self->ViewPort->VPMaxY)))
 			{
-				CWorldPart_Draw(self->DirtyList[Teller], false, BlackBackGround, self->LevelBitmap);
+				CWorldPart_Draw(self->DirtyList[Teller], false, BlackBackGround, (self->LevelBitmap != NULL));
 				self->DrawCount++;
 			}
 			self->DirtyList[Teller]->PrevDrawPlayFieldX = self->DirtyList[Teller]->PlayFieldX;

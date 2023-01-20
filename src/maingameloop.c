@@ -21,9 +21,8 @@ void setupGame(void)
     pd->display->setInverted(isInvertedSaveState());
     LoadGraphics();
     LoadFonts();
-    WorldParts = CWorldParts_Create();
+    WorldParts = CWorldParts_Create(true);
     Selector = CSelector_Create(WorldParts);
-    ScreenLevel = pd->graphics->newBitmap(400, 240, kColorWhite);
 }
 
 // main update function

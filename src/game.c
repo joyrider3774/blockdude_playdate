@@ -1501,30 +1501,28 @@ void Game(void)
 		if (framecounter >= FrameDelayInput)
 		{
 			framecounter = 0;
+
+			if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
 			{
-				if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
+
+				//move up
+				if (currButtons & kButtonUp)
 				{
+					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+				}
 
-					//move up
-					if (currButtons & kButtonUp)
-					{
-						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
-					}
+				if (currButtons & kButtonLeft)
+				{
+					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY);
+				}
 
-					if (currButtons & kButtonLeft)
-					{
-						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY);
-					}
-
-					if (currButtons & kButtonRight)
-					{
-						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY);
-					}
+				if (currButtons & kButtonRight)
+				{
+					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY);
 				}
 			}
 		}
 	}
-
 	
 
 	if (!AskingQuestion)
@@ -1812,8 +1810,32 @@ void LevelEditor(void)
 		{
 		case IDEmpty:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
-			//need to redraw everything in this case to clear the erased part
-			WorldParts->AllDirty = true;
+			//clear graphics at selector in case of bitmap mode
+			if (WorldParts->LevelBitmap)
+			{
+				if (WorldParts->LevelBitmap)
+				{
+					pd->graphics->pushContext(WorldParts->LevelBitmap);
+				}
+				if (skinSaveState() == 1)
+				{
+					pd->graphics->fillRect(Selector->Part->PlayFieldX * TileWidth, Selector->Part->PlayFieldY * TileHeight, TileWidth, TileHeight, kColorBlack);
+				}
+				else
+				{
+					pd->graphics->fillRect(Selector->Part->PlayFieldX * TileWidth, Selector->Part->PlayFieldY * TileHeight, TileWidth, TileHeight, kColorWhite);
+				}
+
+				if (WorldParts->LevelBitmap)
+				{
+					pd->graphics->popContext();
+				}
+			}
+			else
+			{
+				//need to redraw everything in this case to clear the erased part
+				WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+			}
 			break;
 		case IDPlayer:
 			CWorldParts_Remove(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
@@ -1868,39 +1890,47 @@ void LevelEditor(void)
 		framecounter = 0;
 		if (currButtons & kButtonLeft)
 		{
-			NeedRedraw = true;
-			CSelector_MoveLeft(Selector);
+			NeedRedraw = CSelector_MoveLeft(Selector);
 			if (Selector->Part->PlayFieldX < WorldParts->ViewPort->VPMinX + 3)
 				if (CViewPort_Move(WorldParts->ViewPort, -TileWidth, 0))
+				{
 					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+					NeedRedraw = true;
+				}
 			
 		}
 
 		if (currButtons & kButtonRight)
 		{
-			NeedRedraw = true;
-			CSelector_MoveRight(Selector);
+			NeedRedraw = CSelector_MoveRight(Selector);			
 			if (Selector->Part->PlayFieldX > WorldParts->ViewPort->VPMaxX - 3)
-				if(CViewPort_Move(WorldParts->ViewPort, TileWidth, 0))
+				if (CViewPort_Move(WorldParts->ViewPort, TileWidth, 0))
+				{
 					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+					NeedRedraw = true;
+				}
 		}
 
 		if (currButtons & kButtonUp)
 		{
-			NeedRedraw = true;
-			CSelector_MoveUp(Selector);
+			NeedRedraw = CSelector_MoveUp(Selector);
 			if (Selector->Part->PlayFieldY < WorldParts->ViewPort->VPMinY + 3)
-				if(CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth))
+				if (CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth))
+				{
 					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+					NeedRedraw = true;
+				}
 		}
 
 		if (currButtons & kButtonDown)
 		{
-			NeedRedraw = true;
-			CSelector_MoveDown(Selector);
+			NeedRedraw = CSelector_MoveDown(Selector);
 			if (Selector->Part->PlayFieldY > WorldParts->ViewPort->VPMaxY - 3)
-				if(CViewPort_Move(WorldParts->ViewPort, 0, TileWidth))
+				if (CViewPort_Move(WorldParts->ViewPort, 0, TileWidth))
+				{
 					WorldParts->AllDirty = WorldParts->LevelBitmap == NULL;
+					NeedRedraw = true;
+				}
 		}
 	}
 
@@ -1954,12 +1984,6 @@ void Intro(void)
 	if (currButtons & kButtonDown)
 	{
 		showDebugInfo = true;
-	}
-
-	if (currButtons & kButtonRight)
-	{
-		if (WorldParts->LevelBitmap == NULL)
-			CWorldParts_CreateLevelBitmap(WorldParts, (skin == 1));
 	}
 
 	if (NeedRedraw)

@@ -54,9 +54,9 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self);
 void CWorldPart_Event_BeforeDraw(CWorldPart* self);
 void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY);
-void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
+bool CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin);
 bool CWorldPart_Move(CWorldPart* self);
-void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, LCDBitmap* ToBitMap);
+void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, bool UseRealPosition);
 
 #endif

@@ -12,13 +12,13 @@ struct CSelector {
 };
 
 CSelector* CSelector_Create(CWorldParts* List);
-void CSelector_MoveUp(CSelector* self);
-void CSelector_MoveDown(CSelector* self);
-void CSelector_MoveLeft(CSelector* self);
-void CSelector_MoveRight(CSelector* self);
+bool CSelector_MoveUp(CSelector* self);
+bool CSelector_MoveDown(CSelector* self);
+bool CSelector_MoveLeft(CSelector* self);
+bool CSelector_MoveRight(CSelector* self);
 void CSelector_IncSelection(CSelector* self);
 void CSelector_DecSelection(CSelector* self);
-void CSelector_SetPosition(CSelector* self, const int PlayFieldXin, const int PlayFieldYin);
+bool CSelector_SetPosition(CSelector* self, const int PlayFieldXin, const int PlayFieldYin);
 void CSelector_Draw(CSelector* self);
 void CSelector_deinit(CSelector* self);
 

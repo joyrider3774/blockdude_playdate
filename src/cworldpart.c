@@ -167,9 +167,6 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 					//this comes from a jump and falling down
 					if (!self->NeedToMoveRight)
 					{
-						//if(!CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
-						//	playWalkSound();
-
 						CWorldPart* Tmp = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin + 1);
 						if (Tmp != NULL)
 						{
@@ -223,6 +220,7 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 						self->AnimBase = AnimBaseLeft;
 						CWorldParts_AddDirty(self->ParentList, self);
 					}
+
 					if (self->ParentList)
 					{
 						//check for a box on top of the player.
@@ -529,22 +527,28 @@ void CWorldPart_Event_Moving(CWorldPart* self, int ScreenPosX, int ScreenPosY)
 	}
 }
 
-void CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
+bool CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
 {
+	bool Result = false;
 	if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
 	{
-		if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
+		if ((self->PlayFieldX != PlayFieldXin) || (self->PlayFieldY != PlayFieldYin))
 		{
-			self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
-			self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+			if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
+			{
+				self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+				self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+			}
+			self->PlayFieldX = PlayFieldXin;
+			self->PlayFieldY = PlayFieldYin;
+			self->X = PlayFieldXin * TileWidth;
+			self->Y = PlayFieldYin * TileHeight;
+			//Event_ArrivedOnNewSpot();
+			//self->Dirty = true;
+			Result = true;
 		}
-		self->PlayFieldX = PlayFieldXin;
-		self->PlayFieldY = PlayFieldYin;
-		self->X = PlayFieldXin * TileWidth;
-		self->Y = PlayFieldYin * TileHeight;
-		//Event_ArrivedOnNewSpot();
-		//self->Dirty = true;
 	}
+	return Result;
 }
 
 bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
@@ -815,7 +819,7 @@ bool CWorldPart_Move(CWorldPart* self)
 	return Result;
 }
 
-void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, LCDBitmap* ToBitMap)
+void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBackGround, bool UseRealPosition)
 {
 	LCDBitmapTable* Img = NULL;
 
@@ -924,7 +928,7 @@ void CWorldPart_Draw(CWorldPart* self, bool ClearPrevDrawPosition, bool BlackBac
 
 			Bitmap = pd->graphics->getTableBitmap(Img, self->AnimPhase);
 
-			if ((ToBitMap == NULL) && self->ParentList)
+			if (!UseRealPosition && self->ParentList)
 			{
 				x = self->X - self->ParentList->ViewPort->MinScreenX;
 				y = self->Y - self->ParentList->ViewPort->MinScreenY;

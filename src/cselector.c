@@ -16,29 +16,29 @@ CSelector* CSelector_Create(CWorldParts* List)
 	return Result;
 }
 
-void CSelector_SetPosition(CSelector* self, const int PlayFieldXin, const int PlayFieldYin)
+bool CSelector_SetPosition(CSelector* self, const int PlayFieldXin, const int PlayFieldYin)
 {
-	CWorldPart_SetPosition(self->Part, PlayFieldXin, PlayFieldYin);
+	return CWorldPart_SetPosition(self->Part, PlayFieldXin, PlayFieldYin);
 }
 
-void CSelector_MoveUp(CSelector* self)
+bool CSelector_MoveUp(CSelector* self)
 {
-	CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX, self->Part->PlayFieldY - 1);
+	return CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX, self->Part->PlayFieldY - 1);
 }
 
-void CSelector_MoveDown(CSelector* self)
+bool CSelector_MoveDown(CSelector* self)
 {
-	CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX, self->Part->PlayFieldY + 1);
+	return CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX, self->Part->PlayFieldY + 1);
 }
 
-void CSelector_MoveRight(CSelector* self)
+bool CSelector_MoveRight(CSelector* self)
 {
-	CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX + 1, self->Part->PlayFieldY);
+	return CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX + 1, self->Part->PlayFieldY);
 }
 
-void CSelector_MoveLeft(CSelector* self)
+bool CSelector_MoveLeft(CSelector* self)
 {
-	CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX - 1, self->Part->PlayFieldY);
+	return CWorldPart_SetPosition(self->Part, self->Part->PlayFieldX - 1, self->Part->PlayFieldY);
 }
 
 void CSelector_IncSelection(CSelector* self)
@@ -236,7 +236,7 @@ void CSelector_DecSelection(CSelector* self)
 
 void CSelector_Draw(CSelector* self)
 {
-	CWorldPart_Draw(self->Part, false, false, NULL);
+	CWorldPart_Draw(self->Part, false, false, false);
 }
 
 void CSelector_deinit(CSelector* self)

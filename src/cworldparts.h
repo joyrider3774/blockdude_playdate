@@ -31,7 +31,7 @@ struct CWorldParts {
 	unsigned int NumBoxesAttachedToPlayer;
 };
 
-CWorldParts* CWorldParts_Create();
+CWorldParts* CWorldParts_Create(bool UseLevelBitmapMode);
 void CWorldParts_ClearPositionalItems(CWorldParts* self);
 void CWorldParts_CreateLevelBitmap(CWorldParts* self, bool BlackBackground);
 void CWorldParts_CenterVPOnPlayer(CWorldParts* self);
