@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include "pd_api.h"
 
-#define FRAMERATE 50
-#define GameMoveSpeed 2					//dec if fps increases, Tilewidth & height must be divisable by this nr
-#define PlayerAnimDelay 8				//inc if fps increases
-#define FrameDelayInput 4				//inc if fps increases (Tilewidth & height must be disivable by this nr and the nr may not be bigger than TileWidth / MoveSpeed)
-#define FrameDelayInputLevelEditor 4
-#define ViewportMove 2					//dec if fps increases
+#define FRAMERATE 30
+#define GameMoveSpeed 3					//dec if fps increases
+#define PlayerAnimDelay 5				//inc if fps increases
+#define FrameDelayInput 1				
+#define FrameDelayInputLevelEditor 3
+#define ViewportMove 3					//dec if fps increases
 
 
 #define MAXSKINS 3
@@ -139,7 +139,7 @@ extern const char* skins[];
 extern int skin;
 extern int GameState;
 extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion, FreeView, LevelEditorMode, showDebugInfo;
+extern bool AskingQuestion, FreeView, LevelEditorMode, showDebugInfo, NeedToReloadGraphics;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;

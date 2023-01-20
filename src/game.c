@@ -529,6 +529,7 @@ void DestroyMenuItems(void)
 
 void OtherMenuItemCallback(void* userdata)
 {
+	//music
 	if (userdata == &menuItem1)
 	{
 		int tmp = pd->system->getMenuItemValue(menuItem1);
@@ -545,6 +546,7 @@ void OtherMenuItemCallback(void* userdata)
 		NeedRedraw = true;
 	}
 
+	//inverted colors
 	if (userdata == &menuItem2)
 	{
 		int tmp = pd->system->getMenuItemValue(menuItem2);
@@ -562,6 +564,7 @@ void OtherMenuItemCallback(void* userdata)
 		NeedRedraw = true;
 	}
 
+	//skin
 	if (userdata == &menuItem3)
 	{
 		int tmp = pd->system->getMenuItemValue(menuItem3);
@@ -574,6 +577,7 @@ void OtherMenuItemCallback(void* userdata)
 
 void LevelEditorMenuItemCallback(void* userdata)
 {
+	//play level
 	if (userdata == &menuItem1)
 	{
 		int errType;
@@ -607,12 +611,14 @@ void LevelEditorMenuItemCallback(void* userdata)
 		}
 	}
 
+	//clear
 	if (userdata == &menuItem2)
 	{
 		CWorldParts_RemoveAll(WorldParts);
 		NeedRedraw = true;
 	}
 
+	//show info
 	if (userdata == &menuItem3)
 	{
 		int tmp = pd->system->getMenuItemValue(menuItem3);
@@ -646,16 +652,19 @@ void LevelEditorMenuItemCallback(void* userdata)
 
 void CreateLevelEditorMenuItems()
 {
+	//play level
 	if (menuItem1 == NULL)
 	{
 		menuItem1 = pd->system->addMenuItem("Play", LevelEditorMenuItemCallback, &menuItem1);
 	}
 	
+	//clear
 	if (menuItem2 == NULL)
 	{
 		menuItem2 = pd->system->addMenuItem("Clear", LevelEditorMenuItemCallback, &menuItem2);
 	}
 
+	//show info
 	if (menuItem3 == NULL)
 	{
 		const char* Views[] = { "None", "Info", "Grid", "Info + Grid" };
@@ -687,6 +696,7 @@ void CreateLevelEditorMenuItems()
 
 void CreateOtherMenuItems()
 {	
+	//music
 	if (menuItem1 == NULL)
 	{
 		const char* onOff[] = { "On", "Off" };
@@ -697,6 +707,7 @@ void CreateOtherMenuItems()
 			pd->system->setMenuItemValue(menuItem1, 1);
 	}	
 	
+	//colors 
 	if (menuItem2 == NULL)
 	{
 		const char* normalInverted[] = { "Normal", "Inverted" };
@@ -707,6 +718,7 @@ void CreateOtherMenuItems()
 			pd->system->setMenuItemValue(menuItem2, 0);
 	}
 	
+	//skins
 	if (menuItem3 == NULL)
 	{
 		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, OtherMenuItemCallback, &menuItem3);
@@ -716,6 +728,7 @@ void CreateOtherMenuItems()
 
 void GameMenuItemCallback(void* userdata)
 {
+	//restart
 	if (userdata == &menuItem1)
 	{
 		LoadSelectedLevel();
@@ -724,12 +737,14 @@ void GameMenuItemCallback(void* userdata)
 		NeedRedraw = true;
 	}
 
+	//freeview
 	if (userdata == &menuItem2)
 	{
 		FreeView = true;
 		NeedRedraw = true;
 	}
 
+	//level editor / skins
 	if (userdata == &menuItem3)
 	{
 		if (LevelEditorMode)
@@ -740,9 +755,11 @@ void GameMenuItemCallback(void* userdata)
 		{
 			int tmp = pd->system->getMenuItemValue(menuItem3);
 			setSkinSaveState(tmp);
-			LoadGraphics();
-			WorldParts->AllDirty = true;
-			NeedRedraw = true;
+			//can't reload immediatly, the callback could have
+			//happened during draw commands and it would
+			//make the graphics be mixed so need todo it 
+			//during the gameloop itself before starting drawing
+			NeedToReloadGraphics = true;
 		}
 		
 	}
@@ -750,15 +767,19 @@ void GameMenuItemCallback(void* userdata)
 
 void CreateGameMenuItems()
 {
+	//restart
 	if (menuItem1 == NULL)
 	{
 		menuItem1 = pd->system->addMenuItem("Restart Level", GameMenuItemCallback, &menuItem1);
 	}
+
+	//Free view
 	if (menuItem2 == NULL)
 	{
 		menuItem2 = pd->system->addMenuItem("Free View", GameMenuItemCallback, &menuItem2);
 	}
 
+	//level editor / skins
 	if (menuItem3 == NULL)
 	{
 		if (LevelEditorMode)
@@ -1527,11 +1548,20 @@ void Game(void)
 
 	if (!AskingQuestion)
 	{
-		NeedRedraw |=  CWorldParts_Move(WorldParts);
+		NeedRedraw |=  CWorldParts_Move(WorldParts) || NeedToReloadGraphics;
 		if (NeedRedraw)
 		{
 			NeedRedraw = false;
 
+			//need to happen here just before drawing & clearing everything
+			//otherwise alldirty could have been reset depending on when 
+			//the menu callback fired
+			if (NeedToReloadGraphics)
+			{
+				LoadGraphics();
+				NeedToReloadGraphics = false;
+				WorldParts->AllDirty = true;
+			}
 			if (WorldParts->AllDirty)
 			{
 				if (WorldParts->LevelBitmap)

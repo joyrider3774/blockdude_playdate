@@ -39,8 +39,8 @@ CWorldPart* CWorldPart_create(const int PlayFieldXin, const int PlayFieldYin, co
 		Result->Selected = false;
 		Result->FirstArriveEventFired = false;
 		Result->Group = GroupIn;
-		Result->PrevDrawX = -1;
-		Result->PrevDrawY = -1;
+		Result->PrevDrawX = -TileWidth;
+		Result->PrevDrawY = -TileHeight;
 		Result->PrevDrawPlayFieldX = -1;
 		Result->PrevDrawPlayFieldY = -1;
 
@@ -154,7 +154,10 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				Result = true;
 				if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
 				{
-					self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+					if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
+					{
+						self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+					}
 					self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
 				}
 
@@ -200,12 +203,8 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				//left
 				if (self->X > self->PlayFieldX * TileWidth)
 				{
-					//this comes from a jump and from falling down
 					if (!self->NeedToMoveLeft)
 					{
-						//if(!CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin + 1))
-						//	playWalkSound();
-
 						CWorldPart* Tmp = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin + 1);
 						if (Tmp)
 						{
@@ -328,7 +327,10 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 						Result = true;
 						if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
 						{
-							self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+							if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
+							{
+								self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+							}
 							self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
 						}
 						self->PlayFieldX = PlayFieldXin;
@@ -536,7 +538,10 @@ bool CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int 
 		{
 			if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
 			{
-				self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+				if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
+				{
+					self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+				}
 				self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
 			}
 			self->PlayFieldX = PlayFieldXin;
