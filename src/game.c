@@ -1200,13 +1200,18 @@ void getStringDraw(char* StringBuffer, bool ErasingPrevious)
 	Buffer[strlen(StringBuffer) + 1] = ']';
 	Buffer[strlen(StringBuffer) + 2] = '\0';
 
-	if(ErasingPrevious)
-		pd->graphics->setDrawMode(kDrawModeInverted);
-	pd->system->formatString(&text, "\n%s\n\n(A):Ok (B):Cancel", Buffer);
+	if (ErasingPrevious)
+	{
+		pd->graphics->pushContext(NULL);
+		pd->graphics->setDrawMode(kDrawModeNXOR);
+	}
+	pd->system->formatString(&text, "\n%s\n(DPad):Select\n(A):Ok (B):Cancel", Buffer);
 	pd->graphics->drawText(text, strlen(text), kASCIIEncoding, GetStringX, GetStringY);
 	pd->system->realloc(text, 0);
-	if(ErasingPrevious)
-		pd->graphics->setDrawMode(kDrawModeCopy);
+	if (ErasingPrevious)
+	{
+		pd->graphics->popContext();
+	}
 	pd->system->realloc(Buffer, 0);
 }
 
@@ -1223,6 +1228,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		memset(StringBuffer, 0, MaxLenStringResult + 1);
 		StringBuffer[0] = 'a';
 		getStringDraw(StringBuffer, false);
+		DestroyMenuItems();
 	}
 	
 
@@ -1609,6 +1615,7 @@ void TitleScreen()
 				case spCreate:
 					DrawBitmapSrcRec(IMGTitleScreen, 101, 71, 101, 71, 198, 93, kBitmapUnflipped);
 					pd->graphics->fillRect(101, 71, 198, 93, kColorXOR);
+					pd->graphics->setDrawMode(kDrawModeNXOR);
 					char text[] = "Pack Name:";
 					GetString(1, 105, 80, text, MaxLenLevelPackName);
 					break;
@@ -1811,13 +1818,11 @@ void TitleScreen()
 						break;
 					}
 				}
-			}
-			memset(StringResult, 0, MaxLenStringResult);
+			}			
 		}
-		else
-		{
-			memset(StringResult, 0, MaxLenStringResult);
-		}
+		memset(StringResult, 0, MaxLenStringResult);
+		pd->graphics->setDrawMode(kDrawModeCopy);
+		CreateOtherMenuItems();
 	}
 }
 
