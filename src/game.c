@@ -1042,10 +1042,12 @@ void StageSelect()
 		if (LevelEditorMode)
 		{
 			if (SelectedLevel <= InstalledLevels)
+			{
 				if (LevelEditorPlayMode)
 					PlayLevelIfNoErrorsFound();
 				else
 					GameState = GSLevelEditorInit;
+			}
 		}
 		else
 		{
@@ -1192,7 +1194,7 @@ void getStringDraw(char* StringBuffer, bool ErasingPrevious)
 	char* text;
 	Buffer = pd->system->realloc(NULL, strlen(StringBuffer) + 2);
 	memset(Buffer, 0, strlen(StringBuffer) + 2);
-	strncpy(Buffer, StringBuffer, strlen(StringBuffer) - 1);
+	memcpy(Buffer, StringBuffer, strlen(StringBuffer) - 1);
 	Buffer[strlen(StringBuffer) - 1] = '[';
 	Buffer[strlen(StringBuffer)] = StringBuffer[strlen(StringBuffer) - 1];
 	Buffer[strlen(StringBuffer) + 1] = ']';
