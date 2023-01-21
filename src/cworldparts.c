@@ -354,16 +354,10 @@ bool CWorldParts_Save(CWorldParts* self, char* Filename)
 }
 
 
-void CWorldParts_Load(CWorldParts* self, char* Filename, bool FromData)
+void CWorldParts_Load(CWorldParts* self, char* Filename, FileOptions opt)
 {
 	char Buffer[3];
 	int X, Y, Type;
-	FileOptions opt;
-	if (FromData)
-		opt = kFileReadData;
-	else
-		opt = kFileRead;
-
 	CWorldParts_RemoveAll(self);
 
 	SDFile* Fp = pd->file->open(Filename, opt);

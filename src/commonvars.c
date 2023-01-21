@@ -21,17 +21,23 @@ const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Floor", "Exit", 
     "Tower Shaft", "Roof 1", "Roof 2", "Roof Corner Left", "Roof Corner Right", "Roof Corner Both", "Roof Down Right", "Roof Down Left" };
 
 const char* skins[] = { "Default", "Tech", "Ti-83" };
+char* LevelPacks[MaxLevelPacks];
 
 LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackground = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
 
 LCDFont* Nano, * Mini, * Mini2X;
 
+char* levelext = "lev";
+char* levelprefix = "level";
+
+char *StringResult;
+
 int GameState = GSIntroInit;
-int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic, InstalledLevels = 0;
-bool AskingQuestion = false, FreeView = false, LevelEditorMode = false, LevelEditorPlayMode = false, showDebugInfo = false, NeedToReloadGraphics = false;
+int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic, InstalledLevels = 0, CurrentLevelPackIndex = 0, FoundLevelPacks = 0, GetStringId = -1, GetStringX = 0, GetStringY = 0 ;
+bool AskingQuestion = false, FreeView = false, LevelEditorMode = false, LevelEditorPlayMode = false, showDebugInfo = false, NeedToReloadGraphics = false, AskingGetString = false;
 int IntroScreenNr = 1;
 int framecounter = 0;
-
+size_t MaxLenGetString = 0;
 CWorldParts* WorldParts;
 CSelector* Selector;
 

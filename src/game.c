@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdlib.h>
 #include "commonvars.h"
 #include "sound.h"
@@ -8,6 +10,7 @@
 #include "cworldpart.h"
 #include "cworldparts.h"
 #include "cselector.h"
+#include "pd_api.h"
 
 LCDBitmap* loadImageAtPath(const char* path)
 {
@@ -414,6 +417,94 @@ void LoadFonts(void)
 	Mini2X = loadFontAtPath("fonts/Mini Sans 2X/Mini Sans 2X");
 }
 
+void FindLevelPacksCallBack(const char* path, void* userdata)
+{
+	//its a directory with a name not longer than the maximum + 1 (from '/')
+	if ((strlen(path) <= MaxLenLevelPackName + 1) && (path[strlen(path) - 1] == '/'))
+	{
+		pd->system->formatString(&LevelPacks[FoundLevelPacks], "%s", path);
+		//remove slash
+		LevelPacks[FoundLevelPacks][strlen(path) - 1] = '\0';
+		FoundLevelPacks++;
+	}
+}
+
+void FindLevelPacks(void)
+{
+	FoundLevelPacks = 0;
+	pd->file->mkdir("levels");
+	pd->file->listfiles("levels", FindLevelPacksCallBack, NULL, 0);
+}
+
+void FindLevelsCallBack(const char* path, void* userdata)
+{
+	//it's a level file
+	if (strlen(path) > 3)
+	{
+		//ends with "lev"
+		if (strcmp(path + (strlen(path) - 3), levelext) == 0)
+		{
+			char *level = pd->system->realloc(NULL, 6);
+			memset(level, 0, 6);
+			strncpy(level, path, 5);
+			level[6] = '\0';
+			//starts with "level"
+			if (strcmp(level, levelprefix) == 0)
+			{
+				//check filename
+				//levelx.lev
+				if (strlen(path) == 10)
+				{			
+					char *levelNr = pd->system->realloc(NULL, 3);
+					memset(levelNr, 0, 3);					
+					strncpy(levelNr, path + 5, 1);
+					levelNr[2] = '\0'; //fixes warning
+					int tmp = atoi(levelNr);
+					if ((tmp > 0) && (tmp <= InstalledLevelsLevelEditor))
+					{
+						if (tmp > InstalledLevels)
+							InstalledLevels = tmp;
+					}
+					pd->system->realloc(levelNr, 0);
+				}
+
+				//levelxx.lev
+				if (strlen(path) == 11)
+				{
+					char* levelNr = pd->system->realloc(NULL, 3);
+					memset(levelNr, 0, 3);
+					strncpy(levelNr, path + 5, 2);
+					levelNr[3] = '\0'; //fixes warning
+					int tmp = atoi(levelNr);
+					if ((tmp > 0) && (tmp <= InstalledLevelsLevelEditor))
+					{
+						if (tmp > InstalledLevels)
+							InstalledLevels = tmp;
+					}
+					pd->system->realloc(levelNr, 0);
+				}
+			}
+			
+			pd->system->realloc(level, 0);
+		}
+	}
+}
+
+void FindLevels(void)
+{
+	InstalledLevels = 0;
+	char* path;
+	if ((FoundLevelPacks > 0) && (CurrentLevelPackIndex >= 0) && (CurrentLevelPackIndex < FoundLevelPacks))
+	{		
+		pd->system->formatString(&path, "levels/%s", LevelPacks[CurrentLevelPackIndex]);
+		pd->file->mkdir(path);
+		pd->file->listfiles(path, FindLevelsCallBack, NULL, 0);
+		pd->system->realloc(path, 0);
+		pd->system->logToConsole("%s:%d", LevelPacks[CurrentLevelPackIndex], InstalledLevels);
+	}
+	
+}
+
 bool StageDone(CWorldPart* Player)
 {
 	//this works because player is on a higher group (it is handled & found last so the exit is found first if we are at that position)
@@ -476,8 +567,15 @@ void SaveSelectedLevel(void)
 	char* Filename;
 	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
 	{
-		pd->file->mkdir("levels");
-		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
+		if (LevelEditorMode)
+		{
+			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
+			pd->system->logToConsole("%s", Filename);
+		}
+		else
+		{
+			pd->system->formatString(&Filename, "levels/%s%d.%s", levelprefix, SelectedLevel, levelext);
+		}
 		CWorldParts_Save(WorldParts, Filename);
 		pd->system->realloc(Filename, 0);
 	}
@@ -488,10 +586,17 @@ void SaveSelectedLevelPositional(void)
 	char* Filename;
 	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
 	{
-		pd->file->mkdir("levels");
-		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_SavePositional(WorldParts, Filename);
-		pd->system->realloc(Filename, 0);
+		if (LevelEditorMode)
+		{
+			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
+			pd->system->logToConsole("%s", Filename);
+		}
+		else
+		{
+			pd->system->formatString(&Filename, "levels/%s%d.%s", levelprefix, SelectedLevel, levelext);
+			CWorldParts_SavePositional(WorldParts, Filename);
+			pd->system->realloc(Filename, 0);
+		}
 	}
 }
 
@@ -500,8 +605,21 @@ void LoadSelectedLevel(void)
 	char* Filename;
 	if ((SelectedLevel > 0) && (SelectedLevel <= InstalledLevels))
 	{
-		pd->system->formatString(&Filename, "levels/level%d.lev", SelectedLevel);
-		CWorldParts_Load(WorldParts, Filename, LevelEditorMode);
+		if (LevelEditorMode)
+		{
+			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
+			pd->system->logToConsole("%s", Filename);
+			//we read from both data and file system, this way i can include people's created levelpacks in updates of the game
+			//and supply my own created level pack. When saving the level is always saved to data folder and it would seem
+			//the data folder also takes preference for reading the files. So this is really handy.
+			CWorldParts_Load(WorldParts, Filename, kFileRead | kFileReadData);
+		}
+		else
+		{
+			pd->system->formatString(&Filename, "levels/%s%d.%s", levelprefix, SelectedLevel, levelext);
+			CWorldParts_Load(WorldParts, Filename, kFileRead);
+		}
+		
 		pd->system->realloc(Filename, 0);
 	}
 }
@@ -1046,11 +1164,149 @@ void StageSelect()
 	DoShowDebugInfo();
 }
 
+void GetString(int Id, int x, int y,char* Msg, size_t MaxLen)
+{
+	if (MaxLen > 0)
+	{
+		GetStringX = x;
+		GetStringY = y;
+		AskingGetString = true;
+		GetStringId = Id;
+		pd->graphics->drawText(Msg, strlen(Msg), kASCIIEncoding, x, y);
+		prevButtons = currButtons;
+		MaxLenGetString = MaxLen;
+	}
+	else
+	{
+		GetStringId = -1;
+		AskingGetString = false;
+		GetStringX = 0;
+		GetStringY = 0;
+		MaxLenGetString = 0;
+	}
+}
+
+void getStringDraw(char* StringBuffer, bool ErasingPrevious)
+{
+	char* Buffer;
+	char* text;
+	Buffer = pd->system->realloc(NULL, strlen(StringBuffer) + 2);
+	memset(Buffer, 0, strlen(StringBuffer) + 2);
+	strncpy(Buffer, StringBuffer, strlen(StringBuffer) - 1);
+	Buffer[strlen(StringBuffer) - 1] = '[';
+	Buffer[strlen(StringBuffer)] = StringBuffer[strlen(StringBuffer) - 1];
+	Buffer[strlen(StringBuffer) + 1] = ']';
+	Buffer[strlen(StringBuffer) + 2] = '\0';
+
+	if(ErasingPrevious)
+		pd->graphics->setDrawMode(kDrawModeInverted);
+	pd->system->formatString(&text, "\n%s\n\n(A):Ok (B):Cancel", Buffer);
+	pd->graphics->drawText(text, strlen(text), kASCIIEncoding, GetStringX, GetStringY);
+	pd->system->realloc(text, 0);
+	if(ErasingPrevious)
+		pd->graphics->setDrawMode(kDrawModeCopy);
+	pd->system->realloc(Buffer, 0);
+}
+
+bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
+{
+	*Id = GetStringId;
+	*Answered = false;
+
+	if (GetStringId == -1)
+		return false;
+
+	if (strlen(StringBuffer) == 0)
+	{
+		memset(StringBuffer, 0, MaxLenStringResult + 1);
+		StringBuffer[0] = 'a';
+		getStringDraw(StringBuffer, false);
+	}
+	
+
+	if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))
+	{
+		memset(StringBuffer, 0, strlen(StringBuffer));
+		*Answered = false;
+		NeedRedraw = true;
+		GetStringId = -1;
+		AskingGetString = false;
+		return true;
+	}
+
+	if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+	{
+		*Answered = true;
+		NeedRedraw = true;
+		GetStringId = -1;
+		AskingGetString = false;
+		return true;
+	}
+
+	if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
+	{
+		getStringDraw(StringBuffer, true);
+		char val = StringBuffer[strlen(StringBuffer)-1];
+		if ((val < 'z'))
+			val++;
+		else
+			val = 'a';
+		StringBuffer[strlen(StringBuffer) - 1] = val;
+		getStringDraw(StringBuffer, false);
+	}
+
+	if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
+	{
+		getStringDraw(StringBuffer, true);
+		char val = StringBuffer[strlen(StringBuffer)-1];
+		if ((val > 'a'))
+			val--;
+		else
+			if (val == 'a')
+				val = 'z';
+		StringBuffer[strlen(StringBuffer) - 1] = val;
+		getStringDraw(StringBuffer, false);
+	}
+
+	if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
+	{
+		if (strlen(StringBuffer) > 1)
+		{
+			getStringDraw(StringBuffer, true);
+			StringBuffer[strlen(StringBuffer)] = '\0';
+			StringBuffer[strlen(StringBuffer) - 1] = '\0';
+			getStringDraw(StringBuffer, false);
+		}
+	}
+
+	if ((currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
+	{
+		if ((strlen(StringBuffer) < MaxLenGetString) && (strlen(StringBuffer) < MaxLenStringResult))
+		{
+			getStringDraw(StringBuffer, true);
+			StringBuffer[strlen(StringBuffer)] = 'a';
+			getStringDraw(StringBuffer, false);
+		}
+	}
+
+	return false;
+}
+
 void TitleScreenInit(void)
 {
 	CreateOtherMenuItems();
 	SelectMusic(musTitle);
 	NeedRedraw = true;
+	//in case we come back from the level editor and had created
+	//a new level in a new pack we need to refind those levels.
+	if (titleStep == tsLevelEditorMode)
+	{
+		FindLevels();
+		if (InstalledLevels > 0)
+			titleSelection = lmPlayMode;
+		else
+			titleSelection = lmEditMode;
+	}
 }
 
 void TitleScreen()
@@ -1061,187 +1317,325 @@ void TitleScreen()
 		TitleScreenInit();
 		GameState -= GSDiff;
 	}
-
-	if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
+	
+	if (!AskingGetString)
 	{
-		switch (titleStep)
+		if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 		{
-		case tsMainMenu:
-			if (titleSelection < mmCount -1)
+			switch (titleStep)
 			{
-				titleSelection++;
-				playMenuSound();
-				NeedRedraw = true;
-			}
-			break;
-		case tsOptions:
-			if (titleSelection < opCount -1)
-			{
-				titleSelection++;
-				playMenuSound();
-				NeedRedraw = true;
-			}
-			break;
-		case tsLevelEditorMode:
-			if (titleSelection < lmCount - 1)
-			{
-				titleSelection++;
-				playMenuSound();
-				NeedRedraw = true;
-			}
-			break;
-		}
-	}
-
-	if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
-	{
-		switch (titleStep)
-		{
-		case tsMainMenu:
-		case tsOptions:
-		case tsLevelEditorMode:
-			if (titleSelection > 0)
-			{
-				titleSelection--;
-				playMenuSound();
-				NeedRedraw = true;
-			}
-			break;
-		}
-	}
-
-	if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))
-	{
-		switch (titleStep)
-		{
-		case tsOptions:
-			titleStep = tsMainMenu;
-			titleSelection = mmOptions;
-			playMenuBackSound();
-			NeedRedraw = true;
-			break;
-		case tsCredits:
-			titleStep = tsMainMenu;
-			titleSelection = mmCredits;
-			playMenuBackSound();
-			NeedRedraw = true;
-			break;
-		case tsLevelEditorMode:
-			titleStep = tsMainMenu;
-			titleSelection = mmLevelEditor;
-			playMenuBackSound();
-			NeedRedraw = true;
-			break;
-		}
-	}
-
-	if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
-	{
-		switch (titleStep)
-		{
-		case tsMainMenu:
-			switch (titleSelection)
-			{
-			case mmLevelEditor:
-				InstalledLevels = InstalledLevelsLevelEditor;
-				titleStep = tsLevelEditorMode;
-				titleSelection = lmPlayMode;
-				playMenuSelectSound();
-				NeedRedraw = true;
+			case tsSelectPack:
+				switch (titleSelection)
+				{
+				case spPack:
+					CurrentLevelPackIndex--;
+					if (CurrentLevelPackIndex < 0)
+						CurrentLevelPackIndex = FoundLevelPacks - 1;
+					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
+				default:
+					break;
+				}
+			default:
 				break;
-			case mmStartGame:
-				InstalledLevels = InstalledLevelsDefaultGame;
+			}
+		}
+
+		if ((currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
+		{
+			switch (titleStep)
+			{
+			case tsSelectPack:
+				switch (titleSelection)
+				{
+				case spPack:
+					CurrentLevelPackIndex++;
+					if (CurrentLevelPackIndex == FoundLevelPacks)
+						CurrentLevelPackIndex = 0;
+					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
+				default:
+					break;
+				}
+			default:
+				break;
+			}
+		}
+
+
+		if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
+		{
+			switch (titleStep)
+			{
+			case tsMainMenu:
+				if (titleSelection < mmCount - 1)
+				{
+					titleSelection++;
+					playMenuSound();
+					NeedRedraw = true;
+				}
+				break;
+			case tsOptions:
+				if (titleSelection < opCount - 1)
+				{
+					titleSelection++;
+					playMenuSound();
+					NeedRedraw = true;
+				}
+				break;
+			case tsLevelEditorMode:
 				if (InstalledLevels > 0)
 				{
-					LevelEditorMode = false;
-					SelectedLevel = lastUnlockedLevel();
-					GameState = GSStageSelectInit;
+					if (titleSelection < lmCount - 1)
+					{
+						titleSelection++;
+						playMenuSound();
+						NeedRedraw = true;
+					}
+				}
+				else
+					titleSelection = lmEditMode;
+				break;
+			case tsSelectPack:
+				if (FoundLevelPacks > 0)
+				{
+					if (titleSelection < spCount - 1)
+					{
+						titleSelection++;
+						playMenuSound();
+						NeedRedraw = true;
+					}
+				}
+				else
+					titleSelection = spCreate;
+				break;
+			}
+		}
+
+		if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
+		{
+			switch (titleStep)
+			{
+			case tsMainMenu:
+			case tsOptions:
+				if (titleSelection > 0)
+				{
+					titleSelection--;
+					playMenuSound();
+					NeedRedraw = true;
+				}
+				break;
+			case tsLevelEditorMode:
+				if (InstalledLevels > 0)
+				{
+					if (titleSelection > 0)
+					{
+						titleSelection--;
+						playMenuSound();
+						NeedRedraw = true;
+					}
+				}
+				else
+					titleSelection = lmEditMode;
+				break;			
+			case tsSelectPack:
+				if (FoundLevelPacks > 0)
+				{
+					if (titleSelection > 0)
+					{
+						titleSelection--;
+						playMenuSound();
+						NeedRedraw = true;
+					}
+				}
+				else
+					titleSelection = spCreate;
+				break;
+			}
+		}
+
+		if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))
+		{
+			switch (titleStep)
+			{
+			case tsOptions:
+				titleStep = tsMainMenu;
+				titleSelection = mmOptions;
+				playMenuBackSound();
+				NeedRedraw = true;
+				break;
+			case tsCredits:
+				titleStep = tsMainMenu;
+				titleSelection = mmCredits;
+				playMenuBackSound();
+				NeedRedraw = true;
+				break;
+			case tsLevelEditorMode:
+				titleStep = tsSelectPack;
+				titleSelection = spPack;
+				playMenuBackSound();
+				NeedRedraw = true;
+				break;
+			case tsSelectPack:
+				titleStep = tsMainMenu;
+				titleSelection = mmLevelEditor;
+				playMenuBackSound();
+				NeedRedraw = true;
+			}
+		}
+
+		if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+		{
+			switch (titleStep)
+			{
+			case tsMainMenu:
+				switch (titleSelection)
+				{
+				case mmLevelEditor:
+					LevelEditorMode = true;
+					FindLevelPacks();
+					titleStep = tsSelectPack;
+					if (FoundLevelPacks > 0)
+					{
+						titleSelection = spPack;
+					}
+					else
+					{
+						titleSelection = spCreate;
+					}
 					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
+				case mmStartGame:
+					InstalledLevels = InstalledLevelsDefaultGame;
+					if (InstalledLevels > 0)
+					{
+						LevelEditorMode = false;
+						SelectedLevel = lastUnlockedLevel();
+						GameState = GSStageSelectInit;
+						playMenuSelectSound();
+					}
+					break;
+				case mmCredits:
+					titleStep = tsCredits;
+					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
+				case mmOptions:
+					titleStep = tsOptions;
+					titleSelection = opMusic;
+					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
 				}
 				break;
-			case mmCredits:
-				titleStep = tsCredits;
-				playMenuSelectSound();
-				NeedRedraw = true;
-				break;
-			case mmOptions:
-				titleStep = tsOptions;
-				titleSelection = opMusic;
-				playMenuSelectSound();
-				NeedRedraw = true;
-				break;
-			}
-			break;
-		case tsOptions:
-			switch (titleSelection)
-			{
-			case opMusic:
-				playMenuSelectSound();
-				setMusicOn(!isMusicOn());
-				setMusicOnSaveState(isMusicOn());
-				if (menuItem1)
+			case tsOptions:
+				switch (titleSelection)
 				{
-					if (isMusicOnSaveState())
-						pd->system->setMenuItemValue(menuItem1, 0);
-					else
-						pd->system->setMenuItemValue(menuItem1, 1);
+				case opMusic:
+					playMenuSelectSound();
+					setMusicOn(!isMusicOn());
+					setMusicOnSaveState(isMusicOn());
+					if (menuItem1)
+					{
+						if (isMusicOnSaveState())
+							pd->system->setMenuItemValue(menuItem1, 0);
+						else
+							pd->system->setMenuItemValue(menuItem1, 1);
+					}
+					NeedRedraw = true;
+					break;
+				case opSound:
+					playMenuSelectSound();
+					setSoundOn(!isSoundOn());
+					setSoundOnSaveState(isSoundOn());
+					NeedRedraw = true;
+					break;
+				case opSkin:
+					playMenuSelectSound();
+					int i = skinSaveState();
+					i++;
+					if (i == MAXSKINS)
+						i = 0;
+					setSkinSaveState(i);
+					LoadGraphics();
+					if (menuItem3)
+					{
+						if (isMusicOnSaveState())
+							pd->system->setMenuItemValue(menuItem3, 0);
+						else
+							pd->system->setMenuItemValue(menuItem3, 1);
+					}
+					NeedRedraw = true;
+					break;
+				case opInverted:
+					playMenuSelectSound();
+					setInvertedSaveState(!isInvertedSaveState());
+					pd->display->setInverted(isInvertedSaveState());
+					if (menuItem2)
+					{
+						if (isInvertedSaveState())
+							pd->system->setMenuItemValue(menuItem2, 1);
+						else
+							pd->system->setMenuItemValue(menuItem2, 0);
+					}
+					NeedRedraw = true;
+					break;
 				}
-				NeedRedraw = true;
 				break;
-			case opSound:
+			case tsCredits:
+				titleStep = tsMainMenu;
+				titleSelection = mmCredits;
 				playMenuSelectSound();
-				setSoundOn(!isSoundOn());
-				setSoundOnSaveState(isSoundOn());
 				NeedRedraw = true;
 				break;
-			case opSkin:
-				playMenuSelectSound();
-				int i = skinSaveState();
-				i++;
-				if (i == MAXSKINS)
-					i = 0;
-				setSkinSaveState(i);
-				LoadGraphics();
-				if (menuItem3)
-				{
-					if (isMusicOnSaveState())
-						pd->system->setMenuItemValue(menuItem3, 0);
-					else
-						pd->system->setMenuItemValue(menuItem3, 1);
-				}
-				NeedRedraw = true;
-				break;
-			case opInverted:
-				playMenuSelectSound();
-				setInvertedSaveState(!isInvertedSaveState());
-				pd->display->setInverted(isInvertedSaveState());
-				if (menuItem2)
-				{
-					if (isInvertedSaveState())
-						pd->system->setMenuItemValue(menuItem2, 1);
-					else
-						pd->system->setMenuItemValue(menuItem2, 0);
-				}
-				NeedRedraw = true;
-				break;
-			}
-			break;
-		case tsCredits:
-			titleStep = tsMainMenu;
-			titleSelection = mmCredits;
-			playMenuSelectSound();
-			NeedRedraw = true;
-			break;
-		case tsLevelEditorMode:
-			if (InstalledLevels > 0)
-			{
-				LevelEditorMode = true;
+			case tsLevelEditorMode:
 				LevelEditorPlayMode = titleSelection == lmPlayMode;
+				if (!LevelEditorPlayMode)
+				{
+					InstalledLevels = InstalledLevelsLevelEditor;
+				}
 				SelectedLevel = 1;
 				GameState = GSStageSelectInit;
 				playMenuSelectSound();
+				break;
+			case tsSelectPack:
+				switch (titleSelection)
+				{
+				case spCreate:
+					DrawBitmapSrcRec(IMGTitleScreen, 101, 71, 101, 71, 198, 93, kBitmapUnflipped);
+					pd->graphics->fillRect(101, 71, 198, 93, kColorXOR);
+					char text[] = "Pack Name:";
+					GetString(1, 105, 80, text, MaxLenLevelPackName);
+					break;
+				case spDelete:
+					char* path;
+					pd->system->formatString(&path, "levels/%s", LevelPacks[CurrentLevelPackIndex]);
+					pd->file->unlink(path, 1);
+					pd->system->realloc(path, 0);
+					FindLevelPacks();
+					if (FoundLevelPacks == 0)
+						titleSelection = spCreate;
+					CurrentLevelPackIndex = 0;
+					NeedRedraw = 1;
+					break;
+				case spOptimize:
+					break;
+				case spPack:
+					FindLevels();
+					if (InstalledLevels > 0)
+						titleSelection = lmPlayMode;
+					else
+						titleSelection = lmEditMode;
+					titleStep = tsLevelEditorMode;
+					playMenuSelectSound();
+					NeedRedraw = true;
+					break;
+				}
+				break;
 			}
-			break;
 		}
 	}
 	
@@ -1263,19 +1657,19 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case mmStartGame:
-				pd->system->formatString(&Text, ">>");
+				pd->system->formatString(&Text, ">");
 				break;
 			case mmLevelEditor:
-				pd->system->formatString(&Text, "\n>>");
+				pd->system->formatString(&Text, "\n>");
 				break;
 			case mmOptions:
-				pd->system->formatString(&Text, "\n\n>>");
+				pd->system->formatString(&Text, "\n\n>");
 				break;
 			case mmCredits:
-				pd->system->formatString(&Text, "\n\n\n>>");
+				pd->system->formatString(&Text, "\n\n\n>");
 				break;
 			}
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 115, 80);
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 125, 80);
 			pd->system->realloc(Text, 0);
 			break;
 		case tsCredits:
@@ -1286,17 +1680,56 @@ void TitleScreen()
 			break;
 		case tsLevelEditorMode:
 			pd->graphics->setFont(Mini2X);
-			pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 140, 80);
-			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 140, 100);
+			if (InstalledLevels > 0)
+				pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 125, 80);
+			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 125, 100);
 			switch (titleSelection)
 			{
 			case lmPlayMode:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 80);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 110, 80);
 				break;
 			case lmEditMode:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 100);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 110, 100);
 				break;
 			default:
+				break;
+			}
+			break;
+		case tsSelectPack:
+			if (FoundLevelPacks > 0)
+			{
+				pd->graphics->setFont(Mini2X);
+				char* text;
+				pd->system->formatString(&text, "Pack:%s", LevelPacks[CurrentLevelPackIndex]);
+				pd->graphics->drawText(text, strlen(text), kASCIIEncoding, 120, 80);
+				pd->system->realloc(text, 0);
+			}
+			
+			pd->graphics->drawText("Create Pack", strlen("Create Pack"), kASCIIEncoding, 120, 100);
+		
+			if (FoundLevelPacks > 0)
+			{
+				pd->graphics->drawText("Del Pack", strlen("Del Pack"), kASCIIEncoding, 120, 120);
+			}
+			
+			if (FoundLevelPacks > 0)
+			{
+				pd->graphics->drawText("Optimize Pack", strlen("Optimize Pack"), kASCIIEncoding, 120, 140);
+			}
+
+			switch (titleSelection)
+			{
+			case spPack:
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 80);
+				break;
+			case spCreate:
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 100);
+				break;
+			case spDelete:
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 120);
+				break;
+			case spOptimize:
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 140);
 				break;
 			}
 			break;
@@ -1335,22 +1768,54 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case opMusic:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 80);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 80);
 				break;
 			case opSound:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 100);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 100);
 				break;
 			case opSkin:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 120);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 120);
 				break;
 			case opInverted:
-				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 140);
+				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 140);
 				break;
 			}
 			break;
 
 		}
 		pd->graphics->setDrawMode(kDrawModeCopy);
+	}
+	int id;
+	bool answered;
+	if (getStringUpdate(&id, &answered, StringResult))
+	{
+		if(answered)
+		{ 
+			char* path;
+			pd->system->logToConsole("%s", StringResult);
+			pd->file->mkdir("levels");
+			pd->system->formatString(&path, "levels/%s", StringResult);
+			pd->file->mkdir(path);
+			pd->system->realloc(path, 0);
+			FindLevelPacks();
+			if (FoundLevelPacks > 0)
+			{
+				for (int i = 0; i < FoundLevelPacks; i++)
+				{
+					if (strcmp(LevelPacks[i], StringResult) == 0)
+					{
+						CurrentLevelPackIndex = i;
+						titleSelection = spPack;
+						break;
+					}
+				}
+			}
+			memset(StringResult, 0, MaxLenStringResult);
+		}
+		else
+		{
+			memset(StringResult, 0, MaxLenStringResult);
+		}
 	}
 }
 

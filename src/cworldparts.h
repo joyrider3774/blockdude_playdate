@@ -41,7 +41,7 @@ void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin);
 void CWorldParts_RemoveType(CWorldParts* self, int Type);
 void CWorldParts_Sort(CWorldParts* self);
 void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart);
-void CWorldParts_Load(CWorldParts* self, char* Filename, bool FromData);
+void CWorldParts_Load(CWorldParts* self, char* Filename, FileOptions opt);
 bool CWorldParts_SavePositional(CWorldParts* self, char* Filename);
 bool CWorldParts_Save(CWorldParts* self, char* Filename);
 bool CWorldParts_Move(CWorldParts* self);
