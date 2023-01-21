@@ -27,8 +27,8 @@ LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackgrou
 LCDFont* Nano, * Mini, * Mini2X;
 
 int GameState = GSIntroInit;
-int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic;
-bool AskingQuestion = false, FreeView = false, LevelEditorMode = false, showDebugInfo = false, NeedToReloadGraphics = false;
+int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic, InstalledLevels = 0;
+bool AskingQuestion = false, FreeView = false, LevelEditorMode = false, LevelEditorPlayMode = false, showDebugInfo = false, NeedToReloadGraphics = false;
 int IntroScreenNr = 1;
 int framecounter = 0;
 

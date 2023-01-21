@@ -22,7 +22,8 @@
 #define TileHeight 16
 #define NrOfRowsVisible (WINDOW_HEIGHT / TileHeight)
 #define NrOfColsVisible (WINDOW_WIDTH / TileWidth) 
-#define InstalledLevels 21
+#define InstalledLevelsDefaultGame 21
+#define InstalledLevelsLevelEditor 50
 #define NrOfRows 50
 #define NrOfCols 50
 
@@ -87,9 +88,14 @@
 #define opInverted 3
 #define opCount 4
 
+#define lmPlayMode 0
+#define lmEditMode 1
+#define lmCount 2
+
 #define tsMainMenu 0
 #define tsOptions 1
 #define tsCredits 2
+#define tsLevelEditorMode 3
 
 #define GSDiff 50
 
@@ -140,8 +146,8 @@ extern const char* blockNames[];
 extern const char* skins[];
 extern int skin;
 extern int GameState;
-extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option;
-extern bool AskingQuestion, FreeView, LevelEditorMode, showDebugInfo, NeedToReloadGraphics;
+extern int SelectedLevel, NeedRedraw, AskingQuestionID, titleStep, titleSelection, Option, InstalledLevels;
+extern bool AskingQuestion, FreeView, LevelEditorMode, LevelEditorPlayMode, showDebugInfo, NeedToReloadGraphics;
 extern CWorldParts* WorldParts;
 extern int IntroScreenNr;
 extern int framecounter;

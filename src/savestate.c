@@ -351,7 +351,7 @@ void validateSaveState(void)
     }
 
 
-    if ((levelLocks < 1) || (levelLocks > InstalledLevels) || !valid)
+    if ((levelLocks < 1) || (levelLocks > InstalledLevelsDefaultGame) || !valid)
     {
         levelLocks = 1;
         if (valid)
@@ -441,7 +441,7 @@ int isSoundOnSaveState(void)
 
 void unlockLevel(int aLevel)
 {
-    if ((aLevel > levelLocks) && (aLevel <= InstalledLevels))
+    if ((aLevel > levelLocks) && (aLevel <= InstalledLevelsDefaultGame))
     {
         levelLocks = aLevel;
         saveSaveState();

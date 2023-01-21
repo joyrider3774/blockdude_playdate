@@ -78,12 +78,12 @@ void CWorldParts_CenterVPOnPlayer(CWorldParts* self)
 
 	if (self->Player)
 	{
-		CViewPort_SetViewPort(self->ViewPort, self->Player->PlayFieldX - ((NrOfColsVisible - 1) >> 1), self->Player->PlayFieldY - ((NrOfRowsVisible - 1) >> 1), self->Player->PlayFieldX + ((NrOfColsVisible - 1) >> 1), self->Player->PlayFieldY + ((NrOfRowsVisible - 1) >> 1));
+		CViewPort_SetViewPort(self->ViewPort, self->Player->PlayFieldX - ((NrOfColsVisible) >> 1), self->Player->PlayFieldY - ((NrOfRowsVisible) >> 1), self->Player->PlayFieldX + ((NrOfColsVisible) >> 1), self->Player->PlayFieldY + ((NrOfRowsVisible) >> 1));
 		self->AllDirty = self->LevelBitmap == NULL;
 	}
 	else
 	{
-		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols >> 1) - ((NrOfColsVisible - 1) >> 1), (NrOfRows >> 1) - ((NrOfRowsVisible - 1) >> 1), (NrOfCols >> 1) + ((NrOfColsVisible - 1) >> 1), (NrOfRows >> 1) + ((NrOfRowsVisible - 1) >> 1));
+		CViewPort_SetViewPort(WorldParts->ViewPort, (NrOfCols >> 1) - ((NrOfColsVisible) >> 1), (NrOfRows >> 1) - ((NrOfRowsVisible) >> 1), (NrOfCols >> 1) + ((NrOfColsVisible) >> 1), (NrOfRows >> 1) + ((NrOfRowsVisible) >> 1));
 		self->AllDirty = self->LevelBitmap == NULL;
 	}
 }

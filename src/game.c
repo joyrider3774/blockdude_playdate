@@ -575,40 +575,46 @@ void OtherMenuItemCallback(void* userdata)
 	}
 }
 
+void PlayLevelIfNoErrorsFound()
+{
+	int errType;
+	if (!LevelErrorsFound(&errType))
+	{
+		if(LevelEditorMode && !LevelEditorPlayMode)
+			SaveSelectedLevel();
+		GameState = GSGameInit;
+	}
+	else
+	{
+		if (errType == errNoPlayer)
+		{
+			AskQuestion(qsErrPlayer, "Can not play this level because there\nis no player in the level! Please add\na Player and try again.\n\nPress '(A)' to continue");
+			DestroyMenuItems();
+		}
+		else if (errType == errNoExit)
+		{
+			AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress '(A)' to continue");
+			DestroyMenuItems();
+		}
+		else if (errType == errBlocksPlayerNotOnAFloor)
+		{
+			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes, players or exits not on a\nfloor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+			DestroyMenuItems();
+		}
+		else if (errType == errBlocksOnPlayerNotOne)
+		{
+			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because the\nplayer is carrying more than one box!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+			DestroyMenuItems();
+		}
+	}
+}
+
 void LevelEditorMenuItemCallback(void* userdata)
 {
 	//play level
 	if (userdata == &menuItem1)
 	{
-		int errType;
-		if (!LevelErrorsFound(&errType))
-		{
-			SaveSelectedLevel();
-			GameState = GSGameInit;
-		}
-		else
-		{
-			if (errType == errNoPlayer)
-			{
-				AskQuestion(qsErrPlayer, "Can not play this level because there\nis no player in the level! Please add\na Player and try again.\n\nPress '(A)' to continue");
-				DestroyMenuItems();
-			}
-			else if (errType == errNoExit)
-			{
-				AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress '(A)' to continue");
-				DestroyMenuItems();
-			}
-			else if (errType == errBlocksPlayerNotOnAFloor)
-			{
-				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes, players or exits not on a\nfloor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
-				DestroyMenuItems();
-			}
-			else if (errType == errBlocksOnPlayerNotOne)
-			{
-				AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because the\nplayer is carrying more than one box!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
-				DestroyMenuItems();
-			}
-		}
+		PlayLevelIfNoErrorsFound();
 	}
 
 	//clear
@@ -747,7 +753,7 @@ void GameMenuItemCallback(void* userdata)
 	//level editor / skins
 	if (userdata == &menuItem3)
 	{
-		if (LevelEditorMode)
+		if (LevelEditorMode && !LevelEditorPlayMode)
 		{
 			GameState = GSLevelEditorInit;
 		}
@@ -782,7 +788,7 @@ void CreateGameMenuItems()
 	//level editor / skins
 	if (menuItem3 == NULL)
 	{
-		if (LevelEditorMode)
+		if (LevelEditorMode && !LevelEditorPlayMode)
 		{
 			menuItem3 = pd->system->addMenuItem("Level Editor", GameMenuItemCallback, &menuItem3);
 		}
@@ -872,7 +878,20 @@ bool LevelErrorsFound(int* ErrorType)
 	return false;
 }
 
-
+void DoShowDebugInfo()
+{
+	if (showDebugInfo)
+	{
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		pd->graphics->setFont(Mini);
+		char* Text;
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), WorldParts->DrawCount, WorldParts->DirtyClearedCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, WorldParts->AllDirtyCount);
+		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
+		pd->system->realloc(Text, 0);
+	}
+}
 
 void StageSelectInit()
 {
@@ -905,7 +924,10 @@ void StageSelect()
 		if (LevelEditorMode)
 		{
 			if (SelectedLevel <= InstalledLevels)
-				GameState = GSLevelEditorInit;
+				if (LevelEditorPlayMode)
+					PlayLevelIfNoErrorsFound();
+				else
+					GameState = GSLevelEditorInit;
 		}
 		else
 		{
@@ -975,8 +997,13 @@ void StageSelect()
 		}
 		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
 		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		if(LevelEditorMode)
-			pd->system->formatString(&Text, "Level: %d/%d - (A) Edit Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+		if (LevelEditorMode)
+		{
+			if(!LevelEditorPlayMode)
+				pd->system->formatString(&Text, "Level: %d/%d - (A) Edit Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+			else
+				pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+		}
 		else if (SelectedLevel <= lastUnlockedLevel())
 			pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
 		else
@@ -1005,7 +1032,18 @@ void StageSelect()
 				WorldParts->AllDirty = true;
 			}
 		}
+		else
+		{
+			//level play / validation error confirmations
+			if (answer)
+			{
+				CreateOtherMenuItems();
+				//we asked question so need to redraw everything
+				WorldParts->AllDirty = true;
+			}
+		}
 	}
+	DoShowDebugInfo();
 }
 
 void TitleScreenInit(void)
@@ -1044,6 +1082,14 @@ void TitleScreen()
 				NeedRedraw = true;
 			}
 			break;
+		case tsLevelEditorMode:
+			if (titleSelection < lmCount - 1)
+			{
+				titleSelection++;
+				playMenuSound();
+				NeedRedraw = true;
+			}
+			break;
 		}
 	}
 
@@ -1053,6 +1099,7 @@ void TitleScreen()
 		{
 		case tsMainMenu:
 		case tsOptions:
+		case tsLevelEditorMode:
 			if (titleSelection > 0)
 			{
 				titleSelection--;
@@ -1079,6 +1126,12 @@ void TitleScreen()
 			playMenuBackSound();
 			NeedRedraw = true;
 			break;
+		case tsLevelEditorMode:
+			titleStep = tsMainMenu;
+			titleSelection = mmLevelEditor;
+			playMenuBackSound();
+			NeedRedraw = true;
+			break;
 		}
 	}
 
@@ -1090,15 +1143,14 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case mmLevelEditor:
-				if (InstalledLevels > 0)
-				{
-					LevelEditorMode = true;
-					SelectedLevel = 1;
-					GameState = GSStageSelectInit;
-					playMenuSelectSound();
-				}
+				InstalledLevels = InstalledLevelsLevelEditor;
+				titleStep = tsLevelEditorMode;
+				titleSelection = lmPlayMode;
+				playMenuSelectSound();
+				NeedRedraw = true;
 				break;
 			case mmStartGame:
+				InstalledLevels = InstalledLevelsDefaultGame;
 				if (InstalledLevels > 0)
 				{
 					LevelEditorMode = false;
@@ -1180,6 +1232,16 @@ void TitleScreen()
 			playMenuSelectSound();
 			NeedRedraw = true;
 			break;
+		case tsLevelEditorMode:
+			if (InstalledLevels > 0)
+			{
+				LevelEditorMode = true;
+				LevelEditorPlayMode = titleSelection == lmPlayMode;
+				SelectedLevel = 1;
+				GameState = GSStageSelectInit;
+				playMenuSelectSound();
+			}
+			break;
 		}
 	}
 	
@@ -1221,6 +1283,22 @@ void TitleScreen()
 			pd->system->formatString(&Text, "Blockdude was created by\nWillems Davy. Fonts by\nDonald Hays. Tech skin by\nFusion Power. Default skin by\nKlas Kroon & Kris Katiesen,\nmodified by Fusion Power.\nMusic By DonSkeeto.\nLevels from blockman by\nSoleau Software.");
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 108, 74);
 			pd->system->realloc(Text, 0);
+			break;
+		case tsLevelEditorMode:
+			pd->graphics->setFont(Mini2X);
+			pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 140, 80);
+			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 140, 100);
+			switch (titleSelection)
+			{
+			case lmPlayMode:
+				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 80);
+				break;
+			case lmEditMode:
+				pd->graphics->drawText(">>", strlen(">>"), kASCIIEncoding, 115, 100);
+				break;
+			default:
+				break;
+			}
 			break;
 		case tsOptions:
 			pd->graphics->setFont(Mini2X);
@@ -1276,21 +1354,6 @@ void TitleScreen()
 	}
 }
 
-void DoShowDebugInfo()
-{
-	if (showDebugInfo)
-	{
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->setFont(Mini);
-		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), WorldParts->DrawCount, WorldParts->DirtyClearedCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, WorldParts->AllDirtyCount);
-		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
-		pd->system->realloc(Text, 0);
-	}
-}
-
 void GameInit(void)
 {
 	FreeView = false;
@@ -1315,7 +1378,7 @@ void Game(void)
 		DestroyMenuItems();
 		playMenuBackSound();
 		char* Text;
-		if (LevelEditorMode)
+		if (LevelEditorMode && !LevelEditorPlayMode)
 			pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\neditor?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
 		else
 			pd->system->formatString(&Text, "Do you want to quit playing the\ncurrent level and return to the level\nselector?\n\nPress (A) to quit, (B) to keep playing", SelectedLevel, InstalledLevels);
@@ -1685,7 +1748,7 @@ void Game(void)
 
 			if ((id == qsSolvedLevel) && answer)
 			{
-				if (LevelEditorMode)
+				if (LevelEditorMode && !LevelEditorPlayMode)
 				{
 					GameState = GSLevelEditorInit;
 				}
@@ -1706,7 +1769,7 @@ void Game(void)
 			{
 				if (answer)
 				{
-					if (LevelEditorMode)
+					if (LevelEditorMode && !LevelEditorPlayMode)
 					{
 						GameState = GSLevelEditorInit;
 					}
@@ -1745,7 +1808,7 @@ void LevelEditorInit(void)
 	CViewPort_SetVPLimit(WorldParts->ViewPort, 0, 0, NrOfCols - 1, NrOfRows - 1);
 	if (WorldParts->Player == NULL)
 	{
-		CSelector_SetPosition(Selector, WorldParts->ViewPort->VPMinX + ((NrOfColsVisible - 1) >> 1), WorldParts->ViewPort->VPMinY + ((NrOfRowsVisible - 1) >> 1));
+		CSelector_SetPosition(Selector, WorldParts->ViewPort->VPMinX + ((NrOfColsVisible) >> 1), WorldParts->ViewPort->VPMinY + ((NrOfRowsVisible) >> 1));
 	}
 	
 	
