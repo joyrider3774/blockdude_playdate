@@ -420,11 +420,12 @@ void LoadFonts(void)
 void FindLevelPacksCallBack(const char* path, void* userdata)
 {
 	//its a directory with a name not longer than the maximum + 1 (from '/')
-	if ((strlen(path) <= MaxLenLevelPackName + 1) && (path[strlen(path) - 1] == '/'))
+	size_t len = strlen(path);
+	if ((len <= MaxLenLevelPackName + 1) && (path[len - 1] == '/'))
 	{
-		pd->system->formatString(&LevelPacks[FoundLevelPacks], "%s", path);
+		pd->system->formatString(&(LevelPacks[FoundLevelPacks]), "%s", path);
 		//remove slash
-		LevelPacks[FoundLevelPacks][strlen(path) - 1] = '\0';
+		LevelPacks[FoundLevelPacks][len - 1] = '\0';
 		FoundLevelPacks++;
 	}
 }
@@ -432,33 +433,42 @@ void FindLevelPacksCallBack(const char* path, void* userdata)
 void FindLevelPacks(void)
 {
 	FoundLevelPacks = 0;
+	//clear memory first
+	for (int i = 0; i < MaxLevelPacks; i++)
+		if (LevelPacks[i])
+		{
+			pd->system->realloc(LevelPacks[i], 0);
+			LevelPacks[i] = NULL;
+		}
+
 	pd->file->mkdir("levels");
 	pd->file->listfiles("levels", FindLevelPacksCallBack, NULL, 0);
 }
 
 void FindLevelsCallBack(const char* path, void* userdata)
 {
-	//it's a level file
-	if (strlen(path) > 3)
+	size_t pathlen = strlen(path);
+	//see if it's a level file
+	if ((pathlen == 10) || (pathlen == 11))
 	{
-		//ends with "lev"
-		if (strcmp(path + (strlen(path) - 3), levelext) == 0)
+		//if it ends with "lev"
+		if (strcmp(path + (pathlen - 3), levelext) == 0)
 		{
 			char *level = pd->system->realloc(NULL, 6);
 			memset(level, 0, 6);
 			strncpy(level, path, 5);
-			level[6] = '\0';
+			level[5] = '\0';
 			//starts with "level"
 			if (strcmp(level, levelprefix) == 0)
 			{
 				//check filename
 				//levelx.lev
-				if (strlen(path) == 10)
-				{			
+				if (pathlen == 10)
+				{
 					char *levelNr = pd->system->realloc(NULL, 3);
-					memset(levelNr, 0, 3);					
+					memset(levelNr, 0, 3);
 					strncpy(levelNr, path + 5, 1);
-					levelNr[2] = '\0'; //fixes warning
+					levelNr[2] = '\0';
 					int tmp = atoi(levelNr);
 					if ((tmp > 0) && (tmp <= InstalledLevelsLevelEditor))
 					{
@@ -469,12 +479,12 @@ void FindLevelsCallBack(const char* path, void* userdata)
 				}
 
 				//levelxx.lev
-				if (strlen(path) == 11)
+				if (pathlen == 11)
 				{
 					char* levelNr = pd->system->realloc(NULL, 3);
 					memset(levelNr, 0, 3);
 					strncpy(levelNr, path + 5, 2);
-					levelNr[3] = '\0'; //fixes warning
+					levelNr[2] = '\0';
 					int tmp = atoi(levelNr);
 					if ((tmp > 0) && (tmp <= InstalledLevelsLevelEditor))
 					{
@@ -497,6 +507,7 @@ void FindLevels(void)
 	if ((FoundLevelPacks > 0) && (CurrentLevelPackIndex >= 0) && (CurrentLevelPackIndex < FoundLevelPacks))
 	{		
 		pd->system->formatString(&path, "levels/%s", LevelPacks[CurrentLevelPackIndex]);
+		pd->file->mkdir("levels");
 		pd->file->mkdir(path);
 		pd->file->listfiles(path, FindLevelsCallBack, NULL, 0);
 		pd->system->realloc(path, 0);
@@ -1166,8 +1177,9 @@ void StageSelect()
 	DoShowDebugInfo();
 }
 
-void GetString(int Id, int x, int y,char* Msg, size_t MaxLen)
+char* GetString(int Id, int x, int y,char* Msg, size_t MaxLen)
 {
+	char* Result = NULL;
 	if (MaxLen > 0)
 	{
 		GetStringX = x;
@@ -1177,6 +1189,9 @@ void GetString(int Id, int x, int y,char* Msg, size_t MaxLen)
 		pd->graphics->drawText(Msg, strlen(Msg), kASCIIEncoding, x, y);
 		prevButtons = currButtons;
 		MaxLenGetString = MaxLen;
+		Result = pd->system->realloc(NULL, MaxLen+1);
+		if(Result)
+			memset(Result, 0, MaxLen + 1);
 	}
 	else
 	{
@@ -1186,19 +1201,21 @@ void GetString(int Id, int x, int y,char* Msg, size_t MaxLen)
 		GetStringY = 0;
 		MaxLenGetString = 0;
 	}
+	return Result;
 }
 
 void getStringDraw(char* StringBuffer, bool ErasingPrevious)
 {
 	char* Buffer;
 	char* text;
-	Buffer = pd->system->realloc(NULL, strlen(StringBuffer) + 2);
-	memset(Buffer, 0, strlen(StringBuffer) + 2);
-	memcpy(Buffer, StringBuffer, strlen(StringBuffer) - 1);
-	Buffer[strlen(StringBuffer) - 1] = '[';
-	Buffer[strlen(StringBuffer)] = StringBuffer[strlen(StringBuffer) - 1];
-	Buffer[strlen(StringBuffer) + 1] = ']';
-	Buffer[strlen(StringBuffer) + 2] = '\0';
+	size_t len = strlen(StringBuffer);
+	Buffer = pd->system->realloc(NULL, len + 2);
+	memset(Buffer, 0, len + 2);
+	strcpy(Buffer, StringBuffer);
+	Buffer[len - 1] = '[';
+	Buffer[len] = StringBuffer[len - 1];
+	Buffer[len + 1] = ']';
+	Buffer[len + 2] = '\0';
 
 	if (ErasingPrevious)
 	{
@@ -1223,9 +1240,12 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 	if (GetStringId == -1)
 		return false;
 
-	if (strlen(StringBuffer) == 0)
+	if (StringBuffer == NULL)
+		return false;
+	
+	size_t len = strlen(StringBuffer);
+	if (len == 0)
 	{
-		memset(StringBuffer, 0, MaxLenStringResult + 1);
 		StringBuffer[0] = 'a';
 		getStringDraw(StringBuffer, false);
 		DestroyMenuItems();
@@ -1234,7 +1254,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 
 	if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))
 	{
-		memset(StringBuffer, 0, strlen(StringBuffer));
+		memset(StringBuffer, 0, len);
 		*Answered = false;
 		NeedRedraw = true;
 		GetStringId = -1;
@@ -1254,45 +1274,44 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 	if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
 	{
 		getStringDraw(StringBuffer, true);
-		char val = StringBuffer[strlen(StringBuffer)-1];
+		char val = StringBuffer[len - 1];
 		if ((val < 'z'))
 			val++;
 		else
 			val = 'a';
-		StringBuffer[strlen(StringBuffer) - 1] = val;
+		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
 	}
 
 	if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
 	{
 		getStringDraw(StringBuffer, true);
-		char val = StringBuffer[strlen(StringBuffer)-1];
+		char val = StringBuffer[len - 1];
 		if ((val > 'a'))
 			val--;
 		else
 			if (val == 'a')
 				val = 'z';
-		StringBuffer[strlen(StringBuffer) - 1] = val;
+		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
 	}
 
 	if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 	{
-		if (strlen(StringBuffer) > 1)
+		if (len > 1)
 		{
 			getStringDraw(StringBuffer, true);
-			StringBuffer[strlen(StringBuffer)] = '\0';
-			StringBuffer[strlen(StringBuffer) - 1] = '\0';
+			StringBuffer[len - 1] = '\0';
 			getStringDraw(StringBuffer, false);
 		}
 	}
 
 	if ((currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
 	{
-		if ((strlen(StringBuffer) < MaxLenGetString) && (strlen(StringBuffer) < MaxLenStringResult))
+		if ((len < MaxLenGetString))
 		{
 			getStringDraw(StringBuffer, true);
-			StringBuffer[strlen(StringBuffer)] = 'a';
+			StringBuffer[len] = 'a';
 			getStringDraw(StringBuffer, false);
 		}
 	}
@@ -1617,7 +1636,7 @@ void TitleScreen()
 					pd->graphics->fillRect(101, 71, 198, 93, kColorXOR);
 					pd->graphics->setDrawMode(kDrawModeNXOR);
 					char text[] = "Pack Name:";
-					GetString(1, 105, 80, text, MaxLenLevelPackName);
+					GetStringResult = GetString(1, 105, 80, text, MaxLenLevelPackName);
 					break;
 				case spDelete:
 					char* path;
@@ -1695,10 +1714,10 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case lmPlayMode:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 110, 80);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 110, 80);
 				break;
 			case lmEditMode:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 110, 100);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 110, 100);
 				break;
 			default:
 				break;
@@ -1729,16 +1748,16 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case spPack:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 80);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 105, 80);
 				break;
 			case spCreate:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 100);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 105, 100);
 				break;
 			case spDelete:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 120);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 105, 120);
 				break;
 			case spOptimize:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 105, 140);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 105, 140);
 				break;
 			}
 			break;
@@ -1777,16 +1796,16 @@ void TitleScreen()
 			switch (titleSelection)
 			{
 			case opMusic:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 80);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 80);
 				break;
 			case opSound:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 100);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 100);
 				break;
 			case opSkin:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 120);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 120);
 				break;
 			case opInverted:
-				pd->graphics->drawText(">", strlen(">"), kASCIIEncoding, 125, 140);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 140);
 				break;
 			}
 			break;
@@ -1796,14 +1815,14 @@ void TitleScreen()
 	}
 	int id;
 	bool answered;
-	if (getStringUpdate(&id, &answered, StringResult))
+	if (getStringUpdate(&id, &answered, GetStringResult))
 	{
 		if(answered)
 		{ 
 			char* path;
-			pd->system->logToConsole("%s", StringResult);
+			pd->system->logToConsole("%s", GetStringResult);
 			pd->file->mkdir("levels");
-			pd->system->formatString(&path, "levels/%s", StringResult);
+			pd->system->formatString(&path, "levels/%s", GetStringResult);
 			pd->file->mkdir(path);
 			pd->system->realloc(path, 0);
 			FindLevelPacks();
@@ -1811,7 +1830,7 @@ void TitleScreen()
 			{
 				for (int i = 0; i < FoundLevelPacks; i++)
 				{
-					if (strcmp(LevelPacks[i], StringResult) == 0)
+					if (strcmp(LevelPacks[i], GetStringResult) == 0)
 					{
 						CurrentLevelPackIndex = i;
 						titleSelection = spPack;
@@ -1820,7 +1839,8 @@ void TitleScreen()
 				}
 			}			
 		}
-		memset(StringResult, 0, MaxLenStringResult);
+		pd->system->realloc(GetStringResult, 0);
+		GetStringResult = NULL;
 		pd->graphics->setDrawMode(kDrawModeCopy);
 		CreateOtherMenuItems();
 	}

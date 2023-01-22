@@ -28,7 +28,6 @@
 #define NrOfCols 50
 #define MaxLevelPacks 25
 #define MaxLenLevelPackName 6
-#define MaxLenStringResult 10
 
 #define IDEmpty 1
 #define IDPlayer 2
@@ -152,7 +151,7 @@ extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTit
 
 extern char* levelprefix;
 extern char* levelext;
-extern char* StringResult;
+extern char* GetStringResult;
 extern LCDFont *Nano, *Mini, *Mini2X;
 extern char* LevelPacks[MaxLevelPacks];
 extern const char* blockNames[];

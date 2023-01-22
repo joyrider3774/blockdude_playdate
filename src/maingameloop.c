@@ -10,8 +10,6 @@
 // game initialization
 void setupGame(void)
 {  
-    StringResult = pd->system->realloc(NULL, 256);
-    memset(StringResult, 0, 256);
     GameState = GSIntroInit;
     setCrankMoveThreshold(90);
     initSaveState();
