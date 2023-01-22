@@ -328,7 +328,7 @@ void validateSaveState(void)
         musicOn = 1;
     }
 
-    if ((skin > MAXSKINS) || (skin < 0) || !valid)
+    if ((skin >= MAXSKINS) || (skin < 0) || !valid)
     {
         valid = 0;
         skin = 0;

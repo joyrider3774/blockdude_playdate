@@ -856,7 +856,7 @@ void CreateOtherMenuItems()
 	//skins
 	if (menuItem3 == NULL)
 	{
-		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, OtherMenuItemCallback, &menuItem3);
+		menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, MAXSKINS, OtherMenuItemCallback, &menuItem3);
 		pd->system->setMenuItemValue(menuItem3, skin);
 	}
 }
@@ -923,7 +923,7 @@ void CreateGameMenuItems()
 		}
 		else
 		{
-			menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, 3, GameMenuItemCallback, &menuItem3);
+			menuItem3 = pd->system->addOptionsMenuItem("Skin", skins, MAXSKINS, GameMenuItemCallback, &menuItem3);
 			pd->system->setMenuItemValue(menuItem3, skin);
 		}
 	}
@@ -1702,7 +1702,7 @@ void TitleScreen()
 			break;
 		case tsCredits:
 			pd->graphics->setFont(Mini);
-			pd->system->formatString(&Text, "Blockdude was created by\nWillems Davy. Fonts by\nDonald Hays. Tech skin by\nFusion Power. Default skin by\nKlas Kroon & Kris Katiesen,\nmodified by Fusion Power.\nMusic By DonSkeeto.\nLevels from blockman by\nSoleau Software.");
+			pd->system->formatString(&Text, "Blockdude was created by\nWillems Davy. Fonts by\nDonald Hays. Tech skin and\nDefault skin by Fusion Power.\nFlat skin by Klas Kroon & Kris\nKatiesen,\nMusic By DonSkeeto.\nLevels from blockman by\nSoleau Software.");
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 108, 74);
 			pd->system->realloc(Text, 0);
 			break;
