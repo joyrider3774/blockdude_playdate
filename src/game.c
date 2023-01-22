@@ -1259,6 +1259,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		NeedRedraw = true;
 		GetStringId = -1;
 		AskingGetString = false;
+		playMenuBackSound();
 		return true;
 	}
 
@@ -1268,6 +1269,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		NeedRedraw = true;
 		GetStringId = -1;
 		AskingGetString = false;
+		playMenuSelectSound();
 		return true;
 	}
 
@@ -1281,6 +1283,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 			val = 'a';
 		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
+		playMenuSound();
 	}
 
 	if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
@@ -1294,6 +1297,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 				val = 'z';
 		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
+		playMenuSound();
 	}
 
 	if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
@@ -1303,6 +1307,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 			getStringDraw(StringBuffer, true);
 			StringBuffer[len - 1] = '\0';
 			getStringDraw(StringBuffer, false);
+			playMenuSound();
 		}
 	}
 
@@ -1313,6 +1318,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 			getStringDraw(StringBuffer, true);
 			StringBuffer[len] = 'a';
 			getStringDraw(StringBuffer, false);
+			playMenuSound();
 		}
 	}
 
