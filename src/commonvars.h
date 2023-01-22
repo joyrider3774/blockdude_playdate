@@ -13,7 +13,7 @@
 #define ViewportMove 3					//dec if fps increases
 
 
-#define MAXSKINS 4
+#define MAXSKINS 5
 #define WINDOW_WIDTH 400
 #define WINDOW_HEIGHT 240
 #define HALFWINDOWWIDTH 200

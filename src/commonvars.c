@@ -20,7 +20,7 @@ const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Floor", "Exit", 
     "Floating Floor", "Floating Floor Left", "Floating Floor Middle", "Floating Floor Right", "Floor Left", "Floor Right", "Tower", "Start Tower",
     "Tower Shaft", "Roof 1", "Roof 2", "Roof Corner Left", "Roof Corner Right", "Roof Corner Both", "Roof Down Right", "Roof Down Left" };
 
-const char* skins[] = { "Default", "Tech", "Flat", "Ti-83" };
+const char* skins[] = { "Default", "Tech", "Flat", "Ti-83", "Kenny"};
 char* LevelPacks[MaxLevelPacks];
 
 LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackground = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;

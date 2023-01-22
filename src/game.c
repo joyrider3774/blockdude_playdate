@@ -1107,7 +1107,7 @@ void StageSelect()
 			pd->graphics->pushContext(WorldParts->LevelBitmap);
 		}
 
-		if (skinSaveState() == 1)
+		if (((skinSaveState() == 1) || (skinSaveState() == 4)))
 		{
 			pd->graphics->clear(kColorBlack);
 		}
@@ -1121,7 +1121,7 @@ void StageSelect()
 			pd->graphics->popContext();
 		}
 		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
-		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)
 		{
 			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
@@ -2129,7 +2129,7 @@ void Game(void)
 				{
 					pd->graphics->pushContext(WorldParts->LevelBitmap);
 				}
-				if (skinSaveState() == 1)
+				if ((skinSaveState() == 1) || (skinSaveState() == 4))
 				{
 					pd->graphics->clear(kColorBlack);
 				}
@@ -2142,8 +2142,8 @@ void Game(void)
 					pd->graphics->popContext();
 				}
 			}
-			CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-			CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+			CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+			CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 			if (WorldParts->LevelBitmap)
 			{
 				DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
@@ -2172,7 +2172,7 @@ void Game(void)
 			{
 				pd->graphics->pushContext(WorldParts->LevelBitmap);
 			}
-			if (skinSaveState() == 1)
+			if (((skinSaveState() == 1) || (skinSaveState() == 4)))
 			{
 				pd->graphics->clear(kColorBlack);
 			}
@@ -2186,8 +2186,8 @@ void Game(void)
 			}
 
 		}
-		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)
 		{
 			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
@@ -2331,7 +2331,7 @@ void LevelEditor(void)
 			{
 				pd->graphics->pushContext(WorldParts->LevelBitmap);
 			}
-			if (skinSaveState() == 1)
+			if (((skinSaveState() == 1) || (skinSaveState() == 4)))
 			{
 				pd->graphics->clear(kColorBlack);
 			}
@@ -2345,8 +2345,8 @@ void LevelEditor(void)
 			}
 		}
 
-		CWorldParts_ClearDirty(WorldParts, skinSaveState() == 1);
-		CWorldParts_Draw(WorldParts, skinSaveState() == 1);
+		CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)
 		{
 			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
@@ -2407,7 +2407,7 @@ void LevelEditor(void)
 				{
 					pd->graphics->pushContext(WorldParts->LevelBitmap);
 				}
-				if (skinSaveState() == 1)
+				if (((skinSaveState() == 1) || (skinSaveState() == 4)))
 				{
 					pd->graphics->fillRect(Selector->Part->PlayFieldX * TileWidth, Selector->Part->PlayFieldY * TileHeight, TileWidth, TileHeight, kColorBlack);
 				}
