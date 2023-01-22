@@ -1709,15 +1709,15 @@ void TitleScreen()
 		case tsLevelEditorMode:
 			pd->graphics->setFont(Mini2X);
 			if (InstalledLevels > 0)
-				pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 125, 80);
-			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 125, 100);
+				pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 140, 80);
+			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 140, 100);
 			switch (titleSelection)
 			{
 			case lmPlayMode:
-				pd->graphics->drawText(">", 1, kASCIIEncoding, 110, 80);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 80);
 				break;
 			case lmEditMode:
-				pd->graphics->drawText(">", 1, kASCIIEncoding, 110, 100);
+				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 100);
 				break;
 			default:
 				break;
