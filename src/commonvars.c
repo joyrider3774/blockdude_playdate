@@ -23,7 +23,7 @@ const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Floor", "Exit", 
 const char* skins[] = { "Default", "Tech", "Flat", "Ti-83", "Kenney"};
 char* LevelPacks[MaxLevelPacks];
 
-LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGBackground = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
+LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
 
 LCDFont* Nano, * Mini, * Mini2X;
 

@@ -147,7 +147,7 @@ extern LCDBitmapTable* IMGFloor, * IMGPlayer, * IMGBox, * IMGEmpty, * IMGExit, *
 * IMGFloatingFloorRight, * IMGFloatingFloorMiddle, * IMGTower, * IMGStartTower, * IMGTowerShaft, * IMGRoof1, * IMGRoof2, * IMGRoofCornerLeft,
 * IMGRoofCornerRight, * IMGRoofDownRight, * IMGRoofDownLeft, * IMGRoofCornerBoth;
 
-extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGBackground, * IMGTitleScreen,* IMGGrid, * IMGSelection, * ScreenLevel;
+extern LCDBitmap* IMGIntro1, * IMGIntro2, * IMGIntro3, * IMGTitleScreen,* IMGGrid, * IMGSelection, * ScreenLevel;
 
 extern char* levelprefix;
 extern char* levelext;

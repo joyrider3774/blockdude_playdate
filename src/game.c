@@ -154,9 +154,6 @@ void UnLoadGraphics()
 	if (IMGGrid)
 		pd->graphics->freeBitmap(IMGGrid);
 
-	if (IMGBackground)
-		pd->graphics->freeBitmap(IMGBackground);
-
 	if (IMGIntro1)
 		pd->graphics->freeBitmap(IMGIntro1);
 
@@ -259,9 +256,6 @@ void LoadGraphics(void)
 	if (IMGSelection)
 		pd->graphics->freeBitmap(IMGSelection);
 
-	if (IMGBackground)
-		pd->graphics->freeBitmap(IMGBackground);
-
 	if (IMGIntro1)
 		pd->graphics->freeBitmap(IMGIntro1);
 
@@ -297,10 +291,6 @@ void LoadGraphics(void)
 
 	pd->system->formatString(&Filename, "skins/%s/titlescreen", skins[skin]);
 	IMGTitleScreen = loadImageAtPath(Filename);
-	pd->system->realloc(Filename, 0);
-
-	pd->system->formatString(&Filename, "skins/%s/background", skins[skin]);
-	IMGBackground = loadImageAtPath(Filename);
 	pd->system->realloc(Filename, 0);
 
 	pd->system->formatString(&Filename, "skins/%s/roof1", skins[skin]);
