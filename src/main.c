@@ -1,6 +1,7 @@
+#include "main.h"
 #include "pd_api.h"
-#include "commonvars.h"
 #include "maingameloop.h"
+#include "commonvars.h"
 
 #ifdef _WINDLL
 __declspec(dllexport)

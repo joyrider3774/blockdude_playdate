@@ -1,8 +1,9 @@
 #include <stdint.h>
 #include <string.h>
+#include "sound.h"
 #include "pd_api.h"
 #include "commonvars.h"
-#include "sound.h"
+
 
 int prev_music = -1, music_on = 0, sound_on = 0, force = 0;
 

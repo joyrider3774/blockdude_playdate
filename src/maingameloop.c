@@ -1,11 +1,17 @@
-#include "pd_api.h"
-#include "crank.h"
 #include "maingameloop.h"
+#include "crank.h"
 #include "commonvars.h"
 #include "sound.h"
-#include "game.h"
+#include "gamefuncs.h"
 #include "savestate.h"
 #include "cselector.h"
+#include "stageselectstate.h"
+#include "titlescreenstate.h"
+#include "gamestate.h"
+#include "stageselectstate.h"
+#include "leveleditorstate.h"
+#include "introstate.h"
+#include "pd_api.h"
 
 // game initialization
 void setupGame(void)
