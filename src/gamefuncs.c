@@ -108,6 +108,9 @@ void UnLoadGraphics()
 
 	if (IMGIntro3)
 		pd->graphics->freeBitmap(IMGIntro3);
+	
+	if (IMGIntro4)
+		pd->graphics->freeBitmap(IMGIntro4);
 
 	if (IMGTitleScreen)
 		pd->graphics->freeBitmap(IMGTitleScreen);
@@ -210,6 +213,9 @@ void LoadGraphics(void)
 
 	if (IMGIntro3)
 		pd->graphics->freeBitmap(IMGIntro3);
+	
+	if (IMGIntro4)
+		pd->graphics->freeBitmap(IMGIntro4);
 
 	if (IMGTitleScreen)
 		pd->graphics->freeBitmap(IMGTitleScreen);
@@ -233,6 +239,10 @@ void LoadGraphics(void)
 
 	pd->system->formatString(&Filename, "skins/%s/intro3", skins[skin]);
 	IMGIntro3 = loadImageAtPath(Filename);
+	pd->system->realloc(Filename, 0);
+
+	pd->system->formatString(&Filename, "skins/%s/intro4", skins[skin]);
+	IMGIntro4 = loadImageAtPath(Filename);
 	pd->system->realloc(Filename, 0);
 
 	pd->system->formatString(&Filename, "skins/%s/titlescreen", skins[skin]);

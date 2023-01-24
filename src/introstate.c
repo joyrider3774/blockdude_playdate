@@ -46,6 +46,9 @@ void Intro(void)
 		case 3:
 			pd->graphics->drawBitmap(IMGIntro3, 0, 0, kBitmapUnflipped);
 			break;
+		case 4:
+			pd->graphics->drawBitmap(IMGIntro4, 0, 0, kBitmapUnflipped);
+			break;
 		}
 	}
 
@@ -54,7 +57,7 @@ void Intro(void)
 		framecounter = 0;
 		IntroScreenNr++;
 		NeedRedraw = true;
-		if (IntroScreenNr > 3)
+		if (IntroScreenNr > 4)
 			GameState = GSTitleScreenInit;
 	}
 }
