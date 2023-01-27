@@ -513,7 +513,6 @@ void TitleScreen()
 		if (answered)
 		{
 			char* path;
-			pd->system->logToConsole("%s", GetStringResult);
 			pd->file->mkdir("levels");
 			pd->system->formatString(&path, "levels/%s", GetStringResult);
 			pd->file->mkdir(path);

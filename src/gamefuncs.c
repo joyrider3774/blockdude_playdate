@@ -512,7 +512,6 @@ void SaveSelectedLevel(void)
 		if (LevelEditorMode)
 		{
 			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
-			pd->system->logToConsole("%s", Filename);
 		}
 		else
 		{
@@ -531,7 +530,6 @@ void SaveSelectedLevelPositional(void)
 		if (LevelEditorMode)
 		{
 			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
-			pd->system->logToConsole("%s", Filename);
 		}
 		else
 		{
@@ -550,7 +548,6 @@ void LoadSelectedLevel(void)
 		if (LevelEditorMode)
 		{
 			pd->system->formatString(&Filename, "levels/%s/%s%d.%s", LevelPacks[CurrentLevelPackIndex], levelprefix, SelectedLevel, levelext);
-			pd->system->logToConsole("%s", Filename);
 			//we read from both data and file system, this way i can include people's created levelpacks in updates of the game
 			//and supply my own created level pack. When saving the level is always saved to data folder and it would seem
 			//the data folder also takes preference for reading the files. So this is really handy.
