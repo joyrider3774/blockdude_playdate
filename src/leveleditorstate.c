@@ -262,6 +262,4 @@ void LevelEditor(void)
 		}
 
 	}
-
-	DoShowDebugInfo();
 }

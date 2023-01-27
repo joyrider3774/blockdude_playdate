@@ -459,7 +459,4 @@ void Game(void)
 			}
 		}
 	}
-
-
-	DoShowDebugInfo();
 }

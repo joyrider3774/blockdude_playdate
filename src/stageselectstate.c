@@ -163,5 +163,4 @@ void StageSelect()
 			}
 		}
 	}
-	DoShowDebugInfo();
 }

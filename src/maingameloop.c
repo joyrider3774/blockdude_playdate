@@ -65,10 +65,14 @@ int mainLoop(void* ud)
             break;
     }
 
+    DoShowDebugInfo();
+
     if (debugMode)
     {
         pd->system->drawFPS(0, 0);
     }
 
-	return result;
+    
+
+    return result;
 }
