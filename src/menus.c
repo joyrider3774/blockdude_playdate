@@ -39,8 +39,8 @@ void LevelEditorMenuItemCallback(void* userdata)
 	//clear
 	if (userdata == &menuItem2)
 	{
-		CWorldParts_RemoveAll(WorldParts);
-		NeedRedraw = true;
+		AskQuestion(qsClearLevel, "This will erase the complete level,\nthere is no undo!\n\nAre you sure you want to continue?\n\nPress (A) to continue (B) to cancel");
+		DestroyMenuItems();
 	}
 
 	//show info

@@ -132,6 +132,10 @@
 #define qsSolvedLastLevel 8
 #define qsSolvedLevel 9
 #define qsQuitPlaying 10
+#define qsOptimizePack 11
+#define qsAllDone 12
+#define qsDelPack 13
+#define qsClearLevel 14
 
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;

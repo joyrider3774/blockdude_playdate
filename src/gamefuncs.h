@@ -21,5 +21,5 @@ void FindLevelPacksCallBack(const char* path, void* userdata);
 void LoadFonts(void);
 void LoadGraphics(void);
 void UnLoadGraphics();
-
+void OptimizeLevelPack(char* Pack);
 #endif

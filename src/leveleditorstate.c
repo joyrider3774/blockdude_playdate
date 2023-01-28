@@ -245,7 +245,7 @@ void LevelEditor(void)
 		}
 	}
 
-	if (!AskingQuestion && (currButtons & kButtonB))
+	if (!AskingQuestion && (currButtons & kButtonB) && (!(prevButtons & kButtonB)))
 	{
 		SaveSelectedLevel();
 		GameState = GSStageSelectInit;
@@ -253,13 +253,28 @@ void LevelEditor(void)
 
 	int id;
 	bool answer;
-	if (AskQuestionUpdate(&id, &answer, true))
+	if (AskingQuestionID == qsClearLevel)
 	{
-		if (answer)
+		if (AskQuestionUpdate(&id, &answer, false))
 		{
+			if (answer)
+			{
+				CWorldParts_RemoveAll(WorldParts);
+				WorldParts->AllDirty = true;
+			}
 			CreateLevelEditorMenuItems();
-			WorldParts->AllDirty = true;
 		}
+	}
+	else
+	{
+		if (AskQuestionUpdate(&id, &answer, true))
+		{
+			if (answer)
+			{
+				CreateLevelEditorMenuItems();
+				WorldParts->AllDirty = true;
+			}
 
+		}
 	}
 }

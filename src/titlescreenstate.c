@@ -36,7 +36,7 @@ void TitleScreen()
 		GameState -= GSDiff;
 	}
 
-	if (!AskingGetString)
+	if (!AskingGetString && !AskingQuestion)
 	{
 		if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 		{
@@ -330,17 +330,14 @@ void TitleScreen()
 					GetStringResult = GetString(1, 105, 80, text, MaxLenLevelPackName);
 					break;
 				case spDelete:
-					char* path;
-					pd->system->formatString(&path, "levels/%s", LevelPacks[CurrentLevelPackIndex]);
-					pd->file->unlink(path, 1);
-					pd->system->realloc(path, 0);
-					FindLevelPacks();
-					if (FoundLevelPacks == 0)
-						titleSelection = spCreate;
-					CurrentLevelPackIndex = 0;
-					NeedRedraw = 1;
+					pd->graphics->setFont(Mini);
+					AskQuestion(qsDelPack, "Deleting a level pack will remove all\nlevels and the pack!\nThere is no undo!\n\nDo you want todo this?\n\nPress (A) to Continue (B) to cancel");
+					DestroyMenuItems();
 					break;
 				case spOptimize:
+					pd->graphics->setFont(Mini);
+					AskQuestion(qsOptimizePack, "Optimizing a level pack will remove\nall empty levels, and remove gaps\nbetween level numbering.\n\nDo you want todo this ?\n\nPress (A) to Continue (B) to cancel");
+					DestroyMenuItems();
 					break;
 				case spPack:
 					FindLevels();
@@ -504,10 +501,10 @@ void TitleScreen()
 		}
 		pd->graphics->setDrawMode(kDrawModeCopy);
 	}
-	
+
 	int id = -1;
 	bool answered = false;
-	
+
 	if (getStringUpdate(&id, &answered, GetStringResult))
 	{
 		if (answered)
@@ -535,5 +532,52 @@ void TitleScreen()
 		GetStringResult = NULL;
 		pd->graphics->setDrawMode(kDrawModeCopy);
 		CreateOtherMenuItems();
+	}
+
+	id = -1;
+	answered = false;
+	if ((AskingQuestionID == qsOptimizePack) || (AskingQuestionID == qsDelPack)) 
+	{
+
+		if (AskQuestionUpdate(&id, &answered, false))
+		{
+
+			if (answered)
+			{
+				NeedRedraw = false; //need to reset this as were asking another question immediatly
+				
+				if (id == qsOptimizePack)
+				{
+					OptimizeLevelPack(LevelPacks[CurrentLevelPackIndex]);
+				}
+
+				if (id == qsDelPack)
+				{
+					char* path;
+					pd->system->formatString(&path, "levels/%s", LevelPacks[CurrentLevelPackIndex]);
+					pd->file->unlink(path, 1);
+					pd->system->realloc(path, 0);
+					FindLevelPacks();
+					if (FoundLevelPacks == 0)
+						titleSelection = spCreate;
+					CurrentLevelPackIndex = 0;
+				}
+
+				AskQuestion(qsAllDone, "All Done!\n\nPress (A) to continue.");
+			}
+			else
+			{
+				CreateOtherMenuItems();
+			}
+		}
+	}
+	else
+	{
+		if (AskQuestionUpdate(&id, &answered, true))
+		{
+			//only confirmation questions
+			CreateOtherMenuItems();
+		}
+		
 	}
 }

@@ -456,7 +456,6 @@ void FindLevels(void)
 		pd->file->mkdir(path);
 		pd->file->listfiles(path, FindLevelsCallBack, NULL, 0);
 		pd->system->realloc(path, 0);
-		pd->system->logToConsole("%s:%d", LevelPacks[CurrentLevelPackIndex], InstalledLevels);
 	}
 	
 }
@@ -673,6 +672,42 @@ bool LevelErrorsFound(int* ErrorType)
 	}
 
 	return false;
+}
+
+//will fill up level gaps and remove empty levels so all levels are increasing by 1 with no gaps
+void OptimizeLevelPack(char* Pack)
+{
+	int SavedLevel = 1;
+	char* CurrentFilename, *SavedFilename;
+	FileStat stat;
+	for (int CurrentLevel = 1; CurrentLevel <= InstalledLevelsLevelEditor; CurrentLevel++)
+	{
+		pd->system->formatString(&CurrentFilename, "levels/%s/%s%d.%s", Pack, levelprefix, CurrentLevel, levelext);
+		pd->system->formatString(&SavedFilename, "levels/%s/%s%d.%s", Pack, levelprefix, SavedLevel, levelext);
+		int ret = pd->file->stat(CurrentFilename, &stat);
+		//no error so file is found
+		if (ret == 0)
+		{
+			if (!stat.isdir && (stat.size > 0))
+			{
+				if (SavedLevel < CurrentLevel)
+					pd->file->rename(CurrentFilename, SavedFilename);
+				SavedLevel++;
+			}
+			//empty level has 0 size so delete it but don't increase savedLevel
+			else if (stat.size == 0)
+			{
+				pd->file->unlink(CurrentFilename, 0);
+				//check if it is not a level in the included level pack if so need to inc SavedLevel As well
+				if (pd->file->stat(CurrentFilename, &stat) == 0)
+				{
+					SavedLevel++;
+				}
+			}
+		}
+		pd->system->realloc(CurrentFilename, 0);
+		pd->system->realloc(SavedFilename, 0);
+	}
 }
 
 void DoShowDebugInfo()
