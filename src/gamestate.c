@@ -298,25 +298,6 @@ void Game(void)
 				NeedToReloadGraphics = false;
 				WorldParts->AllDirty = true;
 			}
-			if (WorldParts->AllDirty)
-			{
-				if (WorldParts->LevelBitmap)
-				{
-					pd->graphics->pushContext(WorldParts->LevelBitmap);
-				}
-				if ((skinSaveState() == 1) || (skinSaveState() == 4))
-				{
-					pd->graphics->clear(kColorBlack);
-				}
-				else
-				{
-					pd->graphics->clear(kColorWhite);
-				}
-				if (WorldParts->LevelBitmap)
-				{
-					pd->graphics->popContext();
-				}
-			}
 			CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 			CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 			if (WorldParts->LevelBitmap)
@@ -341,26 +322,6 @@ void Game(void)
 	{
 		//to one extra move & draw to make sure boxes are on final spot
 		CWorldParts_Move(WorldParts);
-		if (WorldParts->AllDirty)
-		{
-			if (WorldParts->LevelBitmap)
-			{
-				pd->graphics->pushContext(WorldParts->LevelBitmap);
-			}
-			if (((skinSaveState() == 1) || (skinSaveState() == 4)))
-			{
-				pd->graphics->clear(kColorBlack);
-			}
-			else
-			{
-				pd->graphics->clear(kColorWhite);
-			}
-			if (WorldParts->LevelBitmap)
-			{
-				pd->graphics->popContext();
-			}
-
-		}
 		CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)

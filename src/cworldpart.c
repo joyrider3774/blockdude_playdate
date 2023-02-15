@@ -145,7 +145,7 @@ void CWorldPart_SetAnimPhase(CWorldPart* self, int AnimPhaseIn)
 bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayFieldYin)
 {
 	bool Result = false;
-	if (!self->IsMoving)
+	if (!self->IsMoving && ((PlayFieldXin != self->PlayFieldX) || (PlayFieldYin != self->PlayFieldY)))
 	{
 		if (self->Type == IDPlayer)
 		{
@@ -321,30 +321,29 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 		else
 		{
 			if (self->Group == GroupBox)
-				if ((PlayFieldXin != self->PlayFieldX) || (PlayFieldYin != self->PlayFieldY))
-					if (CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin))
+				if (CWorldPart_CanMoveTo(self, PlayFieldXin, PlayFieldYin))
+				{
+					Result = true;
+					if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
 					{
-						Result = true;
-						if (self->ParentList && (self != self->ParentList->IgnorePart) && (self->Group != GroupNone))
+						if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
 						{
-							if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
-							{
-								self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
-							}
-							self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+							self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
 						}
-						self->PlayFieldX = PlayFieldXin;
-						self->PlayFieldY = PlayFieldYin;
-						if (self->X < self->PlayFieldX * TileWidth)
-							self->Xi = self->MoveSpeed;
-						if (self->X > self->PlayFieldX * TileWidth)
-							self->Xi = -self->MoveSpeed;
-						if (self->Y > self->PlayFieldY * TileHeight)
-							self->Yi = -self->MoveSpeed;
-						if (self->Y < self->PlayFieldY * TileHeight)
-							self->Yi = self->MoveSpeed;
-						self->IsMoving = true;
+						self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
 					}
+					self->PlayFieldX = PlayFieldXin;
+					self->PlayFieldY = PlayFieldYin;
+					if (self->X < self->PlayFieldX * TileWidth)
+						self->Xi = self->MoveSpeed;
+					if (self->X > self->PlayFieldX * TileWidth)
+						self->Xi = -self->MoveSpeed;
+					if (self->Y > self->PlayFieldY * TileHeight)
+						self->Yi = -self->MoveSpeed;
+					if (self->Y < self->PlayFieldY * TileHeight)
+						self->Yi = self->MoveSpeed;
+					self->IsMoving = true;
+				}
 		}
 	}
 	return Result;
@@ -777,10 +776,9 @@ bool CWorldPart_Move(CWorldPart* self)
 
 		if (self->IsMoving)
 		{
-			Result = true;
-
 			if (self->MoveDelayCounter == self->MoveDelay)
 			{
+				Result = true;
 				CWorldParts_AddDirty(self->ParentList, self);
 				self->X += self->Xi;
 				self->Y += self->Yi;
@@ -817,7 +815,6 @@ bool CWorldPart_Move(CWorldPart* self)
 					}
 					CWorldPart_MoveQueClear(self);
 				}
-				Result = true;
 			}
 		}
 	}

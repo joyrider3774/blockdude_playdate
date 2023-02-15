@@ -575,22 +575,22 @@ void PlayLevelIfNoErrorsFound()
 	{
 		if (errType == errNoPlayer)
 		{
-			AskQuestion(qsErrPlayer, "Can not play this level because there\nis no player in the level! Please add\na Player and try again.\n\nPress '(A)' to continue");
+			AskQuestion(qsErrPlayer, "Can not play this level because there\nis no player in the level! Please add\na Player and try again.\n\nPress (A) to continue");
 			DestroyMenuItems();
 		}
 		else if (errType == errNoExit)
 		{
-			AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress '(A)' to continue");
+			AskQuestion(qsErrExit, "Can not play this level because there\nis no exit in the level! Please add an\nexit and try again.\n\nPress (A) to continue");
 			DestroyMenuItems();
 		}
 		else if (errType == errBlocksPlayerNotOnAFloor)
 		{
-			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes, players or exits not on a\nfloor!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because there\nare boxes, players or exits not on a\nfloor!\nPlease correct this and and try again.\n\nPress (A) to continue");
 			DestroyMenuItems();
 		}
 		else if (errType == errBlocksOnPlayerNotOne)
 		{
-			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because the\nplayer is carrying more than one box!\nPlease correct this and and try again.\n\nPress '(A)' to continue");
+			AskQuestion(qsErrBlocksOrPlayerNotOnAFloor, "Can not play this level because the\nplayer is carrying more than one box!\nPlease correct this and and try again.\n\nPress (A) to continue");
 			DestroyMenuItems();
 		}
 	}

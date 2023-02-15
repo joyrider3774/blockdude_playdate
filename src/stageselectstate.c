@@ -64,7 +64,6 @@ void StageSelect()
 		}
 	}
 
-
 	if (!AskingQuestion && (currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 	{
 		playMenuSound();

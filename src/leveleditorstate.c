@@ -46,26 +46,6 @@ void LevelEditor(void)
 		NeedRedraw = false;
 		//always redraw everything in case of none levelbitmap mode
 		WorldParts->AllDirty |= WorldParts->LevelBitmap == NULL;
-		if (WorldParts->AllDirty)
-		{
-			if (WorldParts->LevelBitmap)
-			{
-				pd->graphics->pushContext(WorldParts->LevelBitmap);
-			}
-			if (((skinSaveState() == 1) || (skinSaveState() == 4)))
-			{
-				pd->graphics->clear(kColorBlack);
-			}
-			else
-			{
-				pd->graphics->clear(kColorWhite);
-			}
-			if (WorldParts->LevelBitmap)
-			{
-				pd->graphics->popContext();
-			}
-		}
-
 		CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)

@@ -67,12 +67,23 @@ int mainLoop(void* ud)
 
     DoShowDebugInfo();
 
-    if (debugMode)
+    if (showFps)
     {
-        pd->system->drawFPS(0, 0);
+        Frames++;
+        if (pd->system->getCurrentTimeMilliseconds() - FrameTime >= 1000) 
+		{
+            CurrentMs = (float) (1000.0f / Frames);
+            Frames = 0;
+            FrameTime += 1000;
+        }
+        char* Text;
+        pd->system->formatString(&Text, "%f %f", CurrentMs, 1000.0f / CurrentMs);
+        pd->graphics->setFont(Mini);
+        pd->graphics->fillRect(0, 0, pd->graphics->getTextWidth(NULL, Text, strlen(Text), kASCIIEncoding, 0), 8, kColorWhite);
+        pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 0, 0);
+        pd->system->realloc(Text, 0);
     }
 
-    
 
     return result;
 }

@@ -24,7 +24,7 @@ void Intro(void)
 
 	if (currButtons & kButtonUp)
 	{
-		debugMode = true;
+		showFps = true;
 	}
 
 	if (currButtons & kButtonDown)

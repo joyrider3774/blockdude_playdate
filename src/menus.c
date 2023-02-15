@@ -133,6 +133,9 @@ void OtherMenuItemCallback(void* userdata)
 			setMusicOnSaveState(false);
 			setMusicOn(isMusicOnSaveState());
 		}
+		//it needs all dirty otherwise in stageselect screen it will clear screen but not redraw it because dirtylist is used
+		//and nothing is dirty
+		WorldParts->AllDirty = true;
 		NeedRedraw = true;
 	}
 

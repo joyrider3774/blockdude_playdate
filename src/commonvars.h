@@ -12,6 +12,8 @@
 #define FrameDelayInputLevelEditor 3
 #define ViewportMove 3					//dec if fps increases
 
+#define DebugInfoDefault false
+#define ShowFpsDefault false
 
 #define MAXSKINS 5
 #define WINDOW_WIDTH 400
@@ -140,8 +142,9 @@
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;
 typedef struct CSelector CSelector;
-
-extern int gameState, debugMode;
+extern unsigned int FrameTime, Frames;
+extern float CurrentMs;
+extern int gameState, showFps;
 extern PlaydateAPI *pd;
 extern PDButtons currButtons, prevButtons;
 extern PDMenuItem* menuItem1, * menuItem2, * menuItem3;

@@ -459,12 +459,31 @@ int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 	self->DirtyClearedCount = 0;
 
 	if (self->AllDirty)
+	{
 		self->AllDirtyCount++;
 
-	//in case of all Dirty and not bitmap level mode we don't need clear it as we will have blanked the screen
-	if ((self->LevelBitmap == NULL) && self->AllDirty)
-		return self->DirtyClearedCount;
+		if (self->LevelBitmap)
+		{
+			pd->graphics->pushContext(self->LevelBitmap);
+		}
+		if (BlackBackGround)
+		{
+			pd->graphics->clear(kColorBlack);
+		}
+		else
+		{
+			pd->graphics->clear(kColorWhite);
+		}
+		if (self->LevelBitmap)
+		{
+			pd->graphics->popContext();
+		}
 
+		//in case of all Dirty we don't need clear it as we will have blanked the screen // level bitmap
+		return self->DirtyClearedCount;
+	}
+
+	//in case of not all dirty
 	if (self->LevelBitmap)
 	{
 		pd->graphics->pushContext(self->LevelBitmap);
@@ -508,7 +527,8 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 	}
 	if (self->AllDirty)
 	{
-		unsigned int startx, starty, endx, endy, numitems;
+		int startx, starty, endx, endy;
+		unsigned int numitems;
 		if (self->LevelBitmap != NULL)
 		{
 			startx = 0;
@@ -569,9 +589,9 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 					continue;
 				}
 
-				for (unsigned int y = starty; y <= endy; y++)
+				for (int y = starty; y <= endy; y++)
 				{
-					for (unsigned int x = startx; x <= endx; x++)
+					for (int x = startx; x <= endx; x++)
 					{
 						if (self->PositionalItems[i][x][y] && (self->PositionalItems[i][x][y] != self->IgnorePart))
 						{
