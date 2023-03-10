@@ -181,7 +181,7 @@ void LevelEditor(void)
 		framecounter = 0;
 		if (currButtons & kButtonLeft)
 		{
-			NeedRedraw = CSelector_MoveLeft(Selector);
+			NeedRedraw |= CSelector_MoveLeft(Selector);
 			if (Selector->Part->PlayFieldX < WorldParts->ViewPort->VPMinX + 3)
 				if (CViewPort_Move(WorldParts->ViewPort, -TileWidth, 0))
 				{
@@ -193,7 +193,7 @@ void LevelEditor(void)
 
 		if (currButtons & kButtonRight)
 		{
-			NeedRedraw = CSelector_MoveRight(Selector);
+			NeedRedraw |= CSelector_MoveRight(Selector);
 			if (Selector->Part->PlayFieldX > WorldParts->ViewPort->VPMaxX - 3)
 				if (CViewPort_Move(WorldParts->ViewPort, TileWidth, 0))
 				{
@@ -204,7 +204,7 @@ void LevelEditor(void)
 
 		if (currButtons & kButtonUp)
 		{
-			NeedRedraw = CSelector_MoveUp(Selector);
+			NeedRedraw |= CSelector_MoveUp(Selector);
 			if (Selector->Part->PlayFieldY < WorldParts->ViewPort->VPMinY + 3)
 				if (CViewPort_Move(WorldParts->ViewPort, 0, -TileWidth))
 				{
@@ -215,7 +215,7 @@ void LevelEditor(void)
 
 		if (currButtons & kButtonDown)
 		{
-			NeedRedraw = CSelector_MoveDown(Selector);
+			NeedRedraw |= CSelector_MoveDown(Selector);
 			if (Selector->Part->PlayFieldY > WorldParts->ViewPort->VPMaxY - 3)
 				if (CViewPort_Move(WorldParts->ViewPort, 0, TileWidth))
 				{
