@@ -358,6 +358,7 @@ void TitleScreen()
 	if (NeedRedraw)
 	{
 		NeedRedraw = false;
+		pd->graphics->setFont(Mini2X);
 		pd->graphics->drawBitmap(IMGTitleScreen, 0, 0, kBitmapUnflipped);
 		pd->graphics->fillRect(97, 67, 206, 101, kColorXOR);
 		pd->graphics->drawRect(100, 70, 200, 95, kColorXOR);
@@ -367,7 +368,6 @@ void TitleScreen()
 		{
 		case tsMainMenu:
 			pd->system->formatString(&Text, "Start Game\nLevel Editor\nOptions\nCredits\n");
-			pd->graphics->setFont(Mini2X);
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 80);
 			pd->system->realloc(Text, 0);
 			switch (titleSelection)
@@ -395,7 +395,6 @@ void TitleScreen()
 			pd->system->realloc(Text, 0);
 			break;
 		case tsLevelEditorMode:
-			pd->graphics->setFont(Mini2X);
 			if (InstalledLevels > 0)
 				pd->graphics->drawText("Play Mode", strlen("Play Mode"), kASCIIEncoding, 140, 80);
 			pd->graphics->drawText("Edit Mode", strlen("Edit Mode"), kASCIIEncoding, 140, 100);
@@ -414,7 +413,6 @@ void TitleScreen()
 		case tsSelectPack:
 			if (FoundLevelPacks > 0)
 			{
-				pd->graphics->setFont(Mini2X);
 				char* text;
 				pd->system->formatString(&text, "Pack:%s", LevelPacks[CurrentLevelPackIndex]);
 				pd->graphics->drawText(text, strlen(text), kASCIIEncoding, 120, 80);
