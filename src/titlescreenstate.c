@@ -55,6 +55,57 @@ void TitleScreen()
 				default:
 					break;
 				}
+			case tsOptions:
+				switch (titleSelection)
+				{
+				case opMusic:
+					playMenuSelectSound();
+					setMusicOn(!isMusicOn());
+					setMusicOnSaveState(isMusicOn());
+					if (menuItem1)
+					{
+						if (isMusicOnSaveState())
+							pd->system->setMenuItemValue(menuItem1, 0);
+						else
+							pd->system->setMenuItemValue(menuItem1, 1);
+					}
+					NeedRedraw = true;
+					break;
+				case opSound:
+					playMenuSelectSound();
+					setSoundOn(!isSoundOn());
+					setSoundOnSaveState(isSoundOn());
+					NeedRedraw = true;
+					break;
+				case opSkin:
+					playMenuSelectSound();
+					int i = skinSaveState();
+					i--;
+					if (i == -1)
+						i = MAXSKINS - 1;
+					setSkinSaveState(i);
+					LoadGraphics();
+					if (menuItem3)
+					{
+						pd->system->setMenuItemValue(menuItem3, i);
+					}
+					NeedRedraw = true;
+					break;
+				case opInverted:
+					playMenuSelectSound();
+					setInvertedSaveState(!isInvertedSaveState());
+					pd->display->setInverted(isInvertedSaveState());
+					if (menuItem2)
+					{
+						if (isInvertedSaveState())
+							pd->system->setMenuItemValue(menuItem2, 1);
+						else
+							pd->system->setMenuItemValue(menuItem2, 0);
+					}
+					NeedRedraw = true;
+					break;
+				}
+				break;
 			default:
 				break;
 			}
@@ -77,6 +128,57 @@ void TitleScreen()
 				default:
 					break;
 				}
+			case tsOptions:
+				switch (titleSelection)
+				{
+				case opMusic:
+					playMenuSelectSound();
+					setMusicOn(!isMusicOn());
+					setMusicOnSaveState(isMusicOn());
+					if (menuItem1)
+					{
+						if (isMusicOnSaveState())
+							pd->system->setMenuItemValue(menuItem1, 0);
+						else
+							pd->system->setMenuItemValue(menuItem1, 1);
+					}
+					NeedRedraw = true;
+					break;
+				case opSound:
+					playMenuSelectSound();
+					setSoundOn(!isSoundOn());
+					setSoundOnSaveState(isSoundOn());
+					NeedRedraw = true;
+					break;
+				case opSkin:
+					playMenuSelectSound();
+					int i = skinSaveState();
+					i++;
+					if (i == MAXSKINS)
+						i = 0;
+					setSkinSaveState(i);
+					LoadGraphics();
+					if (menuItem3)
+					{
+						pd->system->setMenuItemValue(menuItem3, i);
+					}
+					NeedRedraw = true;
+					break;
+				case opInverted:
+					playMenuSelectSound();
+					setInvertedSaveState(!isInvertedSaveState());
+					pd->display->setInverted(isInvertedSaveState());
+					if (menuItem2)
+					{
+						if (isInvertedSaveState())
+							pd->system->setMenuItemValue(menuItem2, 1);
+						else
+							pd->system->setMenuItemValue(menuItem2, 0);
+					}
+					NeedRedraw = true;
+					break;
+				}
+				break;
 			default:
 				break;
 			}
@@ -281,10 +383,7 @@ void TitleScreen()
 					LoadGraphics();
 					if (menuItem3)
 					{
-						if (isMusicOnSaveState())
-							pd->system->setMenuItemValue(menuItem3, 0);
-						else
-							pd->system->setMenuItemValue(menuItem3, 1);
+						pd->system->setMenuItemValue(menuItem3, i);
 					}
 					NeedRedraw = true;
 					break;
