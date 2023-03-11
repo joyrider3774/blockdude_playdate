@@ -480,7 +480,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			return true;
 		}
 
-		if (!MustBeAButton && ((currButtons & kButtonB) && (!(prevButtons & kButtonB))) || (crankResult == CRANKMOVELEFT))
+		if (!MustBeAButton && (((currButtons & kButtonB) && (!(prevButtons & kButtonB))) || (crankResult == CRANKMOVELEFT)))
 		{
 			*Answer = false;
 			AskingQuestion = false;
