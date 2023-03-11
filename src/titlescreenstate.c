@@ -8,10 +8,11 @@
 #include "savestate.h"
 #include "pd_helperfuncs.h"
 #include "pd_api.h"
-
+#include "crank.h"
 
 void TitleScreenInit(void)
 {
+	setCrankMoveThreshold(90);
 	CreateOtherMenuItems();
 	SelectMusic(musTitle);
 	NeedRedraw = true;
@@ -38,6 +39,7 @@ void TitleScreen()
 
 	if (!AskingGetString && !AskingQuestion)
 	{
+		unsigned int crankResult = crankUpdate();
 		if ((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
 		{
 			switch (titleStep)
@@ -55,6 +57,7 @@ void TitleScreen()
 				default:
 					break;
 				}
+				break;
 			case tsOptions:
 				switch (titleSelection)
 				{
@@ -128,6 +131,7 @@ void TitleScreen()
 				default:
 					break;
 				}
+				break;
 			case tsOptions:
 				switch (titleSelection)
 				{
@@ -185,7 +189,7 @@ void TitleScreen()
 		}
 
 
-		if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
+		if (((currButtons & kButtonDown) && (!(prevButtons & kButtonDown))) || (crankResult == CRANKMOVERIGHT))
 		{
 			switch (titleStep)
 			{
@@ -234,7 +238,7 @@ void TitleScreen()
 			}
 		}
 
-		if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
+		if (((currButtons & kButtonUp) && (!(prevButtons & kButtonUp))) || (crankResult == CRANKMOVELEFT))
 		{
 			switch (titleStep)
 			{

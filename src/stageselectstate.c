@@ -10,9 +10,11 @@
 #include "savestate.h"
 #include "pd_api.h"
 #include "pd_helperfuncs.h"
+#include "crank.h"
 
 void StageSelectInit()
 {
+	setCrankMoveThreshold(90);
 	pd->graphics->setFont(Mini);
 	LoadSelectedLevel();
 	NeedRedraw = true;
@@ -64,7 +66,8 @@ void StageSelect()
 		}
 	}
 
-	if (!AskingQuestion && (currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft)))
+	unsigned int crankResult = crankUpdate();
+	if (!AskingQuestion && (((currButtons & kButtonLeft) && (!(prevButtons & kButtonLeft))) || (crankResult == CRANKMOVELEFT)))
 	{
 		playMenuSound();
 		NeedRedraw = true;
@@ -75,7 +78,7 @@ void StageSelect()
 		WorldParts->AllDirty = true;
 	}
 
-	if (!AskingQuestion && (currButtons & kButtonRight) && (!(prevButtons & kButtonRight)))
+	if (!AskingQuestion && (((currButtons & kButtonRight) && (!(prevButtons & kButtonRight))) || (crankResult == CRANKMOVERIGHT)))
 	{
 		playMenuSound();
 		NeedRedraw = true;

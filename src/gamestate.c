@@ -9,7 +9,7 @@
 #include "gamefuncs.h"
 #include "pd_api.h"
 #include "pd_helperfuncs.h"
-
+#include "crank.h"
 
 
 bool StageDone(CWorldPart* Player)
@@ -29,6 +29,7 @@ bool StageDone(CWorldPart* Player)
 
 void GameInit(void)
 {
+	setCrankMoveThreshold(35);
 	FreeView = false;
 	NeedRedraw = true;
 	DestroyMenuItems();
@@ -74,7 +75,7 @@ void Game(void)
 		if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
 		{
 			//pickup 
-			if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+			if (((currButtons & kButtonA) && (!(prevButtons & kButtonA))) || ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp))))
 			{
 				//dropping a block
 				//if there is a block on top of the player and were facing left				
@@ -261,21 +262,31 @@ void Game(void)
 
 			if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
 			{
-
-				//move up
-				if (currButtons & kButtonUp)
+				unsigned int crankResult = crankUpdate(); 
+				if ((currButtons & kButtonLeft) || (crankResult == CRANKMOVELEFT))
 				{
-					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+					if (CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY))
+					{
+						NeedRedraw = true;
+					}
+					else
+					{
+						//move up
+						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+					}
 				}
 
-				if (currButtons & kButtonLeft)
+				if ((currButtons & kButtonRight) || (crankResult == CRANKMOVERIGHT))
 				{
-					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY);
-				}
-
-				if (currButtons & kButtonRight)
-				{
-					NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY);
+					if (CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY))
+					{
+						NeedRedraw = true;
+					}
+					else
+					{
+						//move up
+						NeedRedraw |= CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX, WorldParts->Player->PlayFieldY - 1);
+					}
 				}
 			}
 		}

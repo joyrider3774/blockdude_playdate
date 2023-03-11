@@ -17,7 +17,6 @@
 void setupGame(void)
 {  
     GameState = GSIntroInit;
-    setCrankMoveThreshold(90);
     initSaveState();
     initSound();
     initMusic();

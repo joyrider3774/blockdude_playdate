@@ -298,6 +298,8 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				//Right
 				if ((self->AnimBase != AnimBaseRight) && (PlayFieldXin > self->PlayFieldX))
 				{
+					self->MoveDelayCounter = -TileWidth / self->MoveSpeed;
+					self->IsMoving = true;
 					Result = true;
 					self->AnimBase = AnimBaseRight;
 					self->AnimCounter = 0;
@@ -305,6 +307,8 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				//Left
 				if ((self->AnimBase != AnimBaseLeft) && (PlayFieldXin < self->PlayFieldX))
 				{
+					self->MoveDelayCounter = -TileWidth / self->MoveSpeed;
+					self->IsMoving = true;
 					Result = true;
 					self->AnimBase = AnimBaseLeft;
 					self->AnimCounter = 0;

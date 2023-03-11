@@ -13,6 +13,7 @@
 #include "menus.h"
 #include "pd_api.h"
 #include "pd_helperfuncs.h"
+#include "crank.h"
 
 void UnLoadGraphics()
 {
@@ -467,7 +468,8 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 
 	if (AskingQuestionID > -1)
 	{
-		if ((currButtons & kButtonA) && (!(prevButtons & kButtonA)))
+		unsigned int crankResult = crankUpdate();
+		if (((currButtons & kButtonA) && (!(prevButtons & kButtonA))) || (crankResult == CRANKMOVERIGHT))
 		{
 			*Answer = true;
 			AskingQuestion = false;
@@ -478,7 +480,7 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 			return true;
 		}
 
-		if (!MustBeAButton && (currButtons & kButtonB) && (!(prevButtons & kButtonB)))
+		if (!MustBeAButton && ((currButtons & kButtonB) && (!(prevButtons & kButtonB))) || (crankResult == CRANKMOVELEFT))
 		{
 			*Answer = false;
 			AskingQuestion = false;
@@ -801,7 +803,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		DestroyMenuItems();
 	}
 	
-
+	unsigned int crankResult = crankUpdate();
 	if ((currButtons & kButtonB) && (!(prevButtons & kButtonB)))
 	{
 		memset(StringBuffer, 0, len);
@@ -823,7 +825,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		return true;
 	}
 
-	if ((currButtons & kButtonUp) && (!(prevButtons & kButtonUp)))
+	if (((currButtons & kButtonUp) && (!(prevButtons & kButtonUp))) || (crankResult == CRANKMOVELEFT))
 	{
 		getStringDraw(StringBuffer, true);
 		char val = StringBuffer[len - 1];
@@ -836,7 +838,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		playMenuSound();
 	}
 
-	if ((currButtons & kButtonDown) && (!(prevButtons & kButtonDown)))
+	if (((currButtons & kButtonDown) && (!(prevButtons & kButtonDown))) || (crankResult == CRANKMOVERIGHT))
 	{
 		getStringDraw(StringBuffer, true);
 		char val = StringBuffer[len - 1];

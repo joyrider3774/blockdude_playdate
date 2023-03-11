@@ -12,6 +12,7 @@
 
 void LevelEditorInit(void)
 {
+	setCrankMoveThreshold(90);
 	framecounter = 0;
 	NeedRedraw = true;
 	DestroyMenuItems();
