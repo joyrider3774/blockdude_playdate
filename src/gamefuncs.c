@@ -721,16 +721,18 @@ void DoShowDebugInfo()
 {
 	if (showDebugInfo)
 	{
-		pd->graphics->pushContext(NULL);
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		LCDBitmap* tmp = pd->graphics->newBitmap(WINDOW_WIDTH, 24, kColorWhite);
+		pd->graphics->pushContext(tmp);
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 24, kColorWhite);
+		pd->graphics->fillRect(0, 23, WINDOW_WIDTH, 1, kColorBlack);
 		pd->graphics->setFont(Mini);
 		char* Text;
-		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d F:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), WorldParts->DrawCount, WorldParts->DirtyClearedCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, WorldParts->AllDirtyCount);
+		pd->system->formatString(&Text, "vmin:%d,%d vmax:%d,%d C:%d B:%d\nF:%d D:%d D2:%d M:%d A:%d A2:%d", WorldParts->ViewPort->VPMinX, WorldParts->ViewPort->VPMinY, WorldParts->ViewPort->VPMaxX, WorldParts->ViewPort->VPMaxY, WorldParts->ItemCount, CWorldParts_GroupCount(WorldParts, GroupBox), CWorldParts_GroupCount(WorldParts, GroupFloor), WorldParts->DrawCount, WorldParts->DirtyClearedCount, WorldParts->NumPartsMoving, WorldParts->NumPartsAttachedToPlayer, WorldParts->AllDirtyCount);
 		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 		pd->system->realloc(Text, 0);
 		pd->graphics->popContext();
+		pd->graphics->drawScaledBitmap(tmp, 0, 0, fontScaleSaveState(), fontScaleSaveState());
+		pd->graphics->freeBitmap(tmp);
 	}
 }
 

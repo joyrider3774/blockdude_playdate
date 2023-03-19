@@ -78,8 +78,8 @@ int mainLoop(void* ud)
         char* Text;
         pd->system->formatString(&Text, "%f %f", CurrentMs, 1000.0f / CurrentMs);
         pd->graphics->pushContext(NULL);
-        pd->graphics->setFont(Mini);
-        pd->graphics->fillRect(0, 0, pd->graphics->getTextWidth(NULL, Text, strlen(Text), kASCIIEncoding, 0), 8, kColorWhite);
+        pd->graphics->setFont(Mini2X);
+        pd->graphics->fillRect(0, 0, pd->graphics->getTextWidth(NULL, Text, strlen(Text), kASCIIEncoding, 0), 16, kColorWhite);
         pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 0, 0);
         pd->system->realloc(Text, 0);
         pd->graphics->popContext();
