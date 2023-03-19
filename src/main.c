@@ -17,6 +17,5 @@ int eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
 		playdate->system->setUpdateCallback(mainLoop, NULL);
 		setupGame();
 	}
-	
 	return 0;
 }

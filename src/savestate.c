@@ -16,6 +16,7 @@ unsigned int saveTime;
 int valid;
 int editorshowposition;
 int editorshowgrid;
+float fontScale;
 
 unsigned int encrypt(unsigned int filepos, unsigned int time, void* data, unsigned int size, bool returnOriginalPos)
 {
@@ -143,6 +144,16 @@ void loadSaveState(void)
         return;
     }
     pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), false);
+
+    ret = pd->file->read(saveStateFile, &fontScale, sizeof(fontScale));
+    if (ret == -1)
+    {
+        valid = 0;
+        pd->system->error("Error reading fontScale option from savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &fontScale, sizeof(fontScale), false);
 
     ret = pd->file->close(saveStateFile);
     if (ret == -1)
@@ -288,6 +299,17 @@ void saveSaveState(void)
     }
     pos = encrypt(pos, saveTime, &editorshowposition, sizeof(editorshowposition), false);
 
+    pos = encrypt(pos, saveTime, &fontScale, sizeof(fontScale), true);
+    ret = pd->file->write(saveStateFile, &fontScale, sizeof(fontScale));
+    if (ret == -1)
+    {
+        pos = encrypt(pos, saveTime, &fontScale, sizeof(fontScale), false);
+        pd->system->error("Error writing fontScale option to savesate file!");
+        pd->system->logToConsole(pd->file->geterr());
+        return;
+    }
+    pos = encrypt(pos, saveTime, &fontScale, sizeof(fontScale), false);
+
     //crashes the simulator ???
 #ifndef _WIN32
     ret = pd->file->flush(saveStateFile);
@@ -362,6 +384,12 @@ void validateSaveState(void)
         }
     }
 
+    if ((fontScale < 1.0f) || (fontScale > 1.5f) || !valid)
+    {
+       valid = 0;
+       fontScale = 1.0f;
+    }
+
     if (!valid)
     {
         saveSaveState();
@@ -396,6 +424,18 @@ int isInvertedSaveState(void)
 {
     return inverted;
 }
+
+void setFontScaleSaveState(float value)
+{
+    fontScale = value;
+    saveSaveState();
+}
+
+float fontScaleSaveState(void)
+{
+    return fontScale;
+}
+
 
 void setShowGridSaveState(int value)
 {

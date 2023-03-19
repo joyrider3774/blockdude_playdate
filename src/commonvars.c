@@ -34,7 +34,7 @@ char* levelext = "lev";
 char* levelprefix = "level";
 char* GetStringResult;
 int GameState = GSIntroInit;
-int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusic, InstalledLevels = 0, CurrentLevelPackIndex = 0, FoundLevelPacks = 0, GetStringId = -1, GetStringX = 0, GetStringY = 0 ;
+int SelectedLevel = 0, NeedRedraw = 1, AskingQuestionID = -1, titleStep = tsMainMenu, titleSelection = 0, Option = opMusicSound, InstalledLevels = 0, CurrentLevelPackIndex = 0, FoundLevelPacks = 0, GetStringId = -1, GetStringX = 0, GetStringY = 0 ;
 bool AskingQuestion = false, FreeView = false, LevelEditorMode = false, LevelEditorPlayMode = false, NeedToReloadGraphics = false, AskingGetString = false;
 int IntroScreenNr = 1;
 int framecounter = 0;

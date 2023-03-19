@@ -18,4 +18,6 @@ int ShowPositionSaveState(void);
 void setShowPositionSaveState(int value);
 int ShowGridSaveState(void);
 void setShowGridSaveState(int value);
+void setFontScaleSaveState(float value);
+float fontScaleSaveState(void);
 #endif

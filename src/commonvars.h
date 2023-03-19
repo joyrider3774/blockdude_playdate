@@ -86,8 +86,8 @@
 #define mmCredits 3
 #define mmCount 4
 
-#define opMusic 0
-#define opSound 1
+#define opMusicSound 0
+#define opFontSize 1
 #define opSkin 2
 #define opInverted 3
 #define opCount 4
@@ -138,6 +138,7 @@
 #define qsAllDone 12
 #define qsDelPack 13
 #define qsClearLevel 14
+#define qsCredits 15
 
 typedef struct CWorldPart CWorldPart;
 typedef struct CWorldParts CWorldParts;

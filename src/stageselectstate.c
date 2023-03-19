@@ -117,22 +117,27 @@ void StageSelect()
 		{
 			DrawBitmapSrcRec(WorldParts->LevelBitmap, 0, 0, WorldParts->ViewPort->MinScreenX, WorldParts->ViewPort->MinScreenY, WINDOW_WIDTH, WINDOW_HEIGHT, kBitmapUnflipped);
 		}
-		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 15, kColorWhite);
-		pd->graphics->drawRect(0, 0, WINDOW_WIDTH, 15, kColorBlack);
+		LCDBitmap* tmp = pd->graphics->newBitmap(WINDOW_WIDTH, 16, kColorWhite);
+		pd->graphics->pushContext(tmp);
+		pd->graphics->fillRect(0, 0, WINDOW_WIDTH, 16, kColorWhite);
+		pd->graphics->fillRect(0, 15, WINDOW_WIDTH, 1, kColorBlack);
 		if (LevelEditorMode)
 		{
 			if (!LevelEditorPlayMode)
-				pd->system->formatString(&Text, "Level: %d/%d - (A) Edit Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+				pd->system->formatString(&Text, "Level: %d/%d A:Edit Level B:Titlescreen", SelectedLevel, InstalledLevels);
 			else
-				pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+				pd->system->formatString(&Text, "Level: %d/%d A:Play Level B:Titlescreen", SelectedLevel, InstalledLevels);
 		}
 		else if (SelectedLevel <= lastUnlockedLevel())
-			pd->system->formatString(&Text, "Level: %d/%d - (A) Play Level - (B) Titlescreen", SelectedLevel, InstalledLevels);
+			pd->system->formatString(&Text, "Level: %d/%d A:Play Level B:Titlescreen", SelectedLevel, InstalledLevels);
 		else
-			pd->system->formatString(&Text, "Level: %d/%d - Level is locked! - (B) Titlescreen", SelectedLevel, InstalledLevels);
+			pd->system->formatString(&Text, "Level: %d/%d is locked! B:Titlescreen", SelectedLevel, InstalledLevels);
 
 		pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 		pd->system->realloc(Text, 0);
+		pd->graphics->popContext();
+		pd->graphics->drawScaledBitmap(tmp, 0, 0, fontScaleSaveState(), fontScaleSaveState());
+		pd->graphics->freeBitmap(tmp);
 	}
 
 	int id = -1;

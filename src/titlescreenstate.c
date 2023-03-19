@@ -61,10 +61,42 @@ void TitleScreen()
 			case tsOptions:
 				switch (titleSelection)
 				{
-				case opMusic:
-					playMenuSelectSound();
-					setMusicOn(!isMusicOn());
-					setMusicOnSaveState(isMusicOn());
+				case opMusicSound:
+					if (isMusicOn() && isSoundOn())
+					{
+						setMusicOn(false);
+						setMusicOnSaveState(false);
+						setSoundOn(true);
+						setSoundOnSaveState(true);
+					}
+					else
+					{
+						if (!isMusicOn() && !isSoundOn())
+						{
+							setMusicOn(true);
+							setMusicOnSaveState(true);
+							setSoundOn(true);
+							setSoundOnSaveState(true);
+						}
+						else
+						{
+							if (isMusicOn() && !isSoundOn())
+							{
+								setMusicOn(false);
+								setMusicOnSaveState(false);
+								setSoundOn(false);
+								setSoundOnSaveState(false);
+							}
+							else
+							{
+								setMusicOn(true);
+								setMusicOnSaveState(true);
+								setSoundOn(false);
+								setSoundOnSaveState(false);
+							}
+						}
+					}
+
 					if (menuItem1)
 					{
 						if (isMusicOnSaveState())
@@ -73,11 +105,14 @@ void TitleScreen()
 							pd->system->setMenuItemValue(menuItem1, 1);
 					}
 					NeedRedraw = true;
-					break;
-				case opSound:
+    				break;
+				case opFontSize:
 					playMenuSelectSound();
-					setSoundOn(!isSoundOn());
-					setSoundOnSaveState(isSoundOn());
+					float tmp = fontScaleSaveState();
+					tmp -= 0.25f;
+					if (tmp < 1.0f)
+						tmp = 1.5f;
+					setFontScaleSaveState(tmp);
 					NeedRedraw = true;
 					break;
 				case opSkin:
@@ -135,10 +170,42 @@ void TitleScreen()
 			case tsOptions:
 				switch (titleSelection)
 				{
-				case opMusic:
-					playMenuSelectSound();
-					setMusicOn(!isMusicOn());
-					setMusicOnSaveState(isMusicOn());
+				case opMusicSound:
+					if (isMusicOn() && isSoundOn())
+					{
+						setMusicOn(false);
+						setMusicOnSaveState(false);
+						setSoundOn(false);
+						setSoundOnSaveState(false);
+					}
+					else
+					{
+						if (!isMusicOn() && !isSoundOn())
+						{
+							setMusicOn(true);
+							setMusicOnSaveState(true);
+							setSoundOn(false);
+							setSoundOnSaveState(false);
+						}
+						else
+						{
+							if (isMusicOn() && !isSoundOn())
+							{
+								setMusicOn(false);
+								setMusicOnSaveState(false);
+								setSoundOn(true);
+								setSoundOnSaveState(true);
+							}
+							else
+							{
+								setMusicOn(true);
+								setMusicOnSaveState(true);
+								setSoundOn(true);
+								setSoundOnSaveState(true);
+							}
+						}
+					}
+
 					if (menuItem1)
 					{
 						if (isMusicOnSaveState())
@@ -148,10 +215,13 @@ void TitleScreen()
 					}
 					NeedRedraw = true;
 					break;
-				case opSound:
+				case opFontSize:
 					playMenuSelectSound();
-					setSoundOn(!isSoundOn());
-					setSoundOnSaveState(isSoundOn());
+					float tmp = fontScaleSaveState();
+					tmp += 0.25f;
+					if (tmp > 1.5f)
+						tmp = 1.0f;
+					setFontScaleSaveState(tmp);
 					NeedRedraw = true;
 					break;
 				case opSkin:
@@ -291,10 +361,6 @@ void TitleScreen()
 				NeedRedraw = true;
 				break;
 			case tsCredits:
-				titleStep = tsMainMenu;
-				titleSelection = mmCredits;
-				playMenuBackSound();
-				NeedRedraw = true;
 				break;
 			case tsLevelEditorMode:
 				titleStep = tsSelectPack;
@@ -343,13 +409,14 @@ void TitleScreen()
 					}
 					break;
 				case mmCredits:
-					titleStep = tsCredits;
 					playMenuSelectSound();
-					NeedRedraw = true;
+					pd->graphics->setFont(Mini);
+					AskQuestion(qsCredits, "Blockdude was created by Willems\nDavy. Fonts by Donald Hays. Tech skin\nand Default skin by Fusion Power. Flat\nskin by Klas Kroon & Kris Katiesen.\nKenney's skin by Kenney. Music By\nDonSkeeto. Levels from blockman by\nSoleau Software.");
+					DestroyMenuItems();
 					break;
 				case mmOptions:
 					titleStep = tsOptions;
-					titleSelection = opMusic;
+					titleSelection = opMusicSound;
 					playMenuSelectSound();
 					NeedRedraw = true;
 					break;
@@ -358,10 +425,43 @@ void TitleScreen()
 			case tsOptions:
 				switch (titleSelection)
 				{
-				case opMusic:
+				case opMusicSound:
 					playMenuSelectSound();
-					setMusicOn(!isMusicOn());
-					setMusicOnSaveState(isMusicOn());
+					if (isMusicOn() && isSoundOn())
+					{
+						setMusicOn(false);
+						setMusicOnSaveState(false);
+						setSoundOn(false);
+						setSoundOnSaveState(false);
+					}
+					else
+					{
+						if (!isMusicOn() && !isSoundOn())
+						{
+							setMusicOn(true);
+							setMusicOnSaveState(true);
+							setSoundOn(false);
+							setSoundOnSaveState(false);
+						}
+						else
+						{
+							if (isMusicOn() && !isSoundOn())
+							{
+								setMusicOn(false);
+								setMusicOnSaveState(false);
+								setSoundOn(true);
+								setSoundOnSaveState(true);
+							}
+							else
+							{
+								setMusicOn(true);
+								setMusicOnSaveState(true);
+								setSoundOn(true);
+								setSoundOnSaveState(true);
+							}
+						}
+					}
+
 					if (menuItem1)
 					{
 						if (isMusicOnSaveState())
@@ -371,10 +471,13 @@ void TitleScreen()
 					}
 					NeedRedraw = true;
 					break;
-				case opSound:
+				case opFontSize:
 					playMenuSelectSound();
-					setSoundOn(!isSoundOn());
-					setSoundOnSaveState(isSoundOn());
+					float tmp = fontScaleSaveState();
+					tmp += 0.25f;
+					if (tmp > 1.5f)
+						tmp = 1.0f;
+					setFontScaleSaveState(tmp);
 					NeedRedraw = true;
 					break;
 				case opSkin:
@@ -407,10 +510,6 @@ void TitleScreen()
 				}
 				break;
 			case tsCredits:
-				titleStep = tsMainMenu;
-				titleSelection = mmCredits;
-				playMenuSelectSound();
-				NeedRedraw = true;
 				break;
 			case tsLevelEditorMode:
 				LevelEditorPlayMode = titleSelection == lmPlayMode;
@@ -492,10 +591,6 @@ void TitleScreen()
 			pd->system->realloc(Text, 0);
 			break;
 		case tsCredits:
-			pd->graphics->setFont(Mini);
-			pd->system->formatString(&Text, "Blockdude was created by\nWillems Davy. Fonts by\nDonald Hays. Tech skin and\nDefault skin by Fusion Power.\nFlat skin by Klas Kroon & Kris\nKatiesen. Kenney for Kenney's\nskin. Music By DonSkeeto.\nLevels from blockman by\nSoleau Software.");
-			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 108, 74);
-			pd->system->realloc(Text, 0);
 			break;
 		case tsLevelEditorMode:
 			if (InstalledLevels > 0)
@@ -552,23 +647,14 @@ void TitleScreen()
 			break;
 		case tsOptions:
 			pd->graphics->setFont(Mini2X);
-			if (isMusicOn())
-			{
-				pd->graphics->drawText("Music On", strlen("music On"), kASCIIEncoding, 140, 80);
-			}
-			else
-			{
-				pd->graphics->drawText("Music Off", strlen("Music Off"), kASCIIEncoding, 140, 80);
-			}
-
-			if (isSoundOn())
-			{
-				pd->graphics->drawText("Sound On", strlen("Sound On"), kASCIIEncoding, 140, 100);
-			}
-			else
-			{
-				pd->graphics->drawText("Sound Off", strlen("Sound Off"), kASCIIEncoding, 140, 100);
-			}
+			
+			pd->system->formatString(&Text, "Mus/Snd %s%s", isMusicOn() ? "M":"", isSoundOn() ? "S":"");
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 80);
+			pd->system->realloc(Text, 0);
+			
+			pd->system->formatString(&Text, "Text %d%%", (int)(fontScaleSaveState()*100));
+			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 100);
+			pd->system->realloc(Text, 0);
 
 			pd->system->formatString(&Text, "%s skin", skins[skinSaveState()]);
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 120);
@@ -584,10 +670,10 @@ void TitleScreen()
 			}
 			switch (titleSelection)
 			{
-			case opMusic:
+			case opMusicSound:
 				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 80);
 				break;
-			case opSound:
+			case opFontSize:
 				pd->graphics->drawText(">", 1, kASCIIEncoding, 125, 100);
 				break;
 			case opSkin:
@@ -674,11 +760,10 @@ void TitleScreen()
 	}
 	else
 	{
-		if (AskQuestionUpdate(&id, &answered, true))
+		if (AskQuestionUpdate(&id, &answered, AskingQuestionID != qsCredits))
 		{
 			//only confirmation questions
 			CreateOtherMenuItems();
 		}
-		
 	}
 }

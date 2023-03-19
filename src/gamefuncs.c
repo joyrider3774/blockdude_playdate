@@ -496,10 +496,15 @@ bool AskQuestionUpdate(int* Id, bool* Answer, bool MustBeAButton)
 
 void AskQuestion(int Id, char* Msg)
 {
-	pd->graphics->fillRect(80, 80, 240, 80, kColorWhite);
-	pd->graphics->drawRect(80, 80, 240, 80, kColorBlack);
-	pd->graphics->drawRect(82, 82, 236, 76, kColorBlack);
-	pd->graphics->drawText(Msg, strlen(Msg), kASCIIEncoding, 85, 85);
+	LCDBitmap* tmp = pd->graphics->newBitmap(240, 80, kColorWhite);
+	pd->graphics->pushContext(tmp);
+	pd->graphics->fillRect(0, 0, 240, 80, kColorWhite);
+	pd->graphics->drawRect(0, 0, 240, 80, kColorBlack);
+	pd->graphics->drawRect(2, 2, 236, 76, kColorBlack);
+	pd->graphics->drawText(Msg, strlen(Msg), kASCIIEncoding, 5, 5);
+	pd->graphics->popContext();
+	pd->graphics->drawScaledBitmap(tmp, 200 - (int)(120 * fontScaleSaveState()), 120 - (int)(40 * fontScaleSaveState()), fontScaleSaveState(), fontScaleSaveState());
+	pd->graphics->freeBitmap(tmp);
 	prevButtons = currButtons;
 	AskingQuestionID = Id;
 	AskingQuestion = true;
