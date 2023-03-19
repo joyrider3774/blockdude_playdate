@@ -648,7 +648,7 @@ void TitleScreen()
 		case tsOptions:
 			pd->graphics->setFont(Mini2X);
 			
-			pd->system->formatString(&Text, "Mus/Snd %s%s", isMusicOn() ? "M":"", isSoundOn() ? "S":"");
+			pd->system->formatString(&Text, "Audio %s %s", isMusicOn() ? "M":" ", isSoundOn() ? "S":" ");
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 140, 80);
 			pd->system->realloc(Text, 0);
 			
