@@ -19,7 +19,7 @@ LCDBitmapTable* IMGFloor = NULL, * IMGPlayer = NULL, * IMGBox = NULL, * IMGEmpty
     * IMGRoofCornerBoth = NULL;
 
 //ID's start counting from 1
-const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Floor", "Exit", "Left Earth Grass", "Right Earth Grass", "Left Earth", "Middle Earth", "Right Earth",
+const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Middle Earth Grass", "Exit", "Right Earth Grass", "Left Earth Grass", "Right Earth", "Middle Earth", "Left Earth",
     "Float Floor", "Left Float Floor", "Middle Float Floor", "Right Float Floor", "Left Floor", "Right Floor", "Tower", "Start Tower",
     "Tower Shaft", "Roof 1", "Roof 2", "Left Roof Corner", "Right Roof Corner", "Both Roof Corner", "Right Roof Down", "Left Roof Down" };
 
