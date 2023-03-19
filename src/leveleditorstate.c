@@ -76,7 +76,7 @@ void LevelEditor(void)
 			pd->graphics->setFont(Mini);
 			int BlockBelowSelector = CWorldParts_TypeAtPosition(WorldParts, Selector->Part->PlayFieldX, Selector->Part->PlayFieldY);
 			char* Text;
-			pd->system->formatString(&Text, "Pos: %d,%d - Selector: %s / %s", Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, blockNames[Selector->Part->Type], blockNames[BlockBelowSelector]);
+			pd->system->formatString(&Text, "%d,%d %s|%s", Selector->Part->PlayFieldX, Selector->Part->PlayFieldY, blockNames[Selector->Part->Type], blockNames[BlockBelowSelector]);
 			pd->graphics->drawText(Text, strlen(Text), kASCIIEncoding, 4, 4);
 			pd->system->realloc(Text, 0);
 			pd->graphics->popContext();
