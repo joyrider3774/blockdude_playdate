@@ -1,3 +1,4 @@
+#include <string.h>
 #include "leveleditorstate.h"
 #include "savestate.h"
 #include "menus.h"

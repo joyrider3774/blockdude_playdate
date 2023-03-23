@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 #include "gamestate.h"
 #include "menus.h"
 #include "savestate.h"

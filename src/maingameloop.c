@@ -1,3 +1,4 @@
+#include <string.h>
 #include "maingameloop.h"
 #include "crank.h"
 #include "commonvars.h"
