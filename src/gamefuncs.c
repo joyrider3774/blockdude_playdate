@@ -769,8 +769,8 @@ void getStringDraw(char* StringBuffer, bool ErasingPrevious)
 	char* Buffer;
 	char* text;
 	size_t len = strlen(StringBuffer);
-	Buffer = pd->system->realloc(NULL, len + 2);
-	memset(Buffer, 0, len + 2);
+	Buffer = pd->system->realloc(NULL, len + 3);
+	memset(Buffer, 0, len + 3);
 	strcpy(Buffer, StringBuffer);
 	Buffer[len - 1] = '[';
 	Buffer[len] = StringBuffer[len - 1];
