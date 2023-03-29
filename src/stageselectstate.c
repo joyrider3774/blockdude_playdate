@@ -37,7 +37,7 @@ void StageSelect()
 		CWorldParts_RemoveAll(WorldParts);
 		playMenuBackSound();
 	}
-
+	else
 	if (!AskingQuestion && (currButtons & kButtonA) && (!(prevButtons & kButtonA)))
 	{
 		playMenuSelectSound();
