@@ -357,118 +357,122 @@ void CWorldPart_Event_ArrivedOnNewSpot(CWorldPart* self)
 {
 	switch (self->Type)
 	{
-	case IDPlayer:
-		//check for floor so we can drop down if not found
-		bool FloorFound = false;
-
-		//in case the block was attached to a player but blocked by wall the player moved under
-		if (self->AttachedPart) 
+		case IDPlayer:
 		{
-			if(self->AttachedPart->Group == GroupBox)
+			//check for floor so we can drop down if not found
+			bool FloorFound = false;
+
+			//in case the block was attached to a player but blocked by wall the player moved under
+			if (self->AttachedPart) 
 			{
-				CWorldPart_Event_ArrivedOnNewSpot(self->AttachedPart);
+				if(self->AttachedPart->Group == GroupBox)
+				{
+					CWorldPart_Event_ArrivedOnNewSpot(self->AttachedPart);
+				}
 			}
-		}
 
-		if (self->PlayFieldY == NrOfRows - 1)
-		{
-			self->AnimPhases = 4;
-			FloorFound = true;
-		}
+			if (self->PlayFieldY == NrOfRows - 1)
+			{
+				self->AnimPhases = 4;
+				FloorFound = true;
+			}
 
-		if (!FloorFound)
+			if (!FloorFound)
+			{
+				CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX, self->PlayFieldY + 1);
+				if (Part)
+				{
+					if ((Part->Group == GroupFloor) || (Part->Group == GroupBox))
+					{
+						self->AnimPhases = 4;
+						FloorFound = true;
+					}
+				}
+			}
+
+			if (!FloorFound)
+			{
+				CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX, self->PlayFieldY);
+				if (Part2)
+				{
+					//to catch floating exits
+					if (Part2->Group == GroupExit)
+					{
+						self->AnimPhases = 4;
+						FloorFound = true;
+					}
+				}
+			}
+
+			if (self->NeedToMoveLeft)
+			{
+				CWorldPart_MoveTo(self, self->PlayFieldX - 1, self->PlayFieldY);
+				self->NeedToMoveLeft = false;
+			}
+
+			if (self->NeedToMoveRight)
+			{
+				CWorldPart_MoveTo(self, self->PlayFieldX + 1, self->PlayFieldY);
+				self->NeedToMoveRight = false;
+			}
+
+			if (!FloorFound && self->ParentList)
+			{
+				self->AnimCounter = 0;
+				self->AnimPhases = 1;
+				CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
+			}
+
+			break;
+		}
+		case IDBox:
 		{
+			bool PlayerBelow = false;
+			bool SomethingBelow = (self->PlayFieldY == NrOfRows - 1);
+
 			CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX, self->PlayFieldY + 1);
 			if (Part)
 			{
-				if ((Part->Group == GroupFloor) || (Part->Group == GroupBox))
+				if (Part->Type == IDPlayer)
 				{
-					self->AnimPhases = 4;
-					FloorFound = true;
+					SomethingBelow = true;
+					PlayerBelow = true;
+				}
+
+				if ((Part->Group == GroupFloor) || (Part->Group == GroupBox) || (Part->Group == GroupPlayer) || (Part->Group == GroupExit))
+				{
+					SomethingBelow = true;
 				}
 			}
-		}
+			
+			if (PlayerBelow)
+				CWorldPart_AttachToPlayer(self, self->ParentList->Player);
+			else
+				if ((self->Player) && !CWorldPart_MovesInQue(self))
+					CWorldPart_DeattachFromPlayer(self, self->Player);
 
-		if (!FloorFound)
-		{
-			CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX, self->PlayFieldY);
-			if (Part2)
+			//if nothing is below and there are no moves in the queue move it down
+			if ((!SomethingBelow) && (!CWorldPart_MovesInQue(self)))
 			{
-				//to catch floating exits
-				if (Part2->Group == GroupExit)
+				if (self->Player)
 				{
-					self->AnimPhases = 4;
-					FloorFound = true;
+					/*if (!self->Player->IsMoving)
+					{
+						self->AttachedToPlayer = false;
+						self->Player = NULL;
+					}*/
+					//CWorldPart_Event_ArrivedOnNewSpot(self);
 				}
-			}
-		}
-
-		if (self->NeedToMoveLeft)
-		{
-			CWorldPart_MoveTo(self, self->PlayFieldX - 1, self->PlayFieldY);
-			self->NeedToMoveLeft = false;
-		}
-
-		if (self->NeedToMoveRight)
-		{
-			CWorldPart_MoveTo(self, self->PlayFieldX + 1, self->PlayFieldY);
-			self->NeedToMoveRight = false;
-		}
-
-		if (!FloorFound && self->ParentList)
-		{
-			self->AnimCounter = 0;
-			self->AnimPhases = 1;
-			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
-		}
-
-		break;
-	case IDBox:
-		bool PlayerBelow = false;
-		bool SomethingBelow = (self->PlayFieldY == NrOfRows - 1);
-
-		CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX, self->PlayFieldY + 1);
-		if (Part)
-		{
-			if (Part->Type == IDPlayer)
-			{
-				SomethingBelow = true;
-				PlayerBelow = true;
-			}
-
-			if ((Part->Group == GroupFloor) || (Part->Group == GroupBox) || (Part->Group == GroupPlayer) || (Part->Group == GroupExit))
-			{
-				SomethingBelow = true;
-			}
-		}
-		
-		if (PlayerBelow)
-			CWorldPart_AttachToPlayer(self, self->ParentList->Player);
-		else
-			if ((self->Player) && !CWorldPart_MovesInQue(self))
-				CWorldPart_DeattachFromPlayer(self, self->Player);
-
-		//if nothing is below and there are no moves in the queue move it down
-		if ((!SomethingBelow) && (!CWorldPart_MovesInQue(self)))
-		{
-			if (self->Player)
-			{
-				/*if (!self->Player->IsMoving)
+				/*if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)) && (self->PlayFieldY < NrOfRows - 1))
 				{
-					self->AttachedToPlayer = false;
-					self->Player = NULL;
+					playDropSound();
 				}*/
-				//CWorldPart_Event_ArrivedOnNewSpot(self);
+				CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
 			}
-			/*if ((!CWorldPart_CanMoveTo(self, self->PlayFieldX, self->PlayFieldY + 2)) && (self->PlayFieldY < NrOfRows - 1))
-			{
-				playDropSound();
-			}*/
-			CWorldPart_MoveTo(self, self->PlayFieldX, self->PlayFieldY + 1);
-		}
 
-		
-		break;
+			
+			break;
+		}
 	}
 }
 
@@ -563,68 +567,23 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 {
 	switch (self->Type)
 	{
-	case IDPlayer:
-		if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
+		case IDPlayer:
 		{
-			if (self->ParentList)
+			if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
 			{
-				//if we move up
-				if (PlayFieldYin - self->PlayFieldY < 0)
+				if (self->ParentList)
 				{
-					//we're facing left
-					if (self->AnimBase == AnimBaseLeft)
+					//if we move up
+					if (PlayFieldYin - self->PlayFieldY < 0)
 					{
-						//part left from player
-						CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, self->PlayFieldY);
-						if (Part)
+						//we're facing left
+						if (self->AnimBase == AnimBaseLeft)
 						{
-							//its an exit (can't jump onto it)
-							if (Part->Group == GroupExit)
-								return false;
-
-							//it's a box
-							if (Part->Group == GroupBox)
-							{
-								//check part below it
-								CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, self->PlayFieldY + 1);
-								if (Part2)
-								{
-									//it's not a floor kind so can't jump onto it
-									if (!((Part2->Group == GroupFloor) || (Part2->Group == GroupBox) || (Part2->Group == GroupExit)))
-									{
-										return false;
-									}
-								}
-								else
-									return false;
-
-							}
-
-							//check part on final position
-							CWorldPart* Part3 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, PlayFieldYin);
-							if (Part3)
-							{
-								//it's something else than exit
-								if (Part3->Group != GroupExit)
-								{
-									return false;
-								}
-							}
-						}
-						else
-							//nothing on the left
-							return false;
-					}
-					else
-					{
-						//we're facing right
-						if (self->AnimBase == AnimBaseRight)
-						{
-							//check part on right of player
-							CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, self->PlayFieldY);
+							//part left from player
+							CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, self->PlayFieldY);
 							if (Part)
 							{
-								//its an exit can't jump onto that
+								//its an exit (can't jump onto it)
 								if (Part->Group == GroupExit)
 									return false;
 
@@ -632,7 +591,7 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 								if (Part->Group == GroupBox)
 								{
 									//check part below it
-									CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, self->PlayFieldY + 1);
+									CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, self->PlayFieldY + 1);
 									if (Part2)
 									{
 										//it's not a floor kind so can't jump onto it
@@ -640,17 +599,17 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 										{
 											return false;
 										}
-
 									}
 									else
 										return false;
+
 								}
 
 								//check part on final position
-								CWorldPart* Part3 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, PlayFieldYin);
+								CWorldPart* Part3 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX - 1, PlayFieldYin);
 								if (Part3)
 								{
-									//anything but exit and we can't jump onto it
+									//it's something else than exit
 									if (Part3->Group != GroupExit)
 									{
 										return false;
@@ -658,100 +617,149 @@ bool CWorldPart_CanMoveTo(CWorldPart* self, const int PlayFieldXin, const int Pl
 								}
 							}
 							else
-								//nothing on the right
+								//nothing on the left
 								return false;
 						}
-					}
-				}
-
-				CWorldPart* Part4 = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin);
-				if (Part4)
-				{
-					if (Part4->Group == GroupFloor)
-					{
-						return false;
-					}
-					else
-					{
-						if (Part4->Group == GroupBox)
+						else
 						{
-							//we're moving horizontal or falling down so we can't move into the box
-							if (PlayFieldYin - self->PlayFieldY >= 0)
+							//we're facing right
+							if (self->AnimBase == AnimBaseRight)
 							{
-								return false;
-							}
-							//were moving up
-							//check to see if there are no stackboxes or other things on top of the player blocking the jump
-							else
-							{
-								if ((self->AnimBase == AnimBaseLeft) || (self->AnimBase == AnimBaseRight))
+								//check part on right of player
+								CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, self->PlayFieldY);
+								if (Part)
 								{
-									CWorldPart* Part5 = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin - 1);
-									if (Part5)
+									//its an exit can't jump onto that
+									if (Part->Group == GroupExit)
+										return false;
+
+									//it's a box
+									if (Part->Group == GroupBox)
 									{
-										if ((Part5->Group == GroupFloor) || (Part5->Group == GroupBox) || (Part5->Group == GroupExit))
+										//check part below it
+										CWorldPart* Part2 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, self->PlayFieldY + 1);
+										if (Part2)
+										{
+											//it's not a floor kind so can't jump onto it
+											if (!((Part2->Group == GroupFloor) || (Part2->Group == GroupBox) || (Part2->Group == GroupExit)))
+											{
+												return false;
+											}
+
+										}
+										else
+											return false;
+									}
+
+									//check part on final position
+									CWorldPart* Part3 = CWorldParts_PartAtPosition(self->ParentList, self->PlayFieldX + 1, PlayFieldYin);
+									if (Part3)
+									{
+										//anything but exit and we can't jump onto it
+										if (Part3->Group != GroupExit)
 										{
 											return false;
+										}
+									}
+								}
+								else
+									//nothing on the right
+									return false;
+							}
+						}
+					}
+
+					CWorldPart* Part4 = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin);
+					if (Part4)
+					{
+						if (Part4->Group == GroupFloor)
+						{
+							return false;
+						}
+						else
+						{
+							if (Part4->Group == GroupBox)
+							{
+								//we're moving horizontal or falling down so we can't move into the box
+								if (PlayFieldYin - self->PlayFieldY >= 0)
+								{
+									return false;
+								}
+								//were moving up
+								//check to see if there are no stackboxes or other things on top of the player blocking the jump
+								else
+								{
+									if ((self->AnimBase == AnimBaseLeft) || (self->AnimBase == AnimBaseRight))
+									{
+										CWorldPart* Part5 = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin - 1);
+										if (Part5)
+										{
+											if ((Part5->Group == GroupFloor) || (Part5->Group == GroupBox) || (Part5->Group == GroupExit))
+											{
+												return false;
+											}
 										}
 									}
 								}
 							}
 						}
 					}
-				}
 
-				//check to see if our attached box has a queue if so we can't move either
-				if (self->AttachedPart)
-				{
-					if (self->AttachedPart->Group == GroupBox)
+					//check to see if our attached box has a queue if so we can't move either
+					if (self->AttachedPart)
 					{
-						if (self->AttachedPart->MoveQueBack > -1)
+						if (self->AttachedPart->Group == GroupBox)
+						{
+							if (self->AttachedPart->MoveQueBack > -1)
+							{
+								return false;
+							}
+						}
+					}
+				}
+				else
+					return false;
+			}
+			else
+				return false;
+
+			//if we want to move up
+			if (PlayFieldYin - self->PlayFieldY < 0)
+				//only allow jump if we are not on top position
+				return self->PlayFieldY - 1 > 0;
+			return true;
+			break;
+		}
+		case IDBox:
+		{
+			if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
+			{
+				if (self->ParentList)
+				{
+					CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin);
+					if (Part)
+					{
+						if ((Part->Group == GroupFloor) || (Part->Group == GroupBox) || (Part->Group == GroupExit))
 						{
 							return false;
 						}
 					}
 				}
-			}
-			else
-				return false;
-		}
-		else
-			return false;
-
-		//if we want to move up
-		if (PlayFieldYin - self->PlayFieldY < 0)
-			//only allow jump if we are not on top position
-			return self->PlayFieldY - 1 > 0;
-		return true;
-		break;
-	case IDBox:
-		if ((PlayFieldXin >= 0) && (PlayFieldXin < NrOfCols) && (PlayFieldYin >= 0) && (PlayFieldYin < NrOfRows))
-		{
-			if (self->ParentList)
-			{
-				CWorldPart* Part = CWorldParts_PartAtPosition(self->ParentList, PlayFieldXin, PlayFieldYin);
-				if (Part)
+				else
 				{
-					if ((Part->Group == GroupFloor) || (Part->Group == GroupBox) || (Part->Group == GroupExit))
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 			else
 			{
 				return false;
 			}
+			return true;
+			break;
 		}
-		else
-		{
+		default:
 			return false;
-		}
-		return true;
-		break;
-	default:
-		return false;
-		break;
+			break;
 	}
 }
 
