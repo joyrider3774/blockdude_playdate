@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { pdx: Blockdude.pdx, env: playdate }
+          - { pdx: BlockDude.pdx, env: playdate }
           
     runs-on: ubuntu-latest       
     steps:
