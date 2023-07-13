@@ -837,10 +837,18 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 	{
 		getStringDraw(StringBuffer, true);
 		char val = StringBuffer[len - 1];
-		if ((val < 'z'))
-			val++;
+		val++;
+		if ((val == 'z' + 1))
+		{
+			val = '0';
+		}
 		else
-			val = 'a';
+		{
+			if (val == '9' + 1)
+			{
+				val = 'a';
+			}
+		}
 		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
 		playMenuSound();
@@ -850,11 +858,18 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 	{
 		getStringDraw(StringBuffer, true);
 		char val = StringBuffer[len - 1];
-		if ((val > 'a'))
-			val--;
+		val--;
+		if ((val == 'a' - 1))
+		{
+			val = '9';
+		}
 		else
-			if (val == 'a')
+		{
+			if (val == '0' - 1)
+			{
 				val = 'z';
+			}
+		}
 		StringBuffer[len - 1] = val;
 		getStringDraw(StringBuffer, false);
 		playMenuSound();
@@ -876,7 +891,7 @@ bool getStringUpdate(int *Id, bool* Answered, char* StringBuffer)
 		if ((len < MaxLenGetString))
 		{
 			getStringDraw(StringBuffer, true);
-			StringBuffer[len] = 'a';
+			StringBuffer[len] = StringBuffer[len-1];
 			getStringDraw(StringBuffer, false);
 			playMenuSound();
 		}
