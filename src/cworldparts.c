@@ -49,9 +49,9 @@ void CWorldParts_ClearPositionalItems(CWorldParts* self)
 	for (int i = 0; i < NrOfGroups; i++)
 	{
 		self->PositionalItemsCount[i] = 0;
-		for (int x = 0; x < NrOfCols; x++)
-			for (int y = 0; y < NrOfRows; y++)
-				self->PositionalItems[i][x][y] = NULL;
+		for (int y = 0; y < NrOfRows; y++)
+			for (int x = 0; x < NrOfCols; x++)
+				self->PositionalItems[i][y][x] = NULL;
 	}
 }
 
@@ -139,7 +139,7 @@ void CWorldParts_Remove(CWorldParts* self, int PlayFieldXin, int PlayFieldYin)
 				if (self->Items[Teller1]->Group != GroupNone)
 				{
 					self->PositionalItemsCount[self->Items[Teller1]->Group]--;
-					self->PositionalItems[self->Items[Teller1]->Group][self->Items[Teller1]->PlayFieldX][self->Items[Teller1]->PlayFieldY] = NULL;
+					self->PositionalItems[self->Items[Teller1]->Group][self->Items[Teller1]->PlayFieldY][self->Items[Teller1]->PlayFieldX] = NULL;
 				}
 
 				//remove from dirty list
@@ -184,7 +184,7 @@ void CWorldParts_RemoveType(CWorldParts* self, int Type)
 				if (self->Items[Teller1]->Group != GroupNone)
 				{
 					self->PositionalItemsCount[self->Items[Teller1]->Group]--;
-					self->PositionalItems[self->Items[Teller1]->Group][self->Items[Teller1]->PlayFieldX][self->Items[Teller1]->PlayFieldY] = NULL;
+					self->PositionalItems[self->Items[Teller1]->Group][self->Items[Teller1]->PlayFieldY][self->Items[Teller1]->PlayFieldX] = NULL;
 				}
 
 				//remove from dirty list
@@ -249,7 +249,7 @@ void CWorldParts_Add(CWorldParts* self, CWorldPart* WorldPart)
 		self->Items[self->ItemCount] = WorldPart;
 		if (WorldPart->Group != GroupNone)
 		{
-			self->PositionalItems[WorldPart->Group][WorldPart->PlayFieldX][WorldPart->PlayFieldY] = WorldPart;
+			self->PositionalItems[WorldPart->Group][WorldPart->PlayFieldY][WorldPart->PlayFieldX] = WorldPart;
 			self->PositionalItemsCount[WorldPart->Group]++;
 		}
 		self->ItemCount++;
@@ -271,9 +271,9 @@ bool CWorldParts_SavePositional(CWorldParts* self, char* Filename)
 				for (int x = 0; x < NrOfCols; x++)
 				{
 
-					if (self->PositionalItems[i][x][y] != self->IgnorePart)
+					if (self->PositionalItems[i][y][x] != self->IgnorePart)
 					{
-						Buffer[0] = (char)self->PositionalItems[i][x][y]->Type;
+						Buffer[0] = (char)self->PositionalItems[i][y][x]->Type;
 						Buffer[1] = (char)x;
 						Buffer[2] = (char)y;
 						ret = pd->file->write(Fp, Buffer, 3);
@@ -593,13 +593,13 @@ int CWorldParts_Draw(CWorldParts* self, bool BlackBackGround)
 				{
 					for (int x = startx; x <= endx; x++)
 					{
-						if (self->PositionalItems[i][x][y] && (self->PositionalItems[i][x][y] != self->IgnorePart))
+						if (self->PositionalItems[i][y][x] && (self->PositionalItems[i][y][x] != self->IgnorePart))
 						{
-							CWorldPart_Draw(self->PositionalItems[i][x][y], false, BlackBackGround, (self->LevelBitmap != NULL));
+							CWorldPart_Draw(self->PositionalItems[i][y][x], false, BlackBackGround, (self->LevelBitmap != NULL));
 							self->DrawCount++;
-							self->PositionalItems[i][x][y]->Dirty = false;
-							self->PositionalItems[i][x][y]->PrevDrawPlayFieldX = self->PositionalItems[i][x][y]->PlayFieldX;
-							self->PositionalItems[i][x][y]->PrevDrawPlayFieldY = self->PositionalItems[i][x][y]->PlayFieldY;
+							self->PositionalItems[i][y][x]->Dirty = false;
+							self->PositionalItems[i][y][x]->PrevDrawPlayFieldX = self->PositionalItems[i][y][x]->PlayFieldX;
+							self->PositionalItems[i][y][x]->PrevDrawPlayFieldY = self->PositionalItems[i][y][x]->PlayFieldY;
 						}
 					}
 				}
@@ -638,11 +638,11 @@ CWorldPart* CWorldParts_PartAtPosition(CWorldParts* self, int PlayFieldXin, int 
 
 	for (int Teller = 0; Teller < NrOfGroups; Teller++)
 	{
-		if (self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin])
+		if (self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin])
 		{
-			if (self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin] != self->IgnorePart)
+			if (self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin] != self->IgnorePart)
 			{
-				return self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin];
+				return self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin];
 			}
 		}
 	}
@@ -666,11 +666,11 @@ int CWorldParts_TypeAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFiel
 
 	for(int Teller = 0; Teller < NrOfGroups; Teller++)
 	{
-		if (self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin])
+		if (self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin])
 		{
-			if (self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin] != self->IgnorePart)
+			if (self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin] != self->IgnorePart)
 			{
-				return self->PositionalItems[Teller][PlayFieldXin][PlayFieldYin]->Type;
+				return self->PositionalItems[Teller][PlayFieldYin][PlayFieldXin]->Type;
 			}
 		}
 	}

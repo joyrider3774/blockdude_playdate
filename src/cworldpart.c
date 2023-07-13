@@ -156,9 +156,9 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 				{
 					if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
 					{
-						self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+						self->ParentList->PositionalItems[self->Group][self->PlayFieldY][self->PlayFieldX] = NULL;
 					}
-					self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+					self->ParentList->PositionalItems[self->Group][PlayFieldYin][PlayFieldXin] = self;
 				}
 
 				self->PlayFieldX = PlayFieldXin;
@@ -332,9 +332,9 @@ bool CWorldPart_MoveTo(CWorldPart* self, const int PlayFieldXin, const int PlayF
 					{
 						if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
 						{
-							self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+							self->ParentList->PositionalItems[self->Group][self->PlayFieldY][self->PlayFieldX] = NULL;
 						}
-						self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+						self->ParentList->PositionalItems[self->Group][PlayFieldYin][PlayFieldXin] = self;
 					}
 					self->PlayFieldX = PlayFieldXin;
 					self->PlayFieldY = PlayFieldYin;
@@ -547,9 +547,9 @@ bool CWorldPart_SetPosition(CWorldPart* self, const int PlayFieldXin, const int 
 			{
 				if ((self->PlayFieldX >= 0) && (self->PlayFieldY >= 0))
 				{
-					self->ParentList->PositionalItems[self->Group][self->PlayFieldX][self->PlayFieldY] = NULL;
+					self->ParentList->PositionalItems[self->Group][self->PlayFieldY][self->PlayFieldX] = NULL;
 				}
-				self->ParentList->PositionalItems[self->Group][PlayFieldXin][PlayFieldYin] = self;
+				self->ParentList->PositionalItems[self->Group][PlayFieldYin][PlayFieldXin] = self;
 			}
 			self->PlayFieldX = PlayFieldXin;
 			self->PlayFieldY = PlayFieldYin;

@@ -15,7 +15,7 @@ struct CWorldParts {
 	bool AttchedBoxQuedOrMoving;
 	CViewPort* ViewPort;
 	CWorldPart* Items[NrOfRows*NrOfCols];
-	CWorldPart* PositionalItems[NrOfGroups][NrOfCols][NrOfRows];	
+	CWorldPart* PositionalItems[NrOfGroups][NrOfRows][NrOfCols];
 	CWorldPart* Player;
 	CWorldPart* IgnorePart;
 	CWorldPart* DirtyList[NrOfRows * NrOfCols];
