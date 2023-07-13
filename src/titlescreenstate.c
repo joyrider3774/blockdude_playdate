@@ -612,7 +612,23 @@ void TitleScreen()
 			if (FoundLevelPacks > 0)
 			{
 				char* text;
-				pd->system->formatString(&text, "Pack:%s", LevelPacks[CurrentLevelPackIndex]);
+				bool isInternal = false;
+				for (int i = 0; i < InternalLevelPackCount; i++)
+				{
+					if (strcmp(InternalLevelPacks[i], LevelPacks[CurrentLevelPackIndex]) == 0)
+					{
+						isInternal = true;
+						break;
+					}
+				}
+				if (isInternal)
+				{
+					pd->system->formatString(&text, "Cur*:%s", LevelPacks[CurrentLevelPackIndex]);
+				}
+				else
+				{
+					pd->system->formatString(&text, "Cur:%s", LevelPacks[CurrentLevelPackIndex]);
+				}
 				pd->graphics->drawText(text, strlen(text), kASCIIEncoding, 120, 80);
 				pd->system->realloc(text, 0);
 			}

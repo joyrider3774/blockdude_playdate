@@ -29,6 +29,7 @@
 #define NrOfRows 50
 #define NrOfCols 50
 #define MaxLevelPacks 25
+#define InternalLevelPackCount 1
 #define MaxLenLevelPackName 6
 
 #define IDEmpty 1
@@ -162,6 +163,7 @@ extern char* levelext;
 extern char* GetStringResult;
 extern LCDFont *Nano, *Mini, *Mini2X;
 extern char* LevelPacks[MaxLevelPacks];
+extern const char* InternalLevelPacks[InternalLevelPackCount];
 extern const char* blockNames[];
 extern const char* skins[];
 extern int skin;
