@@ -85,7 +85,7 @@ The game uses some assets from assets packs i had bought, which you can not reus
 - pickup & drop sound: medieval fantasy sfx pack: https://www.gamedevmarket.net/asset/medieval-fantasy-sfx-pack-1061/
 - walk & jump & fall down: Gamemaster Audio - Pro Sound Collection v1.3 - 16bit: https://www.gamedevmarket.net/asset/pro-sound-collection/
 
-The audio is was created by Don Skeeto for the gp2x version and is reused in this version of the game.
+The music was created by Don Skeeto for the gp2x version and is reused in this version of the game.
 
 The game has 5 skins using tilesets created by different people / games
 - Default Skin: Based on a Remake of the flatskin made for the gp2x version by Fusion Power
