@@ -17,7 +17,9 @@ The player will automatically jump on higher level blocks or ground if you keep 
 If the level is bigger than what the playdate screen can display there will be a "freeview option" when pressing the menu button on the playdate and choosing this menu option will allow you to pan around the level using the dpad.
 
 ## Level Editor
-The game includes a level editor, to create your own levels and level packs which you can share with other people
+The game includes a level editor, to create your own levels and level packs which you can share with other people, the level editor is only usable in the playdate version
+
+NOTE: the windows SDL2 api lacks support for menu's and the crank currently, making it not possible to use the level editor inside the windows version, you can however create levels in the (windows) playdate simulator.
 
 ### Level Editor Main Menu:
 - Cur: [pack name]: The currently selected level pack, you can cycle between other level packs by pressing left or right on the dpad and select it to either play or create levels by pressing a here. if there is an asterix displayed before the level packname name this means it is a internal level pack supplied with the game.
