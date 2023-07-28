@@ -14,6 +14,7 @@
 
 #define DebugInfoDefault false
 #define ShowFpsDefault false
+#define BatteryMonitoring false
 
 #define MAXSKINS 5
 #define WINDOW_WIDTH 400
@@ -175,7 +176,7 @@ extern int IntroScreenNr;
 extern int framecounter;
 extern CSelector* Selector;
 extern size_t MaxLenGetString;
-
+extern unsigned int prevLogTime;
 void setPDPtr(PlaydateAPI* p);
 
 #endif

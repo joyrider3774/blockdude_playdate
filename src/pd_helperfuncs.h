@@ -8,5 +8,6 @@ void DrawBitmapSrcRec(LCDBitmap* Bitmap, int dstX, int dstY, int srcX, int srcY,
 LCDFont* loadFontAtPath(const char* path);
 LCDBitmap* loadImageAtPath(const char* path);
 LCDBitmapTable* loadBitmapTableAtPath(const char* path);
+unsigned int logPower(const char* filename, unsigned int logIntervalSeconds, unsigned int prevLogTime);
 
 #endif

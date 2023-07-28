@@ -41,7 +41,7 @@ int framecounter = 0;
 size_t MaxLenGetString = 0;
 CWorldParts* WorldParts;
 CSelector* Selector;
-
+unsigned int prevLogTime = 0u;
 void setPDPtr(PlaydateAPI* p) {
     pd = p;
 }

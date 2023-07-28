@@ -12,6 +12,8 @@
 #include "pd_helperfuncs.h"
 #include "crank.h"
 
+int movedir = -1;
+int moveticks = 5 * FRAMERATE;
 
 bool StageDone(CWorldPart* Player)
 {
@@ -47,7 +49,15 @@ void Game(void)
 		GameInit();
 		GameState -= GSDiff;
 	}
-
+	if (BatteryMonitoring)
+	{
+		moveticks--;
+		if (moveticks == 0)
+		{
+			movedir *= -1;
+			moveticks = 3 * FRAMERATE;
+		}
+	}
 	if (!FreeView && !AskingQuestion && ((currButtons & kButtonB) && (!(prevButtons & kButtonB))))
 	{
 		DestroyMenuItems();
@@ -268,7 +278,7 @@ void Game(void)
 				if (!AskingQuestion && !WorldParts->Player->IsMoving && !WorldParts->AttchedBoxQuedOrMoving)
 				{
 					unsigned int crankResult = crankUpdate();
-					if ((currButtons & kButtonLeft) || (crankResult == CRANKMOVELEFT))
+					if ((BatteryMonitoring && (movedir == -1)) || (currButtons & kButtonLeft) || (crankResult == CRANKMOVELEFT))
 					{
 						if (CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX - 1, WorldParts->Player->PlayFieldY))
 						{
@@ -281,7 +291,7 @@ void Game(void)
 						}
 					}
 
-					if ((currButtons & kButtonRight) || (crankResult == CRANKMOVERIGHT))
+					if ((BatteryMonitoring && (movedir == 1)) || (currButtons & kButtonRight) || (crankResult == CRANKMOVERIGHT))
 					{
 						if (CWorldPart_MoveTo(WorldParts->Player, WorldParts->Player->PlayFieldX + 1, WorldParts->Player->PlayFieldY))
 						{

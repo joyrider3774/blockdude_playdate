@@ -57,3 +57,28 @@ void DrawBitmapScaledSrcRec(LCDBitmap* Bitmap, float xscale, float yscale, int d
 	pd->graphics->setDrawOffset(0, 0);
 	pd->graphics->clearClipRect();
 }
+
+unsigned int logPower(const char* filename, unsigned int logIntervalSeconds, unsigned int prevLogTime)
+{
+	unsigned int s = pd->system->getSecondsSinceEpoch(NULL);
+	if(s - prevLogTime >= logIntervalSeconds)
+	{
+		float p = pd->system->getBatteryPercentage();
+		float v = pd->system->getBatteryVoltage();
+		SDFile* file = pd->file->open(filename, kFileAppend);
+		if (file)
+		{
+			char* line;
+			pd->system->formatString(&line, "%d, %f, %f\n", s, p, v);
+			pd->file->write(file, line, (unsigned int)strlen(line));
+			pd->system->realloc(line, 0);
+			//simulator crashes on windows when calling flush
+#ifndef _WIN32
+			pd->file->flush(file);
+#endif
+			pd->file->close(file);
+		}
+		return s;
+	}
+	return prevLogTime;
+}

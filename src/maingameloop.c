@@ -13,6 +13,7 @@
 #include "leveleditorstate.h"
 #include "introstate.h"
 #include "pd_api.h"
+#include "pd_helperfuncs.h"
 
 // game initialization
 void setupGame(void)
@@ -34,7 +35,6 @@ void setupGame(void)
 int mainLoop(void* ud)
 {
     int result = 1;
-
     prevButtons = currButtons;
     pd->system->getButtonState(&currButtons, NULL, NULL);
 
@@ -85,7 +85,10 @@ int mainLoop(void* ud)
         pd->system->realloc(Text, 0);
         pd->graphics->popContext();
     }
-
-
+    if (BatteryMonitoring)
+    {
+        pd->system->setAutoLockDisabled(true);
+        prevLogTime = logPower("power.csv", 60u, prevLogTime);
+    }
     return result;
 }
