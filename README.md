@@ -75,3 +75,21 @@ feel free to contact me if you created some good levels and want your level pack
 | A Button | Confirm in menu and level selector, pickup or drop a block in game mode |
 | B Button | Back in menu, level selector and game |
 
+## Credits
+The Blockdude game idea was created by Soleau Software for the dos blockman game and Brandon Sterner for the Ti Calculator based game. I don't know who invented the idea first.
+
+The Game uses 21 levels from the Soleau Software blockman dos game. At The time i had created the gp2x version i had gotten approval to use these levels
+
+The game uses some assets from assets packs i had bought, which you can not reuse without acquiring a valid license for them:
+- stage end Sound: game music stingers and ui sfx pack 2 https://www.gamedevmarket.net/asset/game-music-stingers-and-ui-sfx-pack-2/
+- pickup & drop sound: medieval fantasy sfx pack: https://www.gamedevmarket.net/asset/medieval-fantasy-sfx-pack-1061/
+- walk & jump & fall down: Gamemaster Audio - Pro Sound Collection v1.3 - 16bit: https://www.gamedevmarket.net/asset/pro-sound-collection/
+
+The audio is was created by Don Skeeto for the gp2x version and is reused in this version of the game.
+
+The game has 5 skins using tilesets created by different people / games
+- Default Skin: Based on a Remake of the flatskin made for the gp2x version by Fusion Power
+- Tech Skin: Based on a skin made for the gp2x version by fusion power
+- Ti Skin: Based on the assets from the Ti calculator game by brandon Sterner 
+- Kenney skin: Based on the 1 bit platformer pack https://kenney-assets.itch.io/1-bit-platformer-pack - https://www.kenney.nl
+- Flat Skin: Based on the flash game created by Klas Kroon and Kris Katiesen, i had gotten permission at the time of creating the gp2x version to use these assets
