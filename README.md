@@ -1,4 +1,6 @@
 # Blockdude Playdate Version
+![DownloadCountTotal](https://img.shields.io/github/downloads/joyrider3774/blockdude_playdate/total?label=total%20downloads&style=plastic) ![DownloadCountLatest](https://img.shields.io/github/downloads/joyrider3774/blockdude_playdate/latest/total?style=plastic) ![LatestVersion](https://img.shields.io/github/v/tag/joyrider3774/blockdude_playdate?label=Latest%20version&style=plastic) ![License](https://img.shields.io/github/license/joyrider3774/blockdude_playdate?style=plastic)
+
 Blokdude is a remake of the well known TI Caluculator game from Brandon Sterner as well as the blockman game from Soleau Software. 
 This version of the game is based on the GP2X port of blockdude i made over a decade ago.
 
