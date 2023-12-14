@@ -183,6 +183,7 @@ void saveSaveState(void)
     {
         pd->system->error("Couldn’t open savestate file for writing!");
         pd->system->logToConsole(pd->file->geterr());
+        return;
     }
 
     saveTime = pd->system->getCurrentTimeMilliseconds();
