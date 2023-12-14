@@ -1,4 +1,6 @@
 # Blockdude Playdate Version
+![DownloadCountTotal](https://img.shields.io/github/downloads/joyrider3774/blockdude_playdate/total?label=total%20downloads&style=plastic) ![DownloadCountLatest](https://img.shields.io/github/downloads/joyrider3774/blockdude_playdate/latest/total?style=plastic) ![LatestVersion](https://img.shields.io/github/v/tag/joyrider3774/blockdude_playdate?label=Latest%20version&style=plastic) ![License](https://img.shields.io/github/license/joyrider3774/blockdude_playdate?style=plastic)
+
 Blokdude is a remake of the well known TI Caluculator game from Brandon Sterner as well as the blockman game from Soleau Software. 
 This version of the game is based on the GP2X port of blockdude i made over a decade ago.
 
@@ -85,7 +87,7 @@ The game uses some assets from assets packs i had bought, which you can not reus
 - pickup & drop sound: medieval fantasy sfx pack: https://www.gamedevmarket.net/asset/medieval-fantasy-sfx-pack-1061/
 - walk & jump & fall down: Gamemaster Audio - Pro Sound Collection v1.3 - 16bit: https://www.gamedevmarket.net/asset/pro-sound-collection/
 
-The audio is was created by Don Skeeto for the gp2x version and is reused in this version of the game.
+The music was created by Don Skeeto for the gp2x version and is reused in this version of the game.
 
 The game has 5 skins using tilesets created by different people / games
 - Default Skin: Based on a Remake of the flatskin made for the gp2x version by Fusion Power
