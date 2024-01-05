@@ -136,6 +136,7 @@ void deInitSound(void)
     FreeSample(jumpSound);
     FreeSample(walkSound);
     FreeSample(fallSound);
+	FreeSample(menuBackSound);
 
     FreeSoundPlayer(levelDoneSoundPlayer);
     FreeSoundPlayer(errorSoundPlayer);
@@ -146,6 +147,7 @@ void deInitSound(void)
     FreeSoundPlayer(jumpSoundPlayer);
     FreeSoundPlayer(walkSoundPlayer);
     FreeSoundPlayer(fallSoundPlayer);
+	FreeSoundPlayer(menuBackSoundPlayer);
 }
 
 void playMusicFile(const char* path, int repeat)

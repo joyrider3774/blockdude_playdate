@@ -106,12 +106,17 @@ void StageSelect()
 		{
 			pd->graphics->clear(kColorWhite);
 		}
+#ifdef SDL2API
+		pd->graphics->clear(kColorClear);
+#endif
 
 		if (WorldParts->LevelBitmap)
 		{
 			pd->graphics->popContext();
 		}
-		//pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+#ifdef SDL2API		
+		pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+#endif
 		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)
 		{

@@ -18,214 +18,224 @@
 
 void UnLoadGraphics()
 {
+	if (IMGBackground)
+	{
+		pd->graphics->freeBitmap(IMGBackground);
+		IMGBackground = NULL;
+	}
+
 	if (IMGExit)
+	{
 		pd->graphics->freeBitmapTable(IMGExit);
+		IMGExit = NULL;
+	}
 
 	if (IMGFloor)
+	{
 		pd->graphics->freeBitmapTable(IMGFloor);
+		IMGFloor = NULL;
+	}
 
 	if (IMGPlayer)
+	{
 		pd->graphics->freeBitmapTable(IMGPlayer);
+		IMGPlayer = NULL;
+	}
 
 	if (IMGBox)
+	{
 		pd->graphics->freeBitmapTable(IMGBox);
+		IMGBox = NULL;
+	}
 
 	if (IMGEmpty)
+	{
 		pd->graphics->freeBitmapTable(IMGEmpty);
+		IMGEmpty = NULL;
+	}
 
 	if (IMGFloorLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGFloorLeft);
+		IMGFloorLeft = NULL;
+	}
 
 	if (IMGFloorRight)
+	{
 		pd->graphics->freeBitmapTable(IMGFloorRight);
+		IMGFloorRight = NULL;
+	}
 
 	if (IMGEarthGrassRight)
+	{
 		pd->graphics->freeBitmapTable(IMGEarthGrassRight);
+		IMGEarthGrassRight = NULL;
+	}
 
 	if (IMGEarthGrassLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGEarthGrassLeft);
+		IMGEarthGrassLeft = NULL;
+	}
 
 	if (IMGEarthLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGEarthLeft);
+		IMGEarthLeft = NULL;
+	}
 
 	if (IMGEarthRight)
+	{
 		pd->graphics->freeBitmapTable(IMGEarthRight);
+		IMGEarthRight = NULL;
+	}
 
 	if (IMGEarthMiddle)
+	{
 		pd->graphics->freeBitmapTable(IMGEarthMiddle);
+		IMGEarthMiddle = NULL;
+	}
 
 	if (IMGFloatingFloor)
+	{
 		pd->graphics->freeBitmapTable(IMGFloatingFloor);
+		IMGFloatingFloor = NULL;
+	}
 
 	if (IMGFloatingFloorLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGFloatingFloorLeft);
+		IMGFloatingFloorLeft = NULL;
+	}
 
 	if (IMGFloatingFloorRight)
+	{
 		pd->graphics->freeBitmapTable(IMGFloatingFloorRight);
+		IMGFloatingFloorRight = NULL;
+	}
 
 	if (IMGFloatingFloorMiddle)
+	{
 		pd->graphics->freeBitmapTable(IMGFloatingFloorMiddle);
+		IMGFloatingFloorMiddle = NULL;
+	}
 
 	if (IMGTower)
+	{
 		pd->graphics->freeBitmapTable(IMGTower);
+		IMGTower = NULL;
+	}
 
 	if (IMGStartTower)
+	{
 		pd->graphics->freeBitmapTable(IMGStartTower);
+		IMGStartTower = NULL;
+	}
 
 	if (IMGTowerShaft)
+	{
 		pd->graphics->freeBitmapTable(IMGTowerShaft);
+		IMGTowerShaft = NULL;
+	}
 
 	if (IMGRoof1)
+	{
 		pd->graphics->freeBitmapTable(IMGRoof1);
+		IMGRoof1 = NULL;
+	}
 
 	if (IMGRoof2)
+	{
 		pd->graphics->freeBitmapTable(IMGRoof2);
+		IMGRoof2 = NULL;
+	}
 
 	if (IMGRoofCornerLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGRoofCornerLeft);
+		IMGRoofCornerLeft = NULL;
+	}
 
 	if (IMGRoofCornerRight)
+	{
 		pd->graphics->freeBitmapTable(IMGRoofCornerRight);
+		IMGRoofCornerRight = NULL;
+	}
 
 	if (IMGRoofDownRight)
+	{
 		pd->graphics->freeBitmapTable(IMGRoofDownRight);
+		IMGRoofDownRight = NULL;
+	}
 
 	if (IMGRoofDownLeft)
+	{
 		pd->graphics->freeBitmapTable(IMGRoofDownLeft);
+		IMGRoofDownLeft = NULL;
+	}
 
 	if (IMGRoofCornerBoth)
+	{
 		pd->graphics->freeBitmapTable(IMGRoofCornerBoth);
+		IMGRoofCornerBoth = NULL;
+	}
 
 	if (IMGSelection)
+	{
 		pd->graphics->freeBitmap(IMGSelection);
+		IMGSelection = NULL;
+	}
 
 	if (IMGGrid)
+	{
 		pd->graphics->freeBitmap(IMGGrid);
+		IMGGrid = NULL;
+	}
 
 	if (IMGIntro1)
+	{
 		pd->graphics->freeBitmap(IMGIntro1);
+		IMGIntro1 = NULL;
+	}
 
 	if (IMGIntro2)
+	{
 		pd->graphics->freeBitmap(IMGIntro2);
+		IMGIntro2 = NULL;
+	}
 
 	if (IMGIntro3)
+	{
 		pd->graphics->freeBitmap(IMGIntro3);
+		IMGIntro3 = NULL;
+	}
 	
 	if (IMGIntro4)
+	{
 		pd->graphics->freeBitmap(IMGIntro4);
+		IMGIntro4 = NULL;
+	}
 
 	if (IMGTitleScreen)
+	{
 		pd->graphics->freeBitmap(IMGTitleScreen);
+		IMGTitleScreen = NULL;
+	}
 }
-
 
 void LoadGraphics(void)
 {
 	char *Filename;
 
-	if (IMGExit)
-		pd->graphics->freeBitmapTable(IMGExit);
+	UnLoadGraphics();
 
-	if (IMGFloor)
-		pd->graphics->freeBitmapTable(IMGFloor);
-
-	if (IMGPlayer)
-		pd->graphics->freeBitmapTable(IMGPlayer);
-
-	if (IMGBox)
-		pd->graphics->freeBitmapTable(IMGBox);
-
-	if (IMGEmpty)
-		pd->graphics->freeBitmapTable(IMGEmpty);
-
-	if (IMGFloorLeft)
-		pd->graphics->freeBitmapTable(IMGFloorLeft);
-
-	if (IMGFloorRight)
-		pd->graphics->freeBitmapTable(IMGFloorRight);
-
-	if (IMGEarthGrassRight)
-		pd->graphics->freeBitmapTable(IMGEarthGrassRight);
-
-	if (IMGEarthGrassLeft)
-		pd->graphics->freeBitmapTable(IMGEarthGrassLeft);
-
-	if (IMGEarthLeft)
-		pd->graphics->freeBitmapTable(IMGEarthLeft);
-
-	if (IMGEarthRight)
-		pd->graphics->freeBitmapTable(IMGEarthRight);
-
-	if (IMGEarthMiddle)
-		pd->graphics->freeBitmapTable(IMGEarthMiddle);
-
-	if (IMGFloatingFloor)
-		pd->graphics->freeBitmapTable(IMGFloatingFloor);
-
-	if (IMGFloatingFloorLeft)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorLeft);
-
-	if (IMGFloatingFloorRight)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorRight);
-
-	if (IMGFloatingFloorMiddle)
-		pd->graphics->freeBitmapTable(IMGFloatingFloorMiddle);
-
-	if (IMGTower)
-		pd->graphics->freeBitmapTable(IMGTower);
-
-	if (IMGStartTower)
-		pd->graphics->freeBitmapTable(IMGStartTower);
-
-	if (IMGTowerShaft)
-		pd->graphics->freeBitmapTable(IMGTowerShaft);
-
-	if (IMGRoof1)
-		pd->graphics->freeBitmapTable(IMGRoof1);
-
-	if (IMGRoof2)
-		pd->graphics->freeBitmapTable(IMGRoof2);
-
-	if (IMGRoofCornerLeft)
-		pd->graphics->freeBitmapTable(IMGRoofCornerLeft);
-
-	if (IMGRoofCornerRight)
-		pd->graphics->freeBitmapTable(IMGRoofCornerRight);
-
-	if (IMGRoofDownRight)
-		pd->graphics->freeBitmapTable(IMGRoofDownRight);
-
-	if (IMGRoofDownLeft)
-		pd->graphics->freeBitmapTable(IMGRoofDownLeft);
-
-	if (IMGRoofCornerBoth)
-		pd->graphics->freeBitmapTable(IMGRoofCornerBoth);
-
-	if (IMGGrid)
-		pd->graphics->freeBitmap(IMGGrid);
-
-	if (IMGSelection)
-		pd->graphics->freeBitmap(IMGSelection);
-
-	if (IMGIntro1)
-		pd->graphics->freeBitmap(IMGIntro1);
-
-	if (IMGIntro2)
-		pd->graphics->freeBitmap(IMGIntro2);
-
-	if (IMGIntro3)
-		pd->graphics->freeBitmap(IMGIntro3);
+	pd->system->formatString(&Filename, "skins/%s/background", skins[skin]);
+	IMGBackground = loadImageAtPath(Filename);
+	pd->system->realloc(Filename, 0);
 	
-	if (IMGIntro4)
-		pd->graphics->freeBitmap(IMGIntro4);
-
-	if (IMGTitleScreen)
-		pd->graphics->freeBitmap(IMGTitleScreen);
-
 	pd->system->formatString(&Filename, "skins/%s/selection", skins[skin]);
 	IMGSelection = loadImageAtPath(Filename);
 	pd->system->realloc(Filename, 0);
-
 
 	pd->system->formatString(&Filename, "skins/%s/grid", skins[skin]);
 	IMGGrid = loadImageAtPath(Filename);

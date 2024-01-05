@@ -49,6 +49,9 @@ void LevelEditor(void)
 		//always redraw everything in case of none levelbitmap mode
 		WorldParts->AllDirty |= WorldParts->LevelBitmap == NULL;
 		CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+		#ifdef SDL2API		
+			pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+		#endif
 		CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 		if (WorldParts->LevelBitmap)
 		{
@@ -122,7 +125,9 @@ void LevelEditor(void)
 				{
 					pd->graphics->fillRect(Selector->Part->PlayFieldX * TileWidth, Selector->Part->PlayFieldY * TileHeight, TileWidth, TileHeight, kColorWhite);
 				}
-
+#ifdef SDL2API
+				pd->graphics->fillRect(Selector->Part->PlayFieldX * TileWidth, Selector->Part->PlayFieldY * TileHeight, TileWidth, TileHeight, kColorClear);
+#endif
 				if (WorldParts->LevelBitmap)
 				{
 					pd->graphics->popContext();

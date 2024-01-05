@@ -29,5 +29,6 @@ CViewPort* CViewPort_Create(int MinX, int MinY, int MaxX, int MaxY, int MinX2, i
 void CViewPort_SetVPLimit(CViewPort* self, int MinX, int MinY, int MaxX, int MaxY);
 bool CViewPort_Move(CViewPort* self, int Xi, int Yi);
 void CViewPort_SetViewPort(CViewPort* self, int MinX, int MinY, int MaxX, int MaxY);
+void CViewPort_deinit(CViewPort* self);
 
 #endif

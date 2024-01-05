@@ -474,6 +474,9 @@ int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 		{
 			pd->graphics->clear(kColorWhite);
 		}
+#ifdef SDL2API
+			pd->graphics->clear(kColorClear);
+#endif
 		if (self->LevelBitmap)
 		{
 			pd->graphics->popContext();
@@ -496,7 +499,11 @@ int CWorldParts_ClearDirty(CWorldParts* self, bool BlackBackGround)
 			(self->DirtyList[Teller]->PrevDrawPlayFieldY >= self->ViewPort->VPMinY) && (self->DirtyList[Teller]->PrevDrawPlayFieldY -1 <= self->ViewPort->VPMaxY)))
 		{
 			//CWorldPart_Draw(self->DirtyList[Teller], true, BlackBackGround, (self->LevelBitmap != NULL));
+#ifdef SDL2API
+			pd->graphics->fillRect(self->DirtyList[Teller]->PrevDrawX, self->DirtyList[Teller]->PrevDrawY, TileWidth, TileHeight, kColorClear);
+#else
 			pd->graphics->fillRect(self->DirtyList[Teller]->PrevDrawX, self->DirtyList[Teller]->PrevDrawY, TileWidth, TileHeight, BlackBackGround ? kColorBlack: kColorWhite);
+#endif
 			self->DirtyClearedCount++;
 		}
 	}
@@ -680,6 +687,14 @@ int CWorldParts_TypeAtPosition(CWorldParts* self, int PlayFieldXin, int PlayFiel
 
 void CWorldParts_deinit(CWorldParts* self)
 {
+	if(!self)
+		return;
 	CWorldParts_RemoveAll(self);
-	pd->system->realloc(self->ViewPort, 0);
+	CViewPort_deinit(self->ViewPort);
+	if (self->LevelBitmap)
+	{
+		pd->graphics->freeBitmap(self->LevelBitmap);
+	}
+	free(self);
+	self = NULL;
 }

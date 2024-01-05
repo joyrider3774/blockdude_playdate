@@ -241,5 +241,9 @@ void CSelector_Draw(CSelector* self)
 
 void CSelector_deinit(CSelector* self)
 {
+	if(!self)
+		return;
 	pd->system->realloc(self->Part, 0);
+	pd->system->realloc(self, 0);
+	self = NULL;
 }

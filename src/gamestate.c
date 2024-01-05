@@ -326,6 +326,9 @@ void Game(void)
 				WorldParts->AllDirty = true;
 			}
 			CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+			#ifdef SDL2API		
+				pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+			#endif
 			CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 			if (WorldParts->LevelBitmap)
 			{
@@ -356,6 +359,9 @@ void Game(void)
 			//to one extra move & draw to make sure boxes are on final spot
 			CWorldParts_Move(WorldParts);
 			CWorldParts_ClearDirty(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
+#ifdef SDL2API
+			pd->graphics->drawBitmap(IMGBackground, 0, 0, kBitmapUnflipped);
+#endif
 			CWorldParts_Draw(WorldParts, ((skinSaveState() == 1) || (skinSaveState() == 4)));
 			if (WorldParts->LevelBitmap)
 			{

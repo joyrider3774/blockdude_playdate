@@ -15,9 +15,37 @@
 #include "pd_api.h"
 #include "pd_helperfuncs.h"
 
+void resetGlobals()
+{
+	GameState = GSIntroInit;
+	SelectedLevel = 0;
+	NeedRedraw = 1;
+	AskingQuestionID = -1;
+	titleStep = tsMainMenu;
+	titleSelection = 0;
+	Option = opMusicSound;
+	InstalledLevels = 0;
+	CurrentLevelPackIndex = 0;
+	FoundLevelPacks = 0;
+	GetStringId = -1;
+	GetStringX = 0;
+	GetStringY = 0;
+	AskingQuestion = false;
+	FreeView = false;
+	LevelEditorMode = false;
+	LevelEditorPlayMode = false;
+	NeedToReloadGraphics = false;
+	AskingGetString = false;
+	IntroScreenNr = 1;
+	framecounter = 0;
+	MaxLenGetString = 0;
+	prevLogTime = 0u;
+}
+
 // game initialization
 void setupGame(void)
 {  
+	resetGlobals();
     GameState = GSIntroInit;
     initSaveState();
     initSound();
@@ -29,6 +57,15 @@ void setupGame(void)
     LoadFonts();
     WorldParts = CWorldParts_Create(true);
     Selector = CSelector_Create(WorldParts);
+}
+
+void terminateGame(void)
+{
+	deInitSound();
+	deInitMusic();
+	UnLoadGraphics();
+	CWorldParts_deinit(WorldParts);
+	CSelector_deinit(Selector);
 }
 
 // main update function

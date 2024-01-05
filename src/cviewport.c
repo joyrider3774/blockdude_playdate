@@ -164,3 +164,11 @@ CViewPort* CViewPort_Create(int MinX, int MinY, int MaxX, int MaxY, int MinX2, i
 	}
 	return Result;
 }
+
+void CViewPort_deinit(CViewPort* self)
+{
+	if(!self)
+		return;
+	pd->system->realloc(self, 0);
+	self = NULL;
+}

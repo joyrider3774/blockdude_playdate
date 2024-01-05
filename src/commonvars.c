@@ -26,7 +26,7 @@ const char* blockNames[] = {"None", "Eraser", "Player", "Box", "Middle Earth Gra
 const char* skins[] = { "Default", "Tech", "Flat", "Ti-83", "Kenney"};
 char* LevelPacks[MaxLevelPacks];
 const char* InternalLevelPacks[InternalLevelPackCount] = { "davy" };
-LCDBitmap * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, * IMGIntro4 = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
+LCDBitmap *IMGBackground = NULL, * IMGIntro1 = NULL, *IMGIntro2 = NULL, *IMGIntro3 = NULL, * IMGIntro4 = NULL, *IMGTitleScreen = NULL, * IMGGrid = NULL, *IMGSelection = NULL;
 
 LCDFont* Nano, * Mini, * Mini2X;
 
