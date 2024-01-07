@@ -53,6 +53,10 @@ Level packs are saved in the data folder of the game under the "levels" folder. 
 The other people will just need to extract your level pack in the same folder on their own playdate and the levels will appear on their playdate as well. 
 feel free to contact me if you created some good levels and want your level pack to be included as an internal level pack in the download of the game
 
+## Play version with colored graphics
+The windows, mac, (self build) linux and html (web assembly) versions can switch out the default playdate graphics with colored graphics if you press the F3 button on the keyboard or the X Button on your (xbox) gamepad. 
+The game will restart with the next source folder and remember which source folder you are using the next time you start the game.
+
 ## Controls 
 | Button | Action |
 | ------ | ------ |
@@ -68,7 +72,12 @@ feel free to contact me if you created some good levels and want your level pack
 | X | Confirm in menu and level selector, pickup or drop a block in game mode |
 | C | Back in menu, level selector and game |
 | F | Switch between fullscreen & windowed mode |
+| F3 | Switch Source Folders (switch between playdate and colored graphics) |
 | F4 | Quit game |
+| F5 | Dock Crank |
+| F6 | Undock Crank |
+| F7 | Hold to move Crank backwards, prev block in level editor |
+| F8 | Hold to move Crank forwards, next block in level editor |
 
 ## Controls Windows (Gamepad)
 | Button | Action |
@@ -76,6 +85,11 @@ feel free to contact me if you created some good levels and want your level pack
 | dpad & joystick | Select menu's, options or levels to play. During gameplay move the player left or right. |
 | A Button | Confirm in menu and level selector, pickup or drop a block in game mode |
 | B Button | Back in menu, level selector and game |
+| X Button | Switch Source Folders (switch between playdate and colored graphics) |
+| LT | Dock Crank |
+| RT | Undock Crank |
+| LB | Hold to move Crank backwards, prev block in level editor |
+| RB | Hold to move Crank forwards, next block in level editor |
 
 ## Credits
 The Blockdude game idea was created by Soleau Software for the dos blockman game and Brandon Sterner for the Ti Calculator based game. I don't know who invented the idea first.
