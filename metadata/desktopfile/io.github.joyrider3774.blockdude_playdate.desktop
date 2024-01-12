@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+
+Name=Blockdude Playdate
+Comment=A platform puzzle game where you move boxes to reach the exit.
+Categories=Game;LogicGame;
+
+Icon=io.github.joyrider3774.blockdude_playdate
+Exec=blockdude_playdate
+Terminal=false
+
+

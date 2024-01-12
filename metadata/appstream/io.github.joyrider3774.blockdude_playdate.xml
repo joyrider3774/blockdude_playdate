@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.joyrider3774.blockdude_playdate</id>
+  
+  <name>Blockdude Playdate</name>
+  <summary>A platform puzzle game where you move boxes to reach the exit.</summary>
+  
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+  
+  <description>
+    <p>
+      Blokdude playdate is a remake of the well known TI Caluculator puzzle game from Brandon Sterner as well as the blockman game from Soleau Software. This version of the game is based on the GP2X port of blockdude that was made over a decade ago.
+    </p>
+    <p>
+      The aim of the game, in any level, is to move the player to the exit door. You will need to create a path to this exit door by picking up blocks and placing them on strategic locations so you can reach the exit door. The player will automatically jump on higher level blocks or ground if you keep moving left or right in front of them.
+    </p>
+    <p>
+      There are 21 levels from original blockman game by Soleau Software and 4 levels made by me, 5 skins to choose from and a Level Editor to create your own levels and level packs to share with others
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">io.github.joyrider3774.blockdude_playdate.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/joyrider3774/blockdude_playdate/main/metadata/screenshots/screenshot10.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/joyrider3774/blockdude_playdate/main/metadata/screenshots/screenshot1.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/joyrider3774/blockdude_playdate/main/metadata/screenshots/screenshot8.png</image>
+    </screenshot>
+  </screenshots>
+</component>
