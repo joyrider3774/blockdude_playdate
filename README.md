@@ -58,6 +58,7 @@ The windows, mac, (self build) linux and html (web assembly) versions can switch
 The game will restart with the next source folder and remember which source folder you are using the next time you start the game.
 
 ## Controls 
+
 | Button | Action |
 | ------ | ------ |
 | Dpad or Crank | Select menu's, options or levels to play. During gameplay move the player left or right. During level editor mode, select a different level piece with the crank |
@@ -66,6 +67,7 @@ The game will restart with the next source folder and remember which source fold
 | Menu button | All kind of different options depending on when you press this button in the game |
 
 ## Controls Windows (keyboard)
+
 | Key | Action |
 | ------ | ------ |
 | Arrow keys | Select menu's, options or levels to play. During gameplay move the player left or right. |
@@ -80,6 +82,7 @@ The game will restart with the next source folder and remember which source fold
 | F8 | Hold to move Crank forwards, next block in level editor |
 
 ## Controls Windows (Gamepad)
+
 | Button | Action |
 | ------ | ------ |
 | dpad & joystick | Select menu's, options or levels to play. During gameplay move the player left or right. |
