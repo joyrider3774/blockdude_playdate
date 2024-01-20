@@ -1,0 +1,8 @@
+{
+"package":"io.github.joyrider3774.blockdude",
+"label":"Blockdude",
+"icon":"icon.png",
+"iconsel":"icon.png",
+"launch":"launch.sh",
+"description":"Blockdude Playdate Created by Joyrider3774"
+}
