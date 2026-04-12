@@ -66,6 +66,7 @@ void terminateGame(void)
 	UnLoadGraphics();
 	CWorldParts_deinit(WorldParts);
 	CSelector_deinit(Selector);
+	DestroyMenuItems();
 }
 
 // main update function
