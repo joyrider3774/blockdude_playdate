@@ -14,6 +14,7 @@
 #include "introstate.h"
 #include "pd_api.h"
 #include "pd_helperfuncs.h"
+#include "menus.h"
 
 void resetGlobals()
 {
