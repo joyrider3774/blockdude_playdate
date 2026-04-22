@@ -44,9 +44,8 @@ jobs:
         shell: msys2 {0}
         run: |
           rm -rf ./src/srcgame
-          rm -rf ./Source
-          mv tmp/Source ./Source
-          mv tmp/src ./src/srcgame                
+          mv tmp/src ./src/srcgame
+          cp -Rf tmp/Source/. ./Source
       - name: Build Game
         shell: msys2 {0}
         run: |
