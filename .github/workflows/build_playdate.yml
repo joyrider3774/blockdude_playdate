@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { pdx: BlockDude.pdx, env: playdate }
+          - {artiface_name: BlockDude, pdx: BlockDude_DEVICE.pdx, output-pdx: BlockDude.pdx, env: playdate }
           
     runs-on: ubuntu-latest       
     steps:
@@ -24,8 +24,8 @@ jobs:
         
       # ==== Build Steps ====
       - name: Check out Sources
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v6
+    
       - name: Grab Playdate SDK
         uses: wei/wget@v1
         with:
@@ -36,8 +36,8 @@ jobs:
           tar -xvf "PlaydateSDK-latest.tar.gz"
           rm -f "PlaydateSDK-latest.tar.gz"
           mv PlaydateSDK-* PlaydateSDK  
-      
-      - name: remove alternet Source folder
+                              
+      - name: remove alternate Source folder
         run: |
           rm -rf Source/Source1
       
@@ -53,11 +53,11 @@ jobs:
       - name: Prepare Artifact directory
         run: |
           mkdir output
-          mv ${{matrix.pdx}} output/
+          mv ${{matrix.pdx}} output/${{matrix.output-pdx}}
       
       - name: Store build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
-          name: Blockdude ${{matrix.env}}
+          name: ${{matrix.artiface_name}} ${{matrix.env}}
           path: output
 

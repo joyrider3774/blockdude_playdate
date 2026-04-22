@@ -13,28 +13,22 @@ env:
 
 jobs:
   build:
-    runs-on: macos-12    
+    runs-on: macos-15-intel   
     steps:
       - name: Checkout Playdate SDL2 Api Sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           repository: 'joyrider3774/Playdate_Api_SDL2'
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: tmp
         
       - name: Setup homebrew stuff
         run: |
           brew update
-          brew install --ignore-dependencies portaudio fluid-synth libxmp gettext glib libavif jpeg-turbo jpeg-xl libavif libpng libtiff webp
-          brew install --ignore-dependencies SDL2 SDL2_Mixer SDL2_Image SDL2_ttf SDL2_gfx dylibbundler
-       
-      - name: Setup Secret codekey.h File
-        env: 
-          SECRET: ${{ secrets.FORMULA1_PLAYDATE_CODEKEY }}
-        run : |
-          echo "$SECRET" | base64 --decode >  tmp/src/codekey.h
+          brew install portaudio libxmp gettext glib libavif jpeg-turbo jpeg-xl libavif libpng libtiff webp
+          brew install SDL2 SDL2_Mixer SDL2_Image SDL2_ttf SDL2_gfx dylibbundler
 
       - name: move things to correct directories
         run: |
@@ -42,10 +36,9 @@ jobs:
           mv tmp/src ./src/srcgame
           cp -Rf tmp/Source/. ./Source
       - name: Build Game
-        env: # Or as an environment variable
-          SECRET: ${{ secrets.FORMULA1_PLAYDATE_CODEKEY }}
         run: |
-          make "SRC_C_DIR=src/srcgame src/srcgame/scoresubmit"
+          make "SRC_C_DIR=src/srcgame" WINDOWSCALE=2
+
       - name: run dylibbundler
         run: |
           cd ./Source
@@ -107,7 +100,7 @@ jobs:
           tar -czvf "$ARTIFACT_NAME.tar.gz" "./$GAME_NAME.app"
           mv  "$ARTIFACT_NAME.tar.gz" ./artifact/
       - name: Store build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: ${{env.ARTIFACT_NAME}}
           path: artifact
